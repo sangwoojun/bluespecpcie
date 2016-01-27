@@ -145,7 +145,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqIdx <= enqIdx + 1;
 		enqState <= 1;
 		wm00.enq2(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
-		enqDmaWriteQ.enq(DMAWordTagged{word:{enqIdx,zeroExtend(enqIdx)}, tag:0});
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
 		$display( "DMA enq data start" );
 
 	endrule
