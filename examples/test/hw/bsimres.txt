@@ -1,0 +1,5 @@
+hardware shm_open /bdbm14777 returned 5 with errno 0
+AuroraOutQ: flowControl packet:  64
+send budget =     0
+Gearbox send out: 40000000000000000000000000000040
+Gearbox received: 40000000000000000000000000000040
