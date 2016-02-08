@@ -114,14 +114,18 @@ BdbmPcie::Init_Pcie() {
 	this->mmap_dma = mmdbuf;
 	this->reg_fd = fd;
 
+	printf( "PCIe device opened\n" ); fflush(stdout);
+
 	// This resets the remit,wemit registers in the server
 	ummd[0] = 0; // Init
+	
+	printf( "PCIe device init called\n" ); fflush(stdout);
 
 	this->io_wreq = 0;
 	this->io_rreq = 0;
 	this->io_wbudget = 0;
 	this->io_rbudget = 0;
-	
+
 	//pthread_create(&pollThread, NULL, bdbmPollThread, NULL);
 }
 
@@ -161,9 +165,16 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		iob += 0x10000;
 	}
 
+	int waitcount = 0;
 	while ( iob >= io_wemit + IO_QUEUE_SIZE ) {
-		usleep(1000);
+		usleep(10);
 		io_wemit = (ummd[1024-1] & 0xffff);
+		if ( waitcount <= 1024*100) {
+			waitcount ++;
+		} else {
+			printf( "\t!! writeWord waiting...\n" );
+			waitcount = 0;
+		}
 	}
 	
 	this->io_wbudget = io_wemit + IO_QUEUE_SIZE - iob;

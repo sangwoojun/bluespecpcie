@@ -126,7 +126,7 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 			Bool r <- bdpiDmaWriteData(dmaWriteWordAddr+dmaWriteWordOff, truncate(data), truncate(data>>64));
 			dmaWriteWordOff <= dmaWriteWordOff + 16;
 			dmaWriteWordCount <= dmaWriteWordCount - 1;
-			$display("dma data %x",data);
+			//$display("dma data %x",data);
 		endmethod
 		method Action dmaReadReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag) if ( dmaReadWordCount == 0 );
 			dmaReadWordCount <= words;

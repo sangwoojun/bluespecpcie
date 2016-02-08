@@ -14,15 +14,19 @@ DMASplitter::getInstance() {
 
 DMASplitter::DMASplitter() {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
-	pthread_create(&pollThread, NULL, dmaSplitterThread, NULL);
 	//nextrecvoff = 0;
 	nextrecvidx = 0;
+	
 
 	pthread_mutex_init(&recv_lock, NULL);
 	pthread_cond_init(&recv_cond, NULL);
 
 	//init enqReceiveIdx
 	pcie->writeWord((1024+16)*4, 0);
+	//init enqIdx
+	pcie->writeWord((1024+17)*4, 0);
+	
+	pthread_create(&pollThread, NULL, dmaSplitterThread, NULL);
 }
 
 

@@ -61,6 +61,25 @@ typedef 4096 IoUserSpaceOffset;
 typedef 32 DMABufOffset;
 
 
+interface PcieEngine;
+interface PcieCtrlIfc ctrl;
+interface PcieImportPins pins;
+interface Clock sys_clk_o;
+interface Reset sys_rst_n_o;
+endinterface
+
+(* synthesize *)
+(* no_default_clock, no_default_reset *)
+module mkPcieEngine#(Clock sys_clk_p, Clock sys_clk_n, Reset sys_rst_n, Clock emcclk) (PcieEngine);
+	PcieImportIfc pcie <- mkPcieImport(sys_clk_p, sys_clk_n, sys_rst_n, emcclk);
+	PcieCtrlIfc pcieCtrl <- mkPcieCtrl(pcie.user, clocked_by pcie.user_clk, reset_by pcie.user_reset);
+	interface ctrl = pcieCtrl;
+	interface pins = pcie.pins;
+	interface sys_clk_o = pcie.sys_clk_o;
+	interface Reset sys_rst_n_o = pcie.sys_rst_n_o;
+endmodule
+
+
 interface PcieUserIfc;
 	interface Clock user_clk;
 	interface Reset user_rst;
@@ -106,7 +125,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Reg#(Bit#(10)) rxOffset <- mkReg(0);
 	Vector#(4, Reg#(Bit#(1))) leddata <- replicateM(mkReg(0));
 
-	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkFIFO;
+	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkSizedFIFO(32);
 	Reg#(Maybe#(Bit#(PcieInterfaceSz))) partBuffer <- mkReg(tagged Invalid);
 	Reg#(Bit#(5)) partOffset <- mkReg(0);
 
@@ -160,7 +179,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Reg#(Bit#(10)) dmaSendWords <- mkReg(0);
 
 	FIFO#(IOReadReq) ioReadQ <- mkSizedFIFO(8);
-	FIFO#(SendTLP) sendTLPQ <- mkFIFO;
+	FIFO#(SendTLP) sendTLPQ <- mkSizedFIFO(8);
 
 	FIFO#(IOWrite) userWriteQ <- mkSizedFIFO(32);
 	FIFO#(IOReadReq) userReadQ <- mkSizedFIFO(32);
@@ -605,7 +624,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	endrule
 
 	FIFO#(SendTLP) userSendTLPQ <- mkFIFO;
-	(* descending_urgency = "generateDataTLP, generateHeaderTLP, completeIORead, procTLP, generateDmaReadTLP, relayUserSendTLP" *)
+	(* descending_urgency = "procTLP, generateDataTLP, generateHeaderTLP, completeIORead, generateDmaReadTLP, relayUserSendTLP" *)
 	rule relayUserSendTLP;
 		userSendTLPQ.deq;
 		sendTLPQ.enq(userSendTLPQ.first);
