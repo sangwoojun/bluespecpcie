@@ -17,6 +17,7 @@ public:
 	void writeWord(unsigned int addr, unsigned int data);
 	uint32_t readWord(unsigned int addr);
 
+	void waitInterrupt(int timeout);
 	void waitInterrupt();
 	void* dmaBuffer();
 	
@@ -51,6 +52,9 @@ private:
 	void* mmap_dma;
 	int reg_fd;
 //#endif
+
+	pthread_mutex_t pcie_lock;
+	pthread_cond_t pcie_cond;
 };
 
 #endif

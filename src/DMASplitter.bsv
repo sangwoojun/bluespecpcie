@@ -117,6 +117,11 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		dmaWriteSrc <= src;
 		//$display("Issuing DMA write from src %d", src);
 	endrule
+	FIFO#(Bool) assertInterruptQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	rule assertInterrupt;
+		assertInterruptQ.deq;
+		pcie.assertInterrupt;
+	endrule
 	rule senddmaWriteData ( dmaWriteCnt > 0 );
 		dmaWriteCnt <= dmaWriteCnt - 1;
 		if ( dmaWriteSrc < 255 ) begin
@@ -129,14 +134,16 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 				enqDmaWriteQ.first.word, 
 				enqDmaWriteQ.first.tag);
 			enqDmaWriteQ.deq;
-			if ( dmaWriteCnt == 1 ) pcie.assertInterrupt; // which is always
+			if ( dmaWriteCnt == 1 ) assertInterruptQ.enq(True);// pcie.assertInterrupt; // which is always
 		end
 		//$display("Sending DMA write data from src %d", dmaWriteSrc );
 	endrule
 
 	FIFO#(Bit#(128)) enqcQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(128)) enqQ <- mkSyncFIFOFromCC(8, pcieclk);
-	Reg#(Bit#(1)) enqState <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
+	//SyncFIFOIfc#(Bit#(128)) enq2Q <- mkSyncFIFOFromCC(8, pcieclk);
+	FIFO#(Bit#(128)) enq2Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(2)) enqState <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) enqOffset <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	FIFO#(Bit#(128)) enqDataQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
 
@@ -144,17 +151,24 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqcQ.deq;
 		enqQ.enq(enqcQ.first);
 	endrule
-	rule startEnqPacket ( enqState == 0 && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
+	rule relayEnqPacketC;//( enqIdx - enqReceivedIdx < ( 1024*4 )/32 );// Just 4K  //FIXME so may stages!
 		enqQ.deq;
-		enqDataQ.enq(enqQ.first);
+		enq2Q.enq(enqQ.first);
+	endrule
+	rule startEnqPacket ( enqState == 0 ); // && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
+		enq2Q.deq;
+		enqDataQ.enq(enq2Q.first);
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
-		enqIdx <= enqIdx + 1;
 		enqState <= 1;
 		wm00.enq[1].enq(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
-		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
 		$display( "DMA enq data start - %x", enqOffset );
 	endrule
-	rule sendEnqPacket ( enqState == 1 );
+	rule sendEnqIdx ( enqState == 1 ) ;
+		enqIdx <= enqIdx + 1;
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
+		enqState <= 2;
+	endrule
+	rule sendEnqPacket ( enqState == 2 );
 		enqState <= 0;
 		enqDataQ.deq;
 		enqDmaWriteQ.enq(DMAWordTagged{word:enqDataQ.first, tag:0});

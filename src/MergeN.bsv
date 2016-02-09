@@ -21,6 +21,41 @@ interface Merge4Ifc#(type t);
 	method t first;
 endinterface
 
+interface Merge8Ifc#(type t);
+	interface Vector#(8, MergeEnqIfc#(t)) enq;
+
+	method Action deq;
+	method t first;
+endinterface
+
+module mkMerge8 (Merge8Ifc#(t))
+	provisos(Bits#(t, a__));
+	Vector#(2,Merge4Ifc#(t)) ma <- replicateM(mkMerge4);
+	Merge2Ifc#(t) mb <- mkMerge2;
+	for ( Integer i = 0; i < 2; i = i +1 ) begin
+		rule ma1;
+			ma[i].deq;
+			mb.enq[i].enq(ma[i].first);
+		endrule
+	end
+
+	Vector#(8, MergeEnqIfc#(t)) enq_;
+	for ( Integer i = 0; i < 8; i = i + 1) begin
+		enq_[i] = interface MergeEnqIfc;
+			method Action enq(t d);
+				ma[i/4].enq[i%4].enq(d);
+			endmethod
+		endinterface;
+	end
+	interface enq = enq_;
+	method Action deq;
+		mb.deq;
+	endmethod
+	method t first;
+		return mb.first;
+	endmethod
+endmodule
+
 module mkMerge4 (Merge4Ifc#(t))
 	provisos(Bits#(t, a__));
 	Vector#(2,Merge2Ifc#(t)) ma <- replicateM(mkMerge2);
@@ -95,36 +130,6 @@ module mkMerge2 (Merge2Ifc#(t))
 	method Action deq = outQ.deq;
 	method t first = outQ.first;
 endmodule
-
-interface MergeNIfc#(numeric type n, type t);
-	interface Vector#(n, MergeEnqIfc#(t)) enq;
-
-	method Action deq;
-	method t first;
-endinterface
-
-/*
-module mkMergeN (MergeNIfc#(n, t))
-	provisos(Bits#(t, a__));
-
-	Vector#(n, FIFOF#(t)) inQ <- replicateM(mkFIFOF);
-	FIFO#(t) outQ <- mkFIFO;
-
-	
-	Vector#(n, MergeEnqIfc#(t)) enq_;
-	for ( Integer i = 0; i < valueOf(n); i = i + 1 ) begin
-		enq_[i] = interface MergeEnqIfc;
-			method Action enq(t d);
-				inQ[i].enq(d);
-			endmethod
-		endinterface;
-	end
-
-	interface enq = enq_;
-	method Action deq = outQ.deq;
-	method t first = outQ.first;
-endmodule
-*/
 
 endpackage: MergeN
 

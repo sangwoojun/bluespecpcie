@@ -19,6 +19,8 @@ import BRAMFIFO::*;
 
 import PcieImport::*;
 
+import MergeN::*;
+
 typedef struct {
 	Bit#(16) requesterID;
 	Bit#(8) tag;
@@ -126,6 +128,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Vector#(4, Reg#(Bit#(1))) leddata <- replicateM(mkReg(0));
 
 	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkSizedFIFO(32);
+	FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkSizedFIFO(32);
 	Reg#(Maybe#(Bit#(PcieInterfaceSz))) partBuffer <- mkReg(tagged Invalid);
 	Reg#(Bit#(5)) partOffset <- mkReg(0);
 
@@ -180,9 +183,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 	FIFO#(IOReadReq) ioReadQ <- mkSizedFIFO(8);
 	FIFO#(SendTLP) sendTLPQ <- mkSizedFIFO(8);
+	Merge8Ifc#(SendTLP) sendTLPm <- mkMerge8;
 
-	FIFO#(IOWrite) userWriteQ <- mkSizedFIFO(32);
-	FIFO#(IOReadReq) userReadQ <- mkSizedFIFO(32);
+	FIFO#(IOWrite) userWriteQ <- mkSizedBRAMFIFO(128);
+	FIFO#(IOReadReq) userReadQ <- mkSizedBRAMFIFO(128);
 
 	Reg#(Bit#(16)) userWriteBudget <- mkReg(0);
 	Reg#(Bit#(16)) userWriteEmit <- mkReg(0);
@@ -209,12 +213,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		end
 	endrule
 
-
-	rule procTLP( dmaSendWords == 0 && completionRecvLength == 0 ); //FIXME any more efficient way to do this?
+	rule filterStatReadTLP( completionRecvLength == 0 );
 		let tlp = tlpQ.first;
 		tlpQ.deq;
-		tlpCount <= tlpCount + 1;
-
+		
 		Bit#(7) ptype = tlp[30:24];
 		
 		// don't know why, but rd32 generates type_rd32_mem
@@ -253,6 +255,74 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			Bit#(20) internalAddr = truncate(addr);
 			if ( internalAddr == 0 ) begin // magic number
 				cdw3 = reverseEndian(32'hc001d00d);
+				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+			end
+			else if ( internalAddr == (1024*4)-8) begin
+				cdw3 = reverseEndian(zeroExtend(userReadEmit));
+				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+			end
+			else if ( internalAddr == (1024*4)-4) begin
+				//cdw3 = reverseEndian(zeroExtend(userWriteBudget-userWriteEmit));
+				cdw3 = reverseEndian(zeroExtend(userWriteEmit));
+				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+			end
+			else begin
+				tlp2Q.enq(tlp);
+			end
+		end
+		else begin
+			tlp2Q.enq(tlp);
+		end
+	endrule
+
+
+	rule procTLP( completionRecvLength == 0 ); 
+		let tlp = tlp2Q.first;
+		tlp2Q.deq;
+		tlpCount <= tlpCount + 1;
+
+		Bit#(7) ptype = tlp[30:24];
+		
+		// don't know why, but rd32 generates type_rd32_mem
+		if ( ptype == type_rd32_io ||
+			ptype == type_rd32_mem ) begin
+			let len = tlp[9:0];
+			let attr = tlp[13:12];
+			let td = tlp[15];
+			let ep = tlp[14];
+			let tc = tlp[22:20];
+			let be = tlp[3+32:32];
+			Bit#(8) tag = tlp[15+32:8+32];
+			Bit#(16) rid = tlp[31+32:16+32];
+			Bit#(32) addr = {tlp[31+64:2+64],2'b00};
+
+			Bit#(32) cdw0 = {
+				1'b0,
+				2'b10,
+				5'ha,
+				1'b0,
+				tc,4'h0,td,
+				//3'b0, 4'b0,1'b0,
+				ep,attr,2'b0,10'h1
+				//1'b0,2'b0,2'b0,10'h1
+			};
+			Bit#(32) cdw1 = {
+				user.cfg_completer_id,4'b0000,
+				12'h4// read32 only...
+			};
+			Bit#(32) cdw2 = {
+				rid,tag,1'b0,
+				addr[6:0]
+			};
+			let cdw3 = reverseEndian(read32data);
+
+			Bit#(20) internalAddr = truncate(addr);
+			/*
+			if ( internalAddr == 0 ) begin // magic number
+				cdw3 = reverseEndian(32'hc001d00d);
 				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
 			else if ( internalAddr == (1024*4)-8) begin
@@ -264,7 +334,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				cdw3 = reverseEndian(zeroExtend(userWriteEmit));
 				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
-			else if ( internalAddr < 1024*4 ) begin
+			else 
+			*/
+			if ( internalAddr < 1024*4 ) begin
 				configBuffer.portA.request.put(
 					BRAMRequest{
 					write:False, responseOnWrite:False,
@@ -337,7 +409,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			};
 			let cdw3 = 0;
 			if ( ptype == type_wr32_io ) begin
-				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+				sendTLPm.enq[1].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
 			end
 		end else if ( ptype == type_completion ) begin
 			Bit#(10) length = tlp[9:0];
@@ -372,7 +445,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			ioreq.addr[6:0]
 		};
 		let cdw3 = reverseEndian(v);
-		sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+		//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
+		sendTLPm.enq[2].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 	endrule
 
 	FIFO#(Bit#(32)) dmaWriteBufAddrQ <- mkFIFO;
@@ -467,7 +541,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 		Bit#(32) cdw3 = 0;
 
-		sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+		//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+		sendTLPm.enq[3].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
 	endrule
 
 	// BEGIN DMA WRITE RELATED ///////////////////////////////////
@@ -570,6 +645,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		Bit#(32) cdw3 = reverseEndian(truncate(data));
 
 		sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b0});
+		//sendTLPm.enq[4].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b0});
 	endrule
 
 	rule generateDataTLP ( dataWordsRemain > 0 );
@@ -587,6 +663,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			let data = dmaWriteBuf | (zeroExtend(h)<<(128-32));
 
 			sendTLPQ.enq(SendTLP{tlp:{
+			//sendTLPm.enq[5].enq(SendTLP{tlp:{
 				reverseEndian(data[127:96]),
 				reverseEndian(data[95:64]),
 				reverseEndian(data[63:32]),
@@ -596,6 +673,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		end else begin
 			let data = dmaWriteBuf;
 			sendTLPQ.enq(SendTLP{tlp:{
+			//sendTLPm.enq[5].enq(SendTLP{tlp:{
 				reverseEndian(data[127:96]),
 				reverseEndian(data[95:64]),
 				reverseEndian(data[63:32]),
@@ -611,6 +689,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	// END DMA WRITE RELATED //////////////////////////////////////
 
 
+	rule relayTLPm( dataWordsRemain == 0 );
+		sendTLPm.deq;
+		sendTLPQ.enq(sendTLPm.first);
+	endrule
 	rule relayTLP;
 		sendTLPQ.deq;
 		let tlp = sendTLPQ.first;
@@ -624,10 +706,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	endrule
 
 	FIFO#(SendTLP) userSendTLPQ <- mkFIFO;
-	(* descending_urgency = "procTLP, generateDataTLP, generateHeaderTLP, completeIORead, generateDmaReadTLP, relayUserSendTLP" *)
+	//(* descending_urgency = "filterStatReadTLP, procTLP, generateDataTLP, generateHeaderTLP, completeIORead, generateDmaReadTLP, relayUserSendTLP" *)
+	(* descending_urgency = "generateDataTLP, generateHeaderTLP" *)
 	rule relayUserSendTLP;
 		userSendTLPQ.deq;
-		sendTLPQ.enq(userSendTLPQ.first);
+		//sendTLPQ.enq(userSendTLPQ.first);
+		sendTLPm.enq[5].enq(userSendTLPQ.first);
 	endrule
 
 

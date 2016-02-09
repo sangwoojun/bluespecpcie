@@ -172,8 +172,23 @@ set_false_path -from [get_cells -hierarchical -regexp {NAME=~*hwmain_dma_*fifoMe
 set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst125*}]
 set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst250*}]
 set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/dclk_rst_reg*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_support_i/pcie_7x_0_i/inst/inst/user_reset_out_reg_replica*}]
+set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset_reg/C}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_support_i/pcie_7x_0_i/inst/inst/user_reset_out_reg_replica*}]
 set_false_path -from [get_pins -hierarchical -regexp {NAME=~*pcie_7x_0_support_i/pcie_7x_0_i/inst/inst/user_reset_out_reg_replica/C}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dEnqPtr*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dNotEmptyReg*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *PRE}]
 
 
 

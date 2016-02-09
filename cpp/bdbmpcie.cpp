@@ -130,6 +130,8 @@ BdbmPcie::Init_Pcie() {
 }
 
 BdbmPcie::BdbmPcie() {
+	pthread_mutex_init(&pcie_lock, NULL);
+	pthread_cond_init(&pcie_cond, NULL);
 #ifdef BLUESIM
 	this->Init_Bluesim();
 #else
@@ -149,6 +151,8 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 	
 	outfifo->push(d);
 #else
+
+	pthread_mutex_lock(&pcie_lock);
 	unsigned int* ummd = (unsigned int*)this->mmap_io;
 	//TODO lock?
 	if ( io_wbudget > 0 ) {
@@ -156,6 +160,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		io_wbudget--;
 
 		ummd[(addr>>2)] = data;
+		pthread_mutex_unlock(&pcie_lock);
 		return;
 	}
 	unsigned int io_wemit = ummd[1024-1];
@@ -167,12 +172,14 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 
 	int waitcount = 0;
 	while ( iob >= io_wemit + IO_QUEUE_SIZE ) {
-		usleep(10);
+		usleep(50);
+		//pthread_cond_wait(&pcie_cond, &pcie_lock);
 		io_wemit = (ummd[1024-1] & 0xffff);
+
 		if ( waitcount <= 1024*100) {
 			waitcount ++;
 		} else {
-			printf( "\t!! writeWord waiting...\n" );
+			printf( "\t!! writeWord waiting... %d %d %d\n", io_wbudget, io_wreq, io_wemit );
 			waitcount = 0;
 		}
 	}
@@ -181,6 +188,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 
 	ummd[(addr>>2)] = data;
 	io_wreq = (0xffff & (io_wreq + 1));
+	pthread_mutex_unlock(&pcie_lock);
 #endif
 }
 
@@ -220,7 +228,7 @@ BdbmPcie::readWord(unsigned int addr) {
 	}
 
 	while ( iob >= io_remit + IO_QUEUE_SIZE ) {
-		usleep(1000);
+		usleep(100);
 		io_remit = (ummd[1024-2] & 0xffff);
 	}
 
@@ -234,6 +242,11 @@ BdbmPcie::readWord(unsigned int addr) {
 
 void
 BdbmPcie::waitInterrupt() {
+	this->waitInterrupt(-1);
+}
+
+void
+BdbmPcie::waitInterrupt(int timeout) {
 #ifdef BLUESIM
 	while ( interruptfifo->empty() ) {usleep(1000);}
 	while ( !interruptfifo->empty() ) {
@@ -248,7 +261,7 @@ BdbmPcie::waitInterrupt() {
 	pfd.fd = bdbmregsfd;
 	pfd.events = POLLIN;
 
-	poll(&pfd, 1, -1);
+	poll(&pfd, 1, timeout);
 
 	return;
 #endif

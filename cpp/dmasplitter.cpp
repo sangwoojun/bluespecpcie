@@ -6,6 +6,7 @@ DMASplitter::m_pInstance = NULL;
 DMASplitter*
 DMASplitter::getInstance() {
 	if (m_pInstance == NULL) {
+		printf( "Initializing DMASplitter\n" ); fflush(stdout);
 		m_pInstance = new DMASplitter();
 	}
 
@@ -14,6 +15,14 @@ DMASplitter::getInstance() {
 
 DMASplitter::DMASplitter() {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
+	void* dmabuf = pcie->dmaBuffer();
+	uint32_t* ubuf = (uint32_t*)dmabuf;
+
+	bool found = false;
+	for ( int i = 0; i < (1024*4/sizeof(uint32_t)); i++ ) {
+		ubuf[i] = 0xffffffff;
+	}
+
 	//nextrecvoff = 0;
 	nextrecvidx = 0;
 	
@@ -110,7 +119,7 @@ void* dmaSplitterThread(void* arg) {
 	DMASplitter* dma = DMASplitter::getInstance();
 
 	while (1) {
-		pcie->waitInterrupt();
+		pcie->waitInterrupt(10);
 		dma->scanReceive();
 	}
 }

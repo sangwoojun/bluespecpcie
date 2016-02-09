@@ -1,0 +1,13 @@
+build
+build_bsim
+.*.sw?
+.bit
+obj
+
+fsm_encoding.os
+webtalk.jou
+webtalk.log
+
+
+pcie_7x_0
+.Xil
