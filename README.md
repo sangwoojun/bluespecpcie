@@ -5,6 +5,7 @@ Development was done on Vivado 2015.4
 NOTE:
 	DMA buffer starting from 0 to 4096 bytes are reserved for hw->sw FIFO interface.
 	I should figure out a way to make this region unusable to the user.
+	-> I have! dma->dmaBuffer()
 
 Run "make core" to generate the PCIe core before running "make" or "make bsim"
 

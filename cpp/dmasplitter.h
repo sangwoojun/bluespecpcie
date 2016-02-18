@@ -29,7 +29,6 @@ public:
 
 	void* dmaBuffer();
 
-
 private:
 	static DMASplitter* m_pInstance;
 	DMASplitter();

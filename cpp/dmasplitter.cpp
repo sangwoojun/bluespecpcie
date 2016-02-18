@@ -106,7 +106,8 @@ DMASplitter::recvWord() {
 	return w;
 }
 
-void* dmaBuffer() {
+void* 
+DMASplitter::dmaBuffer() {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 	void* dmabuf = pcie->dmaBuffer();
 	uint8_t* bbuf = (uint8_t*)dmabuf;

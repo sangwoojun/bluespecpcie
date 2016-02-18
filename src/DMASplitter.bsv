@@ -50,7 +50,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 			end
 		end else if ( toffset == 16 ) begin
 			enqReceivedIdx <= d.data;
-			$display( "enqReceivedIdx set to %d", d.data );
+			//$display( "enqReceivedIdx set to %d", d.data );
 		end else if ( toffset == 17 ) begin
 			enqIdx <= d.data;
 		end
@@ -161,7 +161,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
 		enqState <= 1;
 		wm00.enq[1].enq(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
-		$display( "DMA enq data start - %x", enqOffset );
+		//$display( "DMA enq data start - %x", enqOffset );
 	endrule
 	rule sendEnqIdx ( enqState == 1 ) ;
 		enqIdx <= enqIdx + 1;

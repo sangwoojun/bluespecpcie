@@ -53,8 +53,10 @@ private:
 	int reg_fd;
 //#endif
 
-	pthread_mutex_t pcie_lock;
-	pthread_cond_t pcie_cond;
+	pthread_mutex_t write_lock;
+	pthread_mutex_t read_lock;
+
+	//pthread_cond_t pcie_cond;
 };
 
 #endif
