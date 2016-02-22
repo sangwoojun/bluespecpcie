@@ -68,13 +68,13 @@ DMASplitter::scanReceive() {
 	for ( int i = 0; i < (1024*4/32); i++ ) {
 		int u32off = i*4*2;
 
-		uint32_t nidx = ubuf[u32off];
+		uint32_t nidx = ubuf[u32off+4];
 		if ( nidx == nextrecvidx ) {
 			PCIeWord w;
-			w.d[0] = ubuf[u32off+4];
-			w.d[1] = ubuf[u32off+5];
-			w.d[2] = ubuf[u32off+6];
-			w.d[3] = ubuf[u32off+7];
+			w.d[0] = ubuf[u32off];
+			w.d[1] = ubuf[u32off+1];
+			w.d[2] = ubuf[u32off+2];
+			w.d[3] = ubuf[u32off+3];
 			
 			pthread_mutex_lock(&recv_lock);
 			recvList.push_front(w);

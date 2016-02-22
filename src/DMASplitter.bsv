@@ -163,16 +163,16 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		wm00.enq[1].enq(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
 		//$display( "DMA enq data start - %x", enqOffset );
 	endrule
-	rule sendEnqIdx ( enqState == 1 ) ;
-		enqIdx <= enqIdx + 1;
-		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
+	rule sendEnqPacket ( enqState == 1 );
 		enqState <= 2;
-	endrule
-	rule sendEnqPacket ( enqState == 2 );
-		enqState <= 0;
 		enqDataQ.deq;
 		enqDmaWriteQ.enq(DMAWordTagged{word:enqDataQ.first, tag:0});
 		//$display( "DMA enq data next" );
+	endrule
+	rule sendEnqIdx ( enqState == 2 ) ;
+		enqIdx <= enqIdx + 1;
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
+		enqState <= 0;
 	endrule
 
 
