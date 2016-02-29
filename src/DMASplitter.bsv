@@ -9,6 +9,7 @@ import BRAMFIFO::*;
 import PcieCtrl::*;
 
 import MergeN::*;
+import CompletionFIFO::*;
 
 interface DMAUserIfc;
 	method Action dmaWriteReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
@@ -18,9 +19,10 @@ interface DMAUserIfc;
 endinterface
 
 interface DMASplitterIfc #(numeric type ways);
-	method Action enq(Bit#(128) word);
+	method Action enq(Bit#(32) head, Bit#(128) word);
 	method Action deq;
 	method Bit#(128) first;
+	method Bit#(32) header;
 
 	interface Vector#(ways, DMAUserIfc) users;
 endinterface
@@ -37,16 +39,18 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	Reg#(Bit#(32)) enqIdx <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	FIFO#(DMAWordTagged) enqDmaWriteQ <- mkSizedFIFO(32,clocked_by pcieclk, reset_by pcierst);
 	
-	Vector#(4, Reg#(Bit#(32))) writeBuf <- replicateM(mkReg(0), clocked_by pcieclk, reset_by pcierst);
+	Vector#(8, Reg#(Bit#(32))) writeBuf <- replicateM(mkReg(0), clocked_by pcieclk, reset_by pcierst);
 	SyncFIFOIfc#(Bit#(128)) ioRecvQ <- mkSyncFIFOToCC(8, pcieclk, pcierst);
+	SyncFIFOIfc#(Bit#(32)) ioRecvHQ <- mkSyncFIFOToCC(8, pcieclk, pcierst);
 	rule getWriteReq;
 		let d <- pcie.dataReceive;
 		Bit#(8) toffset = truncate(d.addr>>2);
 		if ( d.addr < 16 ) begin
-			Bit#(2) offset = truncate(d.addr>>2);
+			Bit#(3) offset = truncate(d.addr>>2);
 			writeBuf[offset] <= d.data;
 			if ( offset == 0 ) begin
 				ioRecvQ.enq({writeBuf[3], writeBuf[2], writeBuf[1], d.data});
+				ioRecvHQ.enq(writeBuf[4]);
 			end
 		end else if ( toffset == 16 ) begin
 			enqReceivedIdx <= d.data;
@@ -63,7 +67,14 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 
 	
 	// TODO Cleaner way to do this?
+	MergeNIfc#(ways, Tuple2#(Bit#(8), DMAWriteReq)) wm <- mkMergeN(clocked_by pcieclk, reset_by pcierst);
 	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm00 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
+	rule merge0;
+		wm.deq;
+		wm00.enq[0].enq(wm.first);
+	endrule
+
+/*
 	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm10 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
 	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm20 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
 	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm21 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
@@ -75,10 +86,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		wm21.deq;
 		wm10.enq[1].enq(wm21.first);
 	endrule
-	rule merge0;
-		wm10.deq;
-		wm00.enq[0].enq(wm10.first);
-	endrule
+	*/
 	Vector#(ways, FIFO#(Tuple2#(Bit#(8), DMAWriteReq))) reqQv <- replicateM(mkFIFO);
 	for ( Integer i = 0; i < valueOf(ways); i = i + 1 ) begin
 		rule relayDmaWriteQ;
@@ -95,12 +103,15 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		endrule
 		rule relaydmawrq ;
 			sfifodma.deq;
+			wm.enq[i].enq(sfifodma.first);
+			/*
 			case (i)
 				0: wm20.enq[0].enq(sfifodma.first);
 				1: wm20.enq[1].enq(sfifodma.first);
 				2: wm21.enq[0].enq(sfifodma.first);
 				3: wm21.enq[1].enq(sfifodma.first);
 			endcase
+			*/
 		endrule
 	end
 
@@ -141,8 +152,12 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 
 	FIFO#(Bit#(128)) enqcQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(128)) enqQ <- mkSyncFIFOFromCC(8, pcieclk);
-	//SyncFIFOIfc#(Bit#(128)) enq2Q <- mkSyncFIFOFromCC(8, pcieclk);
 	FIFO#(Bit#(128)) enq2Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	
+	FIFO#(Bit#(32)) enqchQ <- mkSizedFIFO(16);
+	SyncFIFOIfc#(Bit#(32)) enqhQ <- mkSyncFIFOFromCC(8, pcieclk);
+	FIFO#(Bit#(32)) enqh2Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+
 	Reg#(Bit#(2)) enqState <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) enqOffset <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	FIFO#(Bit#(128)) enqDataQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
@@ -150,13 +165,18 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	rule relayEnqPacket;
 		enqcQ.deq;
 		enqQ.enq(enqcQ.first);
+		enqchQ.deq;
+		enqhQ.enq(enqchQ.first);
 	endrule
 	rule relayEnqPacketC;//( enqIdx - enqReceivedIdx < ( 1024*4 )/32 );// Just 4K  //FIXME so may stages!
 		enqQ.deq;
 		enq2Q.enq(enqQ.first);
+		enqhQ.deq;
+		enqh2Q.enq(enqhQ.first);
 	endrule
 	rule startEnqPacket ( enqState == 0 ); // && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
 		enq2Q.deq;
+
 		enqDataQ.enq(enq2Q.first);
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
 		enqState <= 1;
@@ -170,11 +190,20 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		//$display( "DMA enq data next" );
 	endrule
 	rule sendEnqIdx ( enqState == 2 ) ;
+		enqh2Q.deq;
+
 		enqIdx <= enqIdx + 1;
-		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx)}, tag:0});
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx), enqh2Q.first}, tag:0});
 		enqState <= 0;
 	endrule
 
+	CompletionFIFOIfc#(Bit#(128), 7, 8) cbuf <- mkCompletionFIFO;
+	FIFO#(Bit#(8)) availReadTagQ <- mkSizedFIFO(128);
+	Reg#(Bit#(8)) readTagCounter <- mkReg(128);
+	rule fillReadTagQ(readTagCounter > 0);
+		readTagCounter <= readTagCounter - 1;
+		availReadTagQ.enq(readTagCounter);
+	endrule
 
 	Vector#(ways, DMAUserIfc) users_;
 
@@ -197,14 +226,19 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		endinterface: DMAUserIfc;
 	end
 
-	method Action enq(Bit#(128) word);
+	method Action enq(Bit#(32) head, Bit#(128) word);
 		enqcQ.enq(word);
+		enqchQ.enq(head);
 	endmethod
 	method Action deq;
 		ioRecvQ.deq;
+		ioRecvHQ.deq;
 	endmethod
 	method Bit#(128) first;
 		return ioRecvQ.first;
+	endmethod
+	method Bit#(32) header;
+		return ioRecvHQ.first;
 	endmethod
 	interface users = users_;
 endmodule

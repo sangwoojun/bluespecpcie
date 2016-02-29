@@ -43,15 +43,18 @@ void
 DMASplitter::sendWord(PCIeWord word) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 
+	
+	pcie->writeWord((1024+4)*4, word.header);
 	for ( int i = 3; i >= 0; i-- ) {
 		pcie->writeWord((1024+i)*4, word.d[i]);
 	}
 }
 
 void 
-DMASplitter::sendWord(uint32_t d1, uint32_t d2, uint32_t d3, uint32_t d4) {
+DMASplitter::sendWord(uint32_t header, uint32_t d1, uint32_t d2, uint32_t d3, uint32_t d4) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 
+	pcie->writeWord((1024+4)*4, header);
 	pcie->writeWord((1024+3)*4, d4);
 	pcie->writeWord((1024+2)*4, d3);
 	pcie->writeWord((1024+1)*4, d2);
@@ -68,13 +71,14 @@ DMASplitter::scanReceive() {
 	for ( int i = 0; i < (1024*4/32); i++ ) {
 		int u32off = i*4*2;
 
-		uint32_t nidx = ubuf[u32off+4];
+		uint32_t nidx = ubuf[u32off+5];
 		if ( nidx == nextrecvidx ) {
 			PCIeWord w;
 			w.d[0] = ubuf[u32off];
 			w.d[1] = ubuf[u32off+1];
 			w.d[2] = ubuf[u32off+2];
 			w.d[3] = ubuf[u32off+3];
+			w.header = ubuf[u32off+4];
 			
 			pthread_mutex_lock(&recv_lock);
 			recvList.push_front(w);

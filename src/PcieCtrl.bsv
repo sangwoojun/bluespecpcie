@@ -183,7 +183,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 	FIFO#(IOReadReq) ioReadQ <- mkSizedFIFO(8);
 	FIFO#(SendTLP) sendTLPQ <- mkSizedFIFO(8);
-	Merge8Ifc#(SendTLP) sendTLPm <- mkMerge8;
+	MergeNIfc#(8,SendTLP) sendTLPm <- mkMergeN;
 
 	FIFO#(IOWrite) userWriteQ <- mkSizedBRAMFIFO(128);
 	FIFO#(IOReadReq) userReadQ <- mkSizedBRAMFIFO(128);
