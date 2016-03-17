@@ -138,12 +138,26 @@ set_property IOSTANDARD LVCMOS18 [get_ports RST_N_sys_rst_n]
 set_property PULLUP true [get_ports RST_N_sys_rst_n]
 set_property LOC AV35 [get_ports RST_N_sys_rst_n]
 
-#set_property IOSTANDARD DIFF_SSTL15 [get_ports CLK_sys_clk_*]
+set_property IOSTANDARD DIFF_SSTL15 [get_ports CLK_sys_clk_*]
 #set_property IOSTANDARD LVDS [get_ports CLK_sys_clk_p]
+set_property LOC AB7 [get_ports CLK_sys_clk_n]
+set_property LOC AB8 [get_ports CLK_sys_clk_p]
 #set_property LOC AB7 [get_ports CLK_sys_clk_n]
 #set_property LOC AB8 [get_ports CLK_sys_clk_p]
-#set_property LOC AB7 [get_ports CLK_sys_clk_n]
-#set_property LOC AB8 [get_ports CLK_sys_clk_p]
+
+set_property IOSTANDARD LVCMOS18 [get_ports CLK_emcclk]
+set_property LOC AP37 [get_ports CLK_emcclk]
+
+set_property BITSTREAM.CONFIG.BPI_SYNC_MODE Type1 [current_design]
+set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-1 [current_design]
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+
+
+##New
+set_property BITSTREAM.CONFIG.UNUSEDPIN Pullup [current_design]
+set_property CONFIG_MODE BPI16 [current_design]
+set_property CFGBVS GND [current_design]
+set_property CONFIG_VOLTAGE 1.8 [current_design]
 
 #
 # LED Status Indicators for Example Design.
@@ -165,16 +179,12 @@ set_property LOC AR37 [get_ports led[2]]
 # USER CLK HEART BEAT = led_3
 set_property LOC AT37 [get_ports led[3]]
 
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*hwmain_dma_*dGDeqPtr*}] -to [get_cells -hierarchical -regexp {NAME=~ *hwmain_dma_*sSyncReg*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*hwmain_dma_*sGEnqPtr*}] -to [get_cells -hierarchical -regexp {NAME=~ *hwmain_dma_*dSyncReg*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*hwmain_dma_*fifoMem*}] -to [get_cells -hierarchical -regexp {NAME=~ *hwmain_dma_*dDoutReg*}]
 
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst125*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst250*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/dclk_rst_reg*}]
-set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset_reg/C}]
-#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_support_i/pcie_7x_0_i/inst/inst/user_reset_out_reg_replica*}]
-set_false_path -from [get_pins -hierarchical -regexp {NAME=~*pcie_7x_0_support_i/pcie_7x_0_i/inst/inst/user_reset_out_reg_replica/C}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst125*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst250*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/dclk_rst_reg*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset_reg/C}]
+#set_false_path -from [get_pins -hierarchical -filter {NAME=~*pcie_7x_0_i/inst/inst/user_reset_out_reg/C}]
 
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dEnqPtr*}] -filter {NAME =~ *CLR}]
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dNotEmptyReg*}] -filter {NAME =~ *CLR}]
@@ -182,13 +192,17 @@ set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME 
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *PRE}]
 
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *PRE}]
+#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *PRE}]
 
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *PRE}]
+#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *PRE}]
 
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *CLR}]
 set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *PRE}]
+
+#rst125/reset_hold_reg[7]_replica/C
+set_false_path -from [get_pins -of_objects [get_cells -hier -filter {NAME=~ *rst125/*}] -filter {NAME=~ *C}]
+set_false_path -from [get_pins -hier -filter {NAME =~ *pcie_7x_0_i/inst/inst/user_reset_out_*/C}]
 
 
 
@@ -211,12 +225,6 @@ set_property LOC IBUFDS_GTE2_X1Y5 [get_cells -hier refclk_ibuf]
 
 set_false_path -from [get_ports RST_N_sys_rst_n]
 
-set_property IOSTANDARD LVCMOS18 [get_ports CLK_emcclk]
-set_property LOC AP37 [get_ports CLK_emcclk]
-
-set_property BITSTREAM.CONFIG.BPI_SYNC_MODE Type1 [current_design]
-set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-1 [current_design]
-set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
 
 
@@ -284,9 +292,14 @@ set_property LOC AH3  [get_ports { pcie_pins_TXN[5] }]
 set_property LOC AJ1  [get_ports { pcie_pins_TXN[6] }]
 set_property LOC AK3  [get_ports { pcie_pins_TXN[7] }]
 
-startgroup
-create_pblock pblock_PCIe
-resize_pblock pblock_PCIe -add {CLOCKREGION_X1Y1:CLOCKREGION_X1Y2}
-add_cells_to_pblock pblock_PCIe [get_cells pcie]
-add_cells_to_pblock pblock_PCIe [get_cells -regexp {NAME=~pcieCtrl*}]
-endgroup
+# 250MHz
+#create_clock -name clk_gen_250 -period 4 [get_pins clk_gen_pll/CLKOUT0] -add
+# 125MHz
+#create_clock -name clk_gen_125 -period 8 [get_pins clk_gen_pll/CLKOUT1] -add
+
+#startgroup
+#create_pblock pblock_PCIe
+#resize_pblock pblock_PCIe -add {CLOCKREGION_X1Y1:CLOCKREGION_X1Y2}
+#add_cells_to_pblock pblock_PCIe [get_cells pcie]
+#add_cells_to_pblock pblock_PCIe [get_cells -regexp {NAME=~pcieCtrl*}]
+#endgroup

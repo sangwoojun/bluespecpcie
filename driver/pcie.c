@@ -150,17 +150,25 @@ probe_fail_enable:
 }
 
 static void pcie_remove( struct pci_dev *dev) {
+	printk(KERN_ALERT "Removing bluespecpcie driver\n");
 	pci_clear_master(dev);
+	printk(KERN_ALERT "Cleared PCIe master\n");
 
 	disable_irq(irq);
 	free_irq(irq, dev);
+	printk(KERN_ALERT "Disabled and freed irq\n");
 
-	pci_disable_msi(dev);
+	pci_disable_msi(dev); 
+	printk(KERN_ALERT "Disabled MSI\n");
 
 	pci_iounmap(dev, bar0_ptr);
+	printk(KERN_ALERT "IOunmap\n");
+
 	pci_release_regions(dev);
+	printk(KERN_ALERT "pci_release_regions\n");
 
 	pci_disable_device(dev);
+	printk(KERN_ALERT "pci_disable_device\n");
 }
 
 static struct pci_driver pci_driver = {
@@ -283,10 +291,10 @@ static int bdbm_open(struct inode *inode, struct file *filp) {
 	return 0;
 }
 
-unsigned long mmap_buffersize = 2*1024*1024;
+unsigned long mmap_buffersize = 8*1024*1024;
 static int bdbm_mmap(struct file *filp, struct vm_area_struct *vma) {
 	// First 1MB of the vmem is mapped to the BAR0 address space
-	// Next 2MB is mapped to the pre-defined page buffer
+	// Next nMB is mapped to the pre-defined page buffer
 
 	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
 	unsigned long vsize = vma->vm_end - vma->vm_start;
@@ -412,7 +420,7 @@ static int chrdev_init(void) {
 	class = class_create(THIS_MODULE, "bdbmpcie");
 	device = device_create(class, NULL, chrdev, NULL, "bdbm_regs0");
 
-	create_dma_buffer(mmap_buffersize/(1024*4)); //4K * 512 = 2MB
+	create_dma_buffer(mmap_buffersize/(1024*4)); //4K * 1024 * 2 = 8MB
 	
 	// writing ioctl command id to config address
 	bar0_data = (u8*)bar0_ptr;

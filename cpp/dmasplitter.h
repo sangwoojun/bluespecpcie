@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <pthread.h>
 
 #include <list>
+#include <string.h>
 
 #include "bdbmpcie.h"
+
+#define IO_USER_OFFSET 4096
 
 #ifndef __DMA_SPLITTER__H__
 #define __DMA_SPLITTER__H__
@@ -26,7 +30,7 @@ public:
 	void sendWord(PCIeWord word);
 	PCIeWord recvWord();
 	
-	void scanReceive();
+	int scanReceive();
 
 	void* dmaBuffer();
 
@@ -38,6 +42,7 @@ private:
 
 	//int nextrecvoff;
 	int nextrecvidx;
+	uint32_t nextrecvoff;
 	std::list<PCIeWord> recvList;
 	pthread_mutex_t recv_lock;
 	pthread_cond_t recv_cond;

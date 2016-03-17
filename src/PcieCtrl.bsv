@@ -59,7 +59,7 @@ typedef struct {
 	Bit#(8) tag;
 } DMAWordTagged deriving (Bits,Eq);
 
-typedef 4096 IoUserSpaceOffset;
+typedef TMul#(1024,16) IoUserSpaceOffset;
 typedef 32 DMABufOffset;
 
 
@@ -98,8 +98,6 @@ interface PcieUserIfc;
 endinterface
 
 interface PcieCtrlIfc;
-	//method Bit#(4) leds;
-
 	interface PcieUserIfc user;
 endinterface
 
@@ -129,10 +127,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkSizedFIFO(32);
 	FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkSizedFIFO(32);
+	FIFO#(Bit#(PcieInterfaceSz)) tlp3Q <- mkSizedFIFO(32);
 	Reg#(Maybe#(Bit#(PcieInterfaceSz))) partBuffer <- mkReg(tagged Invalid);
 	Reg#(Bit#(5)) partOffset <- mkReg(0);
 
-	BRAM2Port#(Bit#(10), Bit#(32)) configBuffer <- mkBRAM2Server(defaultValue); //4K
+	BRAM2Port#(Bit#(12), Bit#(32)) configBuffer <- mkBRAM2Server(defaultValue); //16K
 	FIFO#(Bool) bufidxRequestedWriteQ <- mkFIFO;
 
 	rule recvTLP;
@@ -258,13 +257,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
-			else if ( internalAddr == (1024*4)-8) begin
+			else if ( internalAddr == fromInteger(io_userspace_offset)-8) begin
 				cdw3 = reverseEndian(zeroExtend(userReadEmit));
 				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
-			else if ( internalAddr == (1024*4)-4) begin
-				//cdw3 = reverseEndian(zeroExtend(userWriteBudget-userWriteEmit));
+			else if ( internalAddr == fromInteger(io_userspace_offset)-4) begin
 				cdw3 = reverseEndian(zeroExtend(userWriteEmit));
 				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
@@ -320,23 +318,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			let cdw3 = reverseEndian(read32data);
 
 			Bit#(20) internalAddr = truncate(addr);
-			/*
-			if ( internalAddr == 0 ) begin // magic number
-				cdw3 = reverseEndian(32'hc001d00d);
-				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
-			end
-			else if ( internalAddr == (1024*4)-8) begin
-				cdw3 = reverseEndian(zeroExtend(userReadEmit));
-				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
-			end
-			else if ( internalAddr == (1024*4)-4) begin
-				//cdw3 = reverseEndian(zeroExtend(userWriteBudget-userWriteEmit));
-				cdw3 = reverseEndian(zeroExtend(userWriteEmit));
-				sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
-			end
-			else 
-			*/
-			if ( internalAddr < 1024*4 ) begin
+
+			if ( internalAddr < fromInteger(io_userspace_offset) ) begin
 				configBuffer.portA.request.put(
 					BRAMRequest{
 					write:False, responseOnWrite:False,
@@ -354,65 +337,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		end
 		else if ( ptype == type_wr32_io 
 		 || ptype == type_wr32_mem ) begin
-
-			let attr = tlp[13:12];
-			let td = tlp[15];
-			let ep = tlp[14];
-			let tc = tlp[22:20];
-			let be = tlp[3+32:32];
-			Bit#(8) tag = tlp[15+32:8+32];
-			Bit#(16) rid = tlp[31+32:16+32];
-			Bit#(32) addr = {tlp[31+64:2+64],2'b00};
-			Bit#(32) data = reverseEndian(tlp[31+96:96]);
-			
-			read32data <= data;
-			Bit#(20) internalAddr = truncate(addr);
-			/*
-			if ( internalAddr == (1024*4)-4 ) begin
-				userWriteBudget <= userWriteBudget + truncate(data);
-			end else
-			*/
-			if ( internalAddr == 0 ) begin 
-				userWriteEmit <= 0;
-				userReadEmit <= 0;
-			end else
-			if ( internalAddr < 1024*4 ) begin
-				configBuffer.portA.request.put(
-					BRAMRequest{
-					write:True,
-					responseOnWrite:False,
-					address:truncate(internalAddr>>2),
-					datain:data
-					}
-				);
-			end
-			else if (internalAddr >= 1024*4 ) begin
-				userWriteQ.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
-			end
-
-			Bit#(32) cdw0 = {
-				1'b0,
-				2'b00, // 3DW header, no data
-				5'ha, //For Cpl (without data)
-				1'b0,
-				3'b0,4'b0,1'b0, //tc,4'h0,td,
-				1'b0,2'b0,2'b0,10'h1//ep,attr,2'b0,10'h1
-			};
-			Bit#(32) cdw1 = {
-				user.cfg_completer_id,4'b0000,
-				//12'h4// read32 only...
-				12'h0 // completion with no data
-			};
-			Bit#(32) cdw2 = {
-				rid,tag,1'b0,
-				addr[6:0]
-			};
-			let cdw3 = 0;
-			if ( ptype == type_wr32_io ) begin
-				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
-				sendTLPm.enq[1].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
-			end
-		end else if ( ptype == type_completion ) begin
+		 	tlp3Q.enq(tlp);
+		end 
+		else if ( ptype == type_completion ) begin
 			Bit#(10) length = tlp[9:0];
 			Bit#(8) tag = tlp[15+64:8+64];
 			Bit#(32) data = reverseEndian(tlp[31+96:96]);
@@ -449,6 +376,66 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		sendTLPm.enq[2].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 	endrule
 
+	rule procIOWrite;
+		let tlp = tlp3Q.first;
+		tlp3Q.deq;
+		Bit#(7) ptype = tlp[30:24];
+
+		let attr = tlp[13:12];
+		let td = tlp[15];
+		let ep = tlp[14];
+		let tc = tlp[22:20];
+		let be = tlp[3+32:32];
+		Bit#(8) tag = tlp[15+32:8+32];
+		Bit#(16) rid = tlp[31+32:16+32];
+		Bit#(32) addr = {tlp[31+64:2+64],2'b00};
+		Bit#(32) data = reverseEndian(tlp[31+96:96]);
+		
+		read32data <= data;
+		Bit#(20) internalAddr = truncate(addr);
+
+		if ( internalAddr == 0 ) begin 
+			userWriteEmit <= 0;
+			userReadEmit <= 0;
+		end else
+		if ( internalAddr < fromInteger(io_userspace_offset) ) begin
+			configBuffer.portA.request.put(
+				BRAMRequest{
+				write:True,
+				responseOnWrite:False,
+				address:truncate(internalAddr>>2),
+				datain:data
+				}
+			);
+		end
+		else if (internalAddr >= fromInteger(io_userspace_offset) ) begin
+			userWriteQ.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
+		end
+
+		Bit#(32) cdw0 = {
+			1'b0,
+			2'b00, // 3DW header, no data
+			5'ha, //For Cpl (without data)
+			1'b0,
+			3'b0,4'b0,1'b0, //tc,4'h0,td,
+			1'b0,2'b0,2'b0,10'h1//ep,attr,2'b0,10'h1
+		};
+		Bit#(32) cdw1 = {
+			user.cfg_completer_id,4'b0000,
+			//12'h4// read32 only...
+			12'h0 // completion with no data
+		};
+		Bit#(32) cdw2 = {
+			rid,tag,1'b0,
+			addr[6:0]
+		};
+		let cdw3 = 0;
+		if ( ptype == type_wr32_io ) begin
+			//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+			sendTLPm.enq[1].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
+		end
+	endrule
+
 	FIFO#(Bit#(32)) dmaWriteBufAddrQ <- mkFIFO;
 	FIFO#(Bit#(32)) dmaReadBufAddrQ <- mkFIFO;
 	rule relayBufIdxRead;
@@ -461,7 +448,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 
 	FIFO#(DMAWriteReq) dmaReadReqQ <- mkFIFO;
-	FIFO#(DMAWriteReq) dmaPageReadReqQ <- mkFIFO;
+	FIFO#(DMAWriteReq) dmaPageReadReqQ <- mkSizedFIFO(8);
 	Reg#(Bit#(32)) dmaReadStartAddr <- mkReg(0);
 	Reg#(Bit#(10)) dmaReadWords <- mkReg(0);
 	Reg#(Bit#(8)) dmaReadTag <- mkReg(0);
@@ -472,7 +459,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaReadWords <= req.words;
 		dmaReadTag <= req.tag;
 	endrule
-	rule splitDmaReadReq2(dmaReadWords > 0 );
+	rule splitDmaReadReq2( dmaReadWords > 0 );
 		let bufidx = dmaReadStartAddr>>12; //4k pages
 		let nextPage = bufidx+1;
 		let internal = (nextPage<<12)-dmaReadStartAddr;
@@ -488,7 +475,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		end
 
 		//let bufidx = addr>>12; //4k pages
-		Bit#(10) bufoffset = fromInteger(dma_buf_offset)>>2;
+		Bit#(12) bufoffset = fromInteger(dma_buf_offset/4);
 		bufoffset = bufoffset + truncate(bufidx);
 		bufidxRequestedWriteQ.enq(False);
 		configBuffer.portB.request.put(
@@ -549,7 +536,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	//
 
 	FIFO#(DMAWriteReq) dmaWriteReqQ <- mkFIFO;
-	FIFO#(DMAWord) dmaWriteWordQ <- mkSizedFIFO(16);
+	FIFO#(DMAWord) dmaWriteWordQ <- mkSizedFIFO(32);
 	Reg#(DMAWord) dmaWriteBuf <- mkReg(0);
 
 	Reg#(Bit#(32)) dmaStartAddr <- mkReg(0);
@@ -564,7 +551,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaWriteTag <= req.tag;
 	endrule
 
-	FIFO#(DMAWriteReq) dmaPageWriteReqQ <- mkFIFO;
+	FIFO#(DMAWriteReq) dmaPageWriteReqQ <- mkSizedFIFO(8);
 	(* descending_urgency = "splitDmaWriteReq2, splitDmaReadReq2" *)
 	rule splitDmaWriteReq2 (dmaSendWords > 0 );
 
@@ -582,7 +569,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			dmaPageWriteReqQ.enq(DMAWriteReq{addr:zeroExtend(dmaStartAddr[11:0]), words:internalWords, tag:dmaWriteTag});
 		end
 		
-		Bit#(10) bufoffset = fromInteger(dma_buf_offset)>>2;
+		Bit#(12) bufoffset = fromInteger(dma_buf_offset/4);
 		bufoffset = bufoffset + truncate(bufidx);
 		bufidxRequestedWriteQ.enq(True);
 		configBuffer.portB.request.put(
@@ -663,7 +650,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			let data = dmaWriteBuf | (zeroExtend(h)<<(128-32));
 
 			sendTLPQ.enq(SendTLP{tlp:{
-			//sendTLPm.enq[5].enq(SendTLP{tlp:{
 				reverseEndian(data[127:96]),
 				reverseEndian(data[95:64]),
 				reverseEndian(data[63:32]),
@@ -673,7 +659,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		end else begin
 			let data = dmaWriteBuf;
 			sendTLPQ.enq(SendTLP{tlp:{
-			//sendTLPm.enq[5].enq(SendTLP{tlp:{
 				reverseEndian(data[127:96]),
 				reverseEndian(data[95:64]),
 				reverseEndian(data[63:32]),
@@ -714,15 +699,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		sendTLPm.enq[5].enq(userSendTLPQ.first);
 	endrule
 
-
-	/*
-	method Bit#(4) leds;
-		//return {leddata[0], leddata[1], leddata[2], leddata[3]};
-		//return read32data[3:0];
-		return tlpCount[3:0];
-	endmethod
-	*/
-
 	interface PcieUserIfc user;
 		interface Clock user_clk = curClk;
 		interface Reset user_rst = curRst;
@@ -734,6 +710,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		endmethod
 		method ActionValue#(IOReadReq) dataReq;
 			userReadQ.deq;
+
+			//required for flow control
 			userReadEmit <= userReadEmit + 1;
 			return userReadQ.first;
 		endmethod
@@ -770,7 +748,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			dmaReadWordQ.deq;
 			return dmaReadWordQ.first;
 		endmethod
-		method Action assertInterrupt;
+		method Action assertInterrupt if ( dataWordsRemain == 0);
 			user.assertInterrupt(1);
 		endmethod
 	endinterface

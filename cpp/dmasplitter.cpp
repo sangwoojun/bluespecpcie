@@ -25,15 +25,15 @@ DMASplitter::DMASplitter() {
 
 	//nextrecvoff = 0;
 	nextrecvidx = 0;
-	
+	nextrecvoff = 0;
 
 	pthread_mutex_init(&recv_lock, NULL);
 	pthread_cond_init(&recv_cond, NULL);
 
 	//init enqReceiveIdx
-	pcie->writeWord((1024+16)*4, 0);
+	pcie->writeWord((IO_USER_OFFSET+16)*4, 0);
 	//init enqIdx
-	pcie->writeWord((1024+17)*4, 0);
+	pcie->writeWord((IO_USER_OFFSET+17)*4, 0);
 	
 	pthread_create(&pollThread, NULL, dmaSplitterThread, NULL);
 }
@@ -44,9 +44,9 @@ DMASplitter::sendWord(PCIeWord word) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 
 	
-	pcie->writeWord((1024+4)*4, word.header);
+	pcie->writeWord((IO_USER_OFFSET+4)*4, word.header);
 	for ( int i = 3; i >= 0; i-- ) {
-		pcie->writeWord((1024+i)*4, word.d[i]);
+		pcie->writeWord((IO_USER_OFFSET+i)*4, word.d[i]);
 	}
 }
 
@@ -54,22 +54,24 @@ void
 DMASplitter::sendWord(uint32_t header, uint32_t d1, uint32_t d2, uint32_t d3, uint32_t d4) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 
-	pcie->writeWord((1024+4)*4, header);
-	pcie->writeWord((1024+3)*4, d4);
-	pcie->writeWord((1024+2)*4, d3);
-	pcie->writeWord((1024+1)*4, d2);
-	pcie->writeWord((1024+0)*4, d1);
+	pcie->writeWord((IO_USER_OFFSET+4)*4, header);
+	pcie->writeWord((IO_USER_OFFSET+3)*4, d4);
+	pcie->writeWord((IO_USER_OFFSET+2)*4, d3);
+	pcie->writeWord((IO_USER_OFFSET+1)*4, d2);
+	pcie->writeWord((IO_USER_OFFSET+0)*4, d1);
 }
 
-void
+int
 DMASplitter::scanReceive() {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 	void* dmabuf = pcie->dmaBuffer();
 	uint32_t* ubuf = (uint32_t*)dmabuf;
 
+	int recvd = 0;
 	bool found = false;
 	for ( int i = 0; i < (1024*4/32); i++ ) {
-		int u32off = i*4*2;
+		uint32_t u32off = ((i+nextrecvoff)%(1024*4/32))*4*2;
+
 
 		uint32_t nidx = ubuf[u32off+5];
 		if ( nidx == nextrecvidx ) {
@@ -86,23 +88,38 @@ DMASplitter::scanReceive() {
 			pthread_mutex_unlock(&recv_lock);
 
 			nextrecvidx++;
+			recvd++;
 			found = true;
 		} else if ( found ) {
 			break;
 		}
-		//nextrecvoff = ?
 	}
 
+	nextrecvoff = nextrecvoff+recvd;
 	//enqReceiveIdx
-	pcie->writeWord((1024+16)*4, nextrecvidx);
+	if ( recvd > 0 ) {
+		pcie->writeWord((IO_USER_OFFSET+16)*4, nextrecvidx);
+	}
+	return recvd;
 }
 
 PCIeWord
 DMASplitter::recvWord() {
+/*
+	BdbmPcie* pcie = BdbmPcie::getInstance();
+	DMASplitter* dma = DMASplitter::getInstance();
+
+	while ( recvList.empty() ) {
+		pcie->waitInterrupt(0);
+		dma->scanReceive();
+	}
+*/
+//	/*
 	pthread_mutex_lock(&recv_lock);
 	while ( recvList.empty() ) {
 		pthread_cond_wait(&recv_cond, &recv_lock);
 	}
+//	*/
 	PCIeWord w = recvList.back();
 	recvList.pop_back();
 	pthread_mutex_unlock(&recv_lock);
@@ -116,6 +133,7 @@ DMASplitter::dmaBuffer() {
 	void* dmabuf = pcie->dmaBuffer();
 	uint8_t* bbuf = (uint8_t*)dmabuf;
 
+	//+1024*4 because of hw->sw queue
 	return (void*)(bbuf+(1024*4));
 }
 
@@ -124,7 +142,7 @@ void* dmaSplitterThread(void* arg) {
 	DMASplitter* dma = DMASplitter::getInstance();
 
 	while (1) {
-		pcie->waitInterrupt(10);
+		//pcie->waitInterrupt(0);
 		dma->scanReceive();
 	}
 }

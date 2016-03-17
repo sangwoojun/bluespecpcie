@@ -12,7 +12,7 @@
 
 #include "ShmFifo.h"
 
-#define DMA_BUFFER_SIZE (1024*1024*3)
+#define DMA_BUFFER_SIZE (1024*1024*8)
 #define SHM_SIZE (1024*8*3 + DMA_BUFFER_SIZE)
 
 ShmFifo* infifo = NULL;

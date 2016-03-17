@@ -18,9 +18,12 @@
 
 #include "bdbmpcie.h"
 
-#define DMA_BUFFER_SIZE (1024*1024*3)
+#define DMA_BUFFER_SIZE (1024*1024*8)
+//For BSIM
 #define SHM_SIZE ((1024*8*3) + DMA_BUFFER_SIZE)
 #define IO_QUEUE_SIZE 16
+#define CONFIG_BUFFER_SIZE (1024*16)
+#define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZE/4)
 
 void interruptHandler() {
 	printf( "Interrupted!\n" );
@@ -104,7 +107,7 @@ BdbmPcie::Init_Pcie() {
 
 	int fd = open("/dev/bdbm_regs0", O_RDWR, 0);
 	void* mmd = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	void* mmdbuf = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 1024*1024);
+	void* mmdbuf = mmap(NULL, DMA_BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 1024*1024);
 
 	unsigned int* ummd = (unsigned int*)mmd;
 	/*
@@ -164,7 +167,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		pthread_mutex_unlock(&write_lock);
 		return;
 	}
-	unsigned int io_wemit = ummd[1024-1];
+	unsigned int io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];
 	io_wemit = (io_wemit & 0xffff);
 	unsigned int iob = io_wreq;
 	if ( io_wemit > iob ) {
@@ -175,7 +178,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 	while ( iob >= io_wemit + IO_QUEUE_SIZE ) {
 		usleep(50);
 		//pthread_cond_wait(&pcie_cond, &pcie_lock);
-		io_wemit = (ummd[1024-1] & 0xffff);
+		io_wemit = (ummd[CONFIG_BUFFER_ISIZE-1] & 0xffff);
 
 		if ( waitcount <= 1024*100) {
 			waitcount ++;
@@ -223,7 +226,7 @@ BdbmPcie::readWord(unsigned int addr) {
 		return data;
 	}
 
-	unsigned int io_remit = ummd[1024-2];
+	unsigned int io_remit = ummd[CONFIG_BUFFER_ISIZE-2];
 	io_remit = (io_remit & 0xffff);
 	unsigned int iob = io_rreq;
 	if ( io_remit > iob ) {
@@ -232,7 +235,7 @@ BdbmPcie::readWord(unsigned int addr) {
 
 	while ( iob >= io_remit + IO_QUEUE_SIZE ) {
 		usleep(100);
-		io_remit = (ummd[1024-2] & 0xffff);
+		io_remit = (ummd[CONFIG_BUFFER_ISIZE-2] & 0xffff);
 	}
 
 	this->io_rbudget = io_remit + IO_QUEUE_SIZE - iob;

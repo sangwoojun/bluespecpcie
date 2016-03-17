@@ -42,26 +42,40 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	Vector#(8, Reg#(Bit#(32))) writeBuf <- replicateM(mkReg(0), clocked_by pcieclk, reset_by pcierst);
 	SyncFIFOIfc#(Bit#(128)) ioRecvQ <- mkSyncFIFOToCC(8, pcieclk, pcierst);
 	SyncFIFOIfc#(Bit#(32)) ioRecvHQ <- mkSyncFIFOToCC(8, pcieclk, pcierst);
+
+	FIFO#(IOWrite) userWriteQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	FIFO#(IOWrite) userWrite1Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
 	rule getWriteReq;
-		let d <- pcie.dataReceive;
+		IOWrite d <- pcie.dataReceive;
+		userWrite1Q.enq(d);
+	endrule
+	rule procFC;
+		let d = userWrite1Q.first;
+		userWrite1Q.deq;
+
 		Bit#(8) toffset = truncate(d.addr>>2);
-		if ( d.addr < 16 ) begin
-			Bit#(3) offset = truncate(d.addr>>2);
-			writeBuf[offset] <= d.data;
-			if ( offset == 0 ) begin
-				ioRecvQ.enq({writeBuf[3], writeBuf[2], writeBuf[1], d.data});
-				ioRecvHQ.enq(writeBuf[4]);
-			end
+		if ( toffset < 16 ) begin
+			userWriteQ.enq(d);
 		end else if ( toffset == 16 ) begin
 			enqReceivedIdx <= d.data;
-			//$display( "enqReceivedIdx set to %d", d.data );
 		end else if ( toffset == 17 ) begin
 			enqIdx <= d.data;
 		end
 	endrule
+	rule userWriteReq;
+		IOWrite d = userWriteQ.first;
+		userWriteQ.deq;
 
-	Vector#(ways, FIFO#(DMAWordTagged)) dmaWritecQv <- replicateM(mkFIFO);
-	Vector#(ways, SyncFIFOIfc#(DMAWordTagged)) dmaWriteQv <- replicateM(mkSyncFIFOFromCC(16, pcieclk));
+		Bit#(3) offset = truncate(d.addr>>2);
+		writeBuf[offset] <= d.data;
+		if ( offset == 0 ) begin
+			ioRecvQ.enq({writeBuf[3], writeBuf[2], writeBuf[1], d.data});
+			ioRecvHQ.enq(writeBuf[4]);
+		end
+	endrule
+
+	Vector#(ways, FIFO#(DMAWordTagged)) dmaWritecQv <- replicateM(mkSizedFIFO(32));
+	Vector#(ways, SyncFIFOIfc#(DMAWordTagged)) dmaWriteQv <- replicateM(mkSyncFIFOFromCC(64, pcieclk));
 	Vector#(ways, Reg#(Bit#(10))) dmaWriteIn <- replicateM(mkReg(0));
 	Vector#(ways, Reg#(Bit#(10))) dmaWriteOut <- replicateM(mkReg(0));
 
@@ -87,7 +101,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		wm10.enq[1].enq(wm21.first);
 	endrule
 	*/
-	Vector#(ways, FIFO#(Tuple2#(Bit#(8), DMAWriteReq))) reqQv <- replicateM(mkFIFO);
+	Vector#(ways, FIFO#(Tuple2#(Bit#(8), DMAWriteReq))) reqQv <- replicateM(mkSizedFIFO(8));
 	for ( Integer i = 0; i < valueOf(ways); i = i + 1 ) begin
 		rule relayDmaWriteQ;
 			dmaWritecQv[i].deq;
@@ -95,7 +109,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		endrule
 
 		SyncFIFOIfc#(Tuple2#(Bit#(8),DMAWriteReq)) sfifodma <- mkSyncFIFOFromCC(8,pcieclk);
-		rule relaydmawrqsync(dmaWriteIn[i]-dmaWriteOut[i] > tpl_2(reqQv[i].first).words);
+		rule relaydmawrqsync(dmaWriteIn[i]-dmaWriteOut[i] >= tpl_2(reqQv[i].first).words);
 			reqQv[i].deq;
 			dmaWriteOut[i] <= dmaWriteOut[i] + tpl_2(reqQv[i].first).words;
 			sfifodma.enq(reqQv[i].first);
@@ -104,16 +118,14 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		rule relaydmawrq ;
 			sfifodma.deq;
 			wm.enq[i].enq(sfifodma.first);
-			/*
-			case (i)
-				0: wm20.enq[0].enq(sfifodma.first);
-				1: wm20.enq[1].enq(sfifodma.first);
-				2: wm21.enq[0].enq(sfifodma.first);
-				3: wm21.enq[1].enq(sfifodma.first);
-			endcase
-			*/
 		endrule
 	end
+	
+	FIFO#(Bool) assertInterruptQ <- mkSizedFIFO(16,clocked_by pcieclk, reset_by pcierst);
+	rule assertInterrupt;
+		assertInterruptQ.deq;
+		//pcie.assertInterrupt;
+	endrule
 
 	Reg#(Bit#(10)) dmaWriteCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) dmaWriteSrc <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
@@ -124,14 +136,9 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		
 		pcie.dmaWriteReq(cmd.addr, cmd.words, cmd.tag);
 
-		dmaWriteCnt <= cmd.words;
 		dmaWriteSrc <= src;
+		dmaWriteCnt <= cmd.words;
 		//$display("Issuing DMA write from src %d", src);
-	endrule
-	FIFO#(Bool) assertInterruptQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
-	rule assertInterrupt;
-		assertInterruptQ.deq;
-		pcie.assertInterrupt;
 	endrule
 	rule senddmaWriteData ( dmaWriteCnt > 0 );
 		dmaWriteCnt <= dmaWriteCnt - 1;
@@ -152,11 +159,11 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 
 	FIFO#(Bit#(128)) enqcQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(128)) enqQ <- mkSyncFIFOFromCC(8, pcieclk);
-	FIFO#(Bit#(128)) enq2Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Bit#(128)) enq2Q <- mkSizedBRAMFIFO(256,clocked_by pcieclk, reset_by pcierst);
 	
 	FIFO#(Bit#(32)) enqchQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(32)) enqhQ <- mkSyncFIFOFromCC(8, pcieclk);
-	FIFO#(Bit#(32)) enqh2Q <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Bit#(32)) enqh2Q <- mkSizedBRAMFIFO(256,clocked_by pcieclk, reset_by pcierst);
 
 	Reg#(Bit#(2)) enqState <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) enqOffset <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
@@ -174,13 +181,16 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqhQ.deq;
 		enqh2Q.enq(enqhQ.first);
 	endrule
-	rule startEnqPacket ( enqState == 0 ); // && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
+	FIFO#(Bit#(32)) enqIdxQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	rule startEnqPacket ( enqState == 0 && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
 		enq2Q.deq;
 
 		enqDataQ.enq(enq2Q.first);
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
 		enqState <= 1;
 		wm00.enq[1].enq(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
+		enqIdx <= enqIdx + 1;
+		enqIdxQ.enq(enqIdx);
 		//$display( "DMA enq data start - %x", enqOffset );
 	endrule
 	rule sendEnqPacket ( enqState == 1 );
@@ -192,8 +202,9 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	rule sendEnqIdx ( enqState == 2 ) ;
 		enqh2Q.deq;
 
-		enqIdx <= enqIdx + 1;
-		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx), enqh2Q.first}, tag:0});
+		//enqIdx <= enqIdx + 1;
+		enqIdxQ.deq;
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdxQ.first), enqh2Q.first}, tag:0});
 		enqState <= 0;
 	endrule
 
