@@ -159,11 +159,11 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 
 	FIFO#(Bit#(128)) enqcQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(128)) enqQ <- mkSyncFIFOFromCC(8, pcieclk);
-	FIFO#(Bit#(128)) enq2Q <- mkSizedBRAMFIFO(256,clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Bit#(128)) enq2Q <- mkSizedFIFO(16,clocked_by pcieclk, reset_by pcierst);
 	
 	FIFO#(Bit#(32)) enqchQ <- mkSizedFIFO(16);
 	SyncFIFOIfc#(Bit#(32)) enqhQ <- mkSyncFIFOFromCC(8, pcieclk);
-	FIFO#(Bit#(32)) enqh2Q <- mkSizedBRAMFIFO(256,clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Bit#(32)) enqh2Q <- mkSizedFIFO(16,clocked_by pcieclk, reset_by pcierst);
 
 	Reg#(Bit#(2)) enqState <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) enqOffset <- mkReg(0,clocked_by pcieclk, reset_by pcierst);
