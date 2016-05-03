@@ -303,3 +303,5 @@ set_property LOC AK3  [get_ports { pcie_pins_TXN[7] }]
 #add_cells_to_pblock pblock_PCIe [get_cells pcie]
 #add_cells_to_pblock pblock_PCIe [get_cells -regexp {NAME=~pcieCtrl*}]
 #endgroup
+
+set_clock_groups -asynchronous -group {clk_gen_pll_CLKOUT0} -group {userclk2}

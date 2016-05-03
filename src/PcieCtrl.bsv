@@ -47,7 +47,7 @@ typedef struct {
 	Bit#(32) addr;
 	Bit#(10) words;
 	Bit#(8) tag;
-} DMAWriteReq deriving (Bits,Eq);
+} DMAReq deriving (Bits,Eq);
 
 typedef 128 PcieWordSz;
 typedef Bit#(PcieWordSz) PcieWord;
@@ -118,6 +118,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Bit#(7) type_wr32_io = 7'b1000010;
 	Bit#(7) type_wr32_mem = 7'b1000000;
 	Bit#(7) type_completion = 7'b1001010;
+	Bit#(7) type_completionl = 7'b1001011;
 
 	Reg#(Bit#(32)) read32data <- mkReg(32'haaaaaaaa);
 	Reg#(Bit#(32)) tlpCount <- mkReg(0);
@@ -271,6 +272,16 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				tlp2Q.enq(tlp);
 			end
 		end
+		else if ( ptype == type_completion 
+			|| ptype == type_completionl) begin
+			Bit#(10) length = tlp[9:0];
+			Bit#(8) tag = tlp[15+64:8+64];
+			Bit#(32) data = reverseEndian(tlp[31+96:96]);
+
+			completionRecvLength <= length -1; //one dw already arrived
+			completionRecvTag <= tag;
+			dmaReadBuffer <= data;
+		end
 		else begin
 			tlp2Q.enq(tlp);
 		end
@@ -339,15 +350,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		 || ptype == type_wr32_mem ) begin
 		 	tlp3Q.enq(tlp);
 		end 
-		else if ( ptype == type_completion ) begin
-			Bit#(10) length = tlp[9:0];
-			Bit#(8) tag = tlp[15+64:8+64];
-			Bit#(32) data = reverseEndian(tlp[31+96:96]);
-
-			completionRecvLength <= length -1; //one dw already arrived
-			completionRecvTag <= tag;
-			dmaReadBuffer <= data;
-		end
 	endrule
 
 	rule completeIORead;
@@ -447,8 +449,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	endrule
 
 
-	FIFO#(DMAWriteReq) dmaReadReqQ <- mkFIFO;
-	FIFO#(DMAWriteReq) dmaPageReadReqQ <- mkSizedFIFO(8);
+	FIFO#(DMAReq) dmaReadReqQ <- mkFIFO;
+	FIFO#(DMAReq) dmaPageReadReqQ <- mkSizedFIFO(8);
 	Reg#(Bit#(32)) dmaReadStartAddr <- mkReg(0);
 	Reg#(Bit#(10)) dmaReadWords <- mkReg(0);
 	Reg#(Bit#(8)) dmaReadTag <- mkReg(0);
@@ -467,11 +469,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 		if ( internalWords > dmaReadWords ) begin
 			dmaReadWords <= 0;
-			dmaPageReadReqQ.enq(DMAWriteReq{addr:zeroExtend(dmaReadStartAddr[11:0]), words:dmaReadWords, tag:dmaReadTag});
+			dmaPageReadReqQ.enq(DMAReq{addr:zeroExtend(dmaReadStartAddr[11:0]), words:dmaReadWords, tag:dmaReadTag});
 		end else begin
 			dmaReadWords <= dmaReadWords - internalWords;
 			dmaReadStartAddr <= nextPage<<12;
-			dmaPageReadReqQ.enq(DMAWriteReq{addr:zeroExtend(dmaReadStartAddr[11:0]), words:internalWords, tag:dmaReadTag});
+			dmaPageReadReqQ.enq(DMAReq{addr:zeroExtend(dmaReadStartAddr[11:0]), words:internalWords, tag:dmaReadTag});
 		end
 
 		//let bufidx = addr>>12; //4k pages
@@ -495,8 +497,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let busAddr = dmaReadBufAddrQ.first;
 		dmaReadBufAddrQ.deq;
 
-		// truncating req.addr for page internal address
-		let dmaAddr = busAddr + zeroExtend(req.addr[11:0]);
+		let dmaAddr = busAddr + req.addr;
 		//FIXME maybe this needs to be in bytes?
 		Bit#(10) dmaWords = req.words;
 
@@ -515,27 +516,25 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			(dmaWords<<2)//32 bit words
 		};
 		Bit#(32) cdw1 = {
-			user.cfg_completer_id,
-			req.tag, //8'h00, // TAG
-			4'h0, 4'hf
+			//user.cfg_completer_id,
+			{8'h3,8'h0}, //FIXME
+			req.tag, 
+			4'h7, 4'hf
 			};
 		Bit#(32) cdw2 = {
 			truncate(dmaAddr>>2),
 			2'b00
-			//ioreq.requesterID,ioreq.tag,1'b0,
-			//ioreq.addr
 		};
 
 		Bit#(32) cdw3 = 0;
 
-		//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
 		sendTLPm.enq[3].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'h0fff,last:1'b1});
 	endrule
 
 	// BEGIN DMA WRITE RELATED ///////////////////////////////////
 	//
 
-	FIFO#(DMAWriteReq) dmaWriteReqQ <- mkFIFO;
+	FIFO#(DMAReq) dmaWriteReqQ <- mkFIFO;
 	FIFO#(DMAWord) dmaWriteWordQ <- mkSizedFIFO(32);
 	Reg#(DMAWord) dmaWriteBuf <- mkReg(0);
 
@@ -551,7 +550,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaWriteTag <= req.tag;
 	endrule
 
-	FIFO#(DMAWriteReq) dmaPageWriteReqQ <- mkSizedFIFO(8);
+	FIFO#(DMAReq) dmaPageWriteReqQ <- mkSizedFIFO(8);
 	(* descending_urgency = "splitDmaWriteReq2, splitDmaReadReq2" *)
 	rule splitDmaWriteReq2 (dmaSendWords > 0 );
 
@@ -562,11 +561,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 		if ( internalWords > dmaSendWords ) begin
 			dmaSendWords <= 0;
-			dmaPageWriteReqQ.enq(DMAWriteReq{addr:zeroExtend(dmaStartAddr[11:0]), words:dmaSendWords, tag:dmaWriteTag});
+			dmaPageWriteReqQ.enq(DMAReq{addr:zeroExtend(dmaStartAddr[11:0]), words:dmaSendWords, tag:dmaWriteTag});
 		end else begin
 			dmaSendWords <= dmaSendWords - internalWords;
 			dmaStartAddr <= nextPage<<12;
-			dmaPageWriteReqQ.enq(DMAWriteReq{addr:zeroExtend(dmaStartAddr[11:0]), words:internalWords, tag:dmaWriteTag});
+			dmaPageWriteReqQ.enq(DMAReq{addr:zeroExtend(dmaStartAddr[11:0]), words:internalWords, tag:dmaWriteTag});
 		end
 		
 		Bit#(12) bufoffset = fromInteger(dma_buf_offset/4);
@@ -736,13 +735,13 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			userSendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 		endmethod
 		method Action dmaWriteReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
-			dmaWriteReqQ.enq(DMAWriteReq{addr:addr, words:words, tag:tag});
+			dmaWriteReqQ.enq(DMAReq{addr:addr, words:words, tag:tag});
 		endmethod
 		method Action dmaWriteData(DMAWord data, Bit#(8) tag);
 			dmaWriteWordQ.enq(data);
 		endmethod
 		method Action dmaReadReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
-			dmaReadReqQ.enq(DMAWriteReq{addr:addr, words:words, tag:tag});
+			dmaReadReqQ.enq(DMAReq{addr:addr, words:words, tag:tag});
 		endmethod
 		method ActionValue#(DMAWordTagged) dmaReadWord;
 			dmaReadWordQ.deq;

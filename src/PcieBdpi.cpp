@@ -82,11 +82,13 @@ extern "C" bool bdpiDmaReadReady() {
 	return false;
 }
 
-extern "C" unsigned int bdpiDmaReadData() {
-	unsigned long *lptr = (unsigned long *)shm_ptr;
+extern "C" uint32_t bdpiDmaReadData() {
+	uint32_t *lptr = (uint32_t *)shm_ptr;
+	//printf( "%d %d %x\n", dmaReadStartAddr>>2, dmaReadWordsOffset, );
+	uint32_t r = lptr[(dmaReadStartAddr>>2)+dmaReadWordsOffset];
 	dmaReadWordsRemain --;
 	dmaReadWordsOffset++;
-	return lptr[(dmaReadStartAddr>>2)+dmaReadWordsOffset];
+	return r;
 }
 
 extern "C" bool bdpiIOReady() {

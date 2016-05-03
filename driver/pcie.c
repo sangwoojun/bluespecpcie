@@ -53,11 +53,22 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	u16 device_cmd;
 
 	int rc = 0;
+	int ret = 0;
+	int capability_pos = 0;
 	
 	pcidev = dev;
 
 	pci_read_config_word(dev, PCI_COMMAND, &device_cmd);
 	printk(KERN_ERR "BlueDBM PCIe driver enabling device cmd %x\n", device_cmd );
+	
+	capability_pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
+	if ( capability_pos ) {
+		u16 linkctrl;
+		pci_read_config_word(dev, capability_pos + PCI_EXP_LNKCTL, &linkctrl);
+		linkctrl |= PCI_EXP_LNKCTL_RL;
+		pci_write_config_word(dev, capability_pos + PCI_EXP_LNKCTL, linkctrl);
+		printk(KERN_ALERT "Set PCI_ECP_LNKCTL_RL to retain link. 5GT/s?");
+	}
 
 	rc = pci_enable_device(dev);
 	if ( rc ) {
@@ -101,7 +112,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	irq = dev->irq;
 	
 	//request_irq(interrupt_no, interrupt_handler, 0, "bdbmpcie", 0);
-	int ret = request_irq(irq, interrupt_handler, 0, "bdbmpcie", dev);
+	ret = request_irq(irq, interrupt_handler, 0, "bdbmpcie", dev);
 	if ( ret ) {
 		printk(KERN_ALERT "request_irq failed with value %d\n", ret );
 	} else {
@@ -109,6 +120,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	}
 
 	pci_set_master(dev);
+
 
 	mmiowb();
 

@@ -255,10 +255,13 @@ BdbmPcie::waitInterrupt() {
 void
 BdbmPcie::waitInterrupt(int timeout) {
 #ifdef BLUESIM
-	while ( interruptfifo->empty() ) {usleep(1000);}
-	//while ( !interruptfifo->empty() ) {
+
+	//while ( interruptfifo->empty() ) {usleep(1000);}
+	//FIXME!
+	
+	while ( !interruptfifo->empty() ) {
 		interruptfifo->pop();
-	//}
+	}
 
 	return;
 #else

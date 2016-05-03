@@ -1,5 +1,7 @@
 build
 build_bsim
+bsim
+
 .*.sw?
 .bit
 *.o

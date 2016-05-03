@@ -32,7 +32,11 @@ module mkMergeN (MergeNIfc#(n,t))
 		for ( Integer i = 0; i < valueOf(n); i = i + 1) begin
 			enq_[i] = interface MergeEnqIfc;
 				method Action enq(t d);
-					ma[i/(valueOf(n)/2)].enq[i%(valueOf(n)/2)].enq(d);
+					if ( i < valueOf(n)/2 ) begin
+						ma[0].enq[i%(valueOf(n)/2)].enq(d);
+					end else begin
+						ma[1].enq[i-(valueOf(n)/2)].enq(d);
+					end
 				endmethod
 			endinterface;
 		end
@@ -43,7 +47,7 @@ module mkMergeN (MergeNIfc#(n,t))
 		method t first;
 			return mb.first;
 		endmethod
-	end else begin
+	end else if (valueOf(n) == 2) begin
 		Merge2Ifc#(t) mb <- mkMerge2;
 		Vector#(n, MergeEnqIfc#(t)) enq_;
 		for ( Integer i = 0; i < valueOf(n); i = i + 1) begin
@@ -59,6 +63,21 @@ module mkMergeN (MergeNIfc#(n,t))
 		endmethod
 		method t first;
 			return mb.first;
+		endmethod
+	end else begin
+		FIFO#(t) inQ <- mkFIFO;
+		Vector#(n,MergeEnqIfc#(t)) enq_;
+		enq_[0] = interface MergeEnqIfc;
+			method Action enq(t d);
+				inQ.enq(d);
+			endmethod
+		endinterface;
+		interface enq = enq_;
+		method Action deq;
+			inQ.deq;
+		endmethod
+		method t first;
+			return inQ.first;
 		endmethod
 	end
 endmodule

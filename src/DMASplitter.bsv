@@ -14,11 +14,11 @@ import CompletionFIFO::*;
 interface DMAUserIfc;
 	method Action dmaWriteReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
 	method Action dmaWriteData(DMAWord data, Bit#(8) tag);
-	method Action dmaReadReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
-	method ActionValue#(DMAWordTagged) dmaReadWord;
 endinterface
 
 interface DMASplitterIfc #(numeric type ways);
+	method Action dmaReadReq(Bit#(32) addr, Bit#(10) words);
+	method ActionValue#(DMAWord) dmaReadWord;
 	method Action enq(Bit#(32) head, Bit#(128) word);
 	method Action deq;
 	method Bit#(128) first;
@@ -26,6 +26,8 @@ interface DMASplitterIfc #(numeric type ways);
 
 	interface Vector#(ways, DMAUserIfc) users;
 endinterface
+
+typedef 4 DMAReadTags;
 
 module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	Clock curClk <- exposeCurrentClock;
@@ -81,17 +83,17 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 
 	
 	// TODO Cleaner way to do this?
-	MergeNIfc#(ways, Tuple2#(Bit#(8), DMAWriteReq)) wm <- mkMergeN(clocked_by pcieclk, reset_by pcierst);
-	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm00 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
+	MergeNIfc#(ways, Tuple2#(Bit#(8), DMAReq)) wm <- mkMergeN(clocked_by pcieclk, reset_by pcierst);
+	Merge2Ifc#(Tuple2#(Bit#(8),DMAReq)) wm00 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
 	rule merge0;
 		wm.deq;
 		wm00.enq[0].enq(wm.first);
 	endrule
 
 /*
-	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm10 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
-	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm20 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
-	Merge2Ifc#(Tuple2#(Bit#(8),DMAWriteReq)) wm21 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
+	Merge2Ifc#(Tuple2#(Bit#(8),DMAReq)) wm10 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
+	Merge2Ifc#(Tuple2#(Bit#(8),DMAReq)) wm20 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
+	Merge2Ifc#(Tuple2#(Bit#(8),DMAReq)) wm21 <- mkMerge2(clocked_by pcieclk, reset_by pcierst);
 	rule merge10;
 		wm20.deq;
 		wm10.enq[0].enq(wm20.first);
@@ -101,14 +103,14 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		wm10.enq[1].enq(wm21.first);
 	endrule
 	*/
-	Vector#(ways, FIFO#(Tuple2#(Bit#(8), DMAWriteReq))) reqQv <- replicateM(mkSizedFIFO(8));
+	Vector#(ways, FIFO#(Tuple2#(Bit#(8), DMAReq))) reqQv <- replicateM(mkSizedFIFO(8));
 	for ( Integer i = 0; i < valueOf(ways); i = i + 1 ) begin
 		rule relayDmaWriteQ;
 			dmaWritecQv[i].deq;
 			dmaWriteQv[i].enq(dmaWritecQv[i].first);
 		endrule
 
-		SyncFIFOIfc#(Tuple2#(Bit#(8),DMAWriteReq)) sfifodma <- mkSyncFIFOFromCC(8,pcieclk);
+		SyncFIFOIfc#(Tuple2#(Bit#(8),DMAReq)) sfifodma <- mkSyncFIFOFromCC(8,pcieclk);
 		rule relaydmawrqsync(dmaWriteIn[i]-dmaWriteOut[i] >= tpl_2(reqQv[i].first).words);
 			reqQv[i].deq;
 			dmaWriteOut[i] <= dmaWriteOut[i] + tpl_2(reqQv[i].first).words;
@@ -188,7 +190,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqDataQ.enq(enq2Q.first);
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
 		enqState <= 1;
-		wm00.enq[1].enq(tuple2(255, DMAWriteReq{addr:enqOffset, words:2, tag:0}));
+		wm00.enq[1].enq(tuple2(255, DMAReq{addr:enqOffset, words:2, tag:0}));
 		enqIdx <= enqIdx + 1;
 		enqIdxQ.enq(enqIdx);
 		//$display( "DMA enq data start - %x", enqOffset );
@@ -208,12 +210,52 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqState <= 0;
 	endrule
 
-	CompletionFIFOIfc#(Bit#(128), 7, 8) cbuf <- mkCompletionFIFO;
-	FIFO#(Bit#(8)) availReadTagQ <- mkSizedFIFO(128);
-	Reg#(Bit#(8)) readTagCounter <- mkReg(128);
+	//CompletionFIFOIfc#(Bit#(128), 7, 8) cbuf <- mkCompletionFIFO;
+	Integer dmaReadTags = valueOf(DMAReadTags);
+	FIFO#(Bit#(8)) availReadTagQ <- mkSizedFIFO(dmaReadTags, clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Tuple2#(Bit#(10),Bit#(8))) flightReadTagQ <- mkSizedFIFO(dmaReadTags , clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(8)) readTagCounter <- mkReg(fromInteger(dmaReadTags), clocked_by pcieclk, reset_by pcierst);
 	rule fillReadTagQ(readTagCounter > 0);
 		readTagCounter <= readTagCounter - 1;
-		availReadTagQ.enq(readTagCounter);
+		availReadTagQ.enq(readTagCounter-1);
+	endrule
+	Vector#(DMAReadTags,FIFO#(DMAWord)) dmaReadQ <- replicateM(mkFIFO(clocked_by pcieclk, reset_by pcierst));
+	SyncFIFOIfc#(DMAReq) dmaReadReqQ <- mkSyncFIFOFromCC(8, pcieclk);
+	rule reqDMARead;
+		dmaReadReqQ.deq;
+		let r = dmaReadReqQ.first;
+		let t = availReadTagQ.first;
+		availReadTagQ.deq;
+		flightReadTagQ.enq(tuple2(r.words,t));
+
+		pcie.dmaReadReq(r.addr, r.words, t);
+		$display( "pcie.dmaReadReq %d %d %d", r.addr, r.words, t );
+	endrule
+	SyncFIFOIfc#(DMAWord) dmaReadWordQ <- mkSyncFIFOToCC(16,pcieclk, pcierst);
+	rule recvDMARead;
+		let w <- pcie.dmaReadWord;
+		let t = w.tag;
+		dmaReadQ[t].enq(w.word);
+		//$display( "pcie.dmaReadWord %x %d", w.word, w.tag );
+	endrule
+	Reg#(Bit#(10)) curReadWords <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	rule reordDMAread;
+		let f = flightReadTagQ.first;
+		let words = tpl_1(f);
+		let tag = tpl_2(f);
+
+		let w = dmaReadQ[tag].first;
+		dmaReadQ[tag].deq;
+
+		dmaReadWordQ.enq(w);
+
+		if ( curReadWords + 1 >= words ) begin
+			curReadWords <= 0;
+			flightReadTagQ.deq;
+			availReadTagQ.enq(tag);
+		end else begin
+			curReadWords <= curReadWords + 1;
+		end
 	endrule
 
 	Vector#(ways, DMAUserIfc) users_;
@@ -223,20 +265,23 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 			method Action dmaWriteReq(Bit#(32) addr_, Bit#(10) words, Bit#(8) tag);
 				//First 4K are reserved for hw->sw FIFO
 				Bit#(32) addr__ = addr_ + (1024*4);
-				reqQv[i].enq(tuple2(fromInteger(i), DMAWriteReq{addr:addr__, words:words, tag:tag}));
+				reqQv[i].enq(tuple2(fromInteger(i), DMAReq{addr:addr__, words:words, tag:tag}));
 			endmethod
 			method Action dmaWriteData(DMAWord data, Bit#(8) tag);
 				dmaWritecQv[i].enq(DMAWordTagged{word:data, tag:tag});
 				dmaWriteIn[i] <= dmaWriteIn[i] + 1;
 			endmethod
-			method Action dmaReadReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag);
-			endmethod
-			method ActionValue#(DMAWordTagged) dmaReadWord;
-				return ?;
-			endmethod
 		endinterface: DMAUserIfc;
 	end
 
+	method Action dmaReadReq(Bit#(32) addr_, Bit#(10) words);
+		Bit#(32) addr__ = addr_ + (1024*4);
+		dmaReadReqQ.enq(DMAReq{addr:addr__, words:words, tag:0});
+	endmethod
+	method ActionValue#(DMAWord) dmaReadWord;
+		dmaReadWordQ.deq;
+		return dmaReadWordQ.first;
+	endmethod
 	method Action enq(Bit#(32) head, Bit#(128) word);
 		enqcQ.enq(word);
 		enqchQ.enq(head);

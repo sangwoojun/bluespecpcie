@@ -35,7 +35,7 @@ DMASplitter::DMASplitter() {
 	//init enqIdx
 	pcie->writeWord((IO_USER_OFFSET+17)*4, 0);
 	
-	pthread_create(&pollThread, NULL, dmaSplitterThread, NULL);
+	//pthread_create(&pollThread, NULL, dmaSplitterThread, NULL);
 }
 
 
@@ -105,7 +105,6 @@ DMASplitter::scanReceive() {
 
 PCIeWord
 DMASplitter::recvWord() {
-/*
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 	DMASplitter* dma = DMASplitter::getInstance();
 
@@ -113,16 +112,15 @@ DMASplitter::recvWord() {
 		pcie->waitInterrupt(0);
 		dma->scanReceive();
 	}
-*/
-//	/*
+	/*
 	pthread_mutex_lock(&recv_lock);
 	while ( recvList.empty() ) {
 		pthread_cond_wait(&recv_cond, &recv_lock);
 	}
-//	*/
+	*/
 	PCIeWord w = recvList.back();
 	recvList.pop_back();
-	pthread_mutex_unlock(&recv_lock);
+	//pthread_mutex_unlock(&recv_lock);
 
 	return w;
 }

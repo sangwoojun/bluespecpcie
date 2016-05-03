@@ -38,8 +38,8 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 		let isready <- bdpiDmaReadReady();
 		if ( isready ) begin
 			let d <- bdpiDmaReadData();
-			dmaReadWordCount <= dmaReadWordCount - 1;
 			if ( dmaReadBufferOff >= 3 ) begin
+				dmaReadWordCount <= dmaReadWordCount - 1;
 				dmaReadWordQ.enq( {d, dmaReadBuffer[127:32]} );
 				dmaReadBufferOff <= 0;
 			end else begin
