@@ -117,8 +117,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Bit#(7) type_rd32_mem = 7'b0000000;
 	Bit#(7) type_wr32_io = 7'b1000010;
 	Bit#(7) type_wr32_mem = 7'b1000000;
+
+	Bit#(7) type_completionn = 7'b0001010; //UNNEEDED probably
+	Bit#(7) type_completionn4 = 7'b0101010; // ditto
+
 	Bit#(7) type_completion = 7'b1001010;
-	Bit#(7) type_completionl = 7'b1001011;
+	Bit#(7) type_completion4 = 7'b1101010; // ditto
 
 	Reg#(Bit#(32)) read32data <- mkReg(32'haaaaaaaa);
 	Reg#(Bit#(32)) tlpCount <- mkReg(0);
@@ -126,10 +130,13 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Reg#(Bit#(10)) rxOffset <- mkReg(0);
 	Vector#(4, Reg#(Bit#(1))) leddata <- replicateM(mkReg(0));
 
+	
+	FIFO#(Bit#(PcieKeepSz)) tlpKeepQ <- mkSizedFIFO(32);
 	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkSizedFIFO(32);
 	FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkSizedFIFO(32);
 	FIFO#(Bit#(PcieInterfaceSz)) tlp3Q <- mkSizedFIFO(32);
 	Reg#(Maybe#(Bit#(PcieInterfaceSz))) partBuffer <- mkReg(tagged Invalid);
+	Reg#(Bit#(PcieKeepSz)) keepBuffer <- mkReg(0);
 	Reg#(Bit#(5)) partOffset <- mkReg(0);
 
 	BRAM2Port#(Bit#(12), Bit#(32)) configBuffer <- mkBRAM2Server(defaultValue); //16K
@@ -138,8 +145,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	rule recvTLP;
 		Bit#(PcieInterfaceSz) tlp <- user.receiveData;
 		Bit#(PcieKeepSz) keep <- user.receiveKeep;
-		Bit#(1) last <- user.receiveLast;
+		//Bit#(1) last <- user.receiveLast;
 		Bit#(22) ruser <- user.receiveUser;
+		Bit#(1) last = ruser[21];
 
 
 		Bool sof_present = ruser[14] == 1 ? True : False;
@@ -151,30 +159,42 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			partBuffer <= tagged Invalid;
 
 			tlpQ.enq(tlp);
+			tlpKeepQ.enq(keep);
 		end else if ( sof_mid ) begin
 			partOffset <= 8;
 			partBuffer <= tagged Valid (tlp>>64);
+			keepBuffer <= (keep>>8);
 
 			Bit#(64) curPart = truncate(tlp);
 			if ( isValid(partBuffer) ) begin
 				let pb = fromMaybe(?, partBuffer);
 				Bit#(64) lastPart = truncate(pb);
 				tlpQ.enq({curPart, lastPart});
+
+				Bit#(8) lastKeep = truncate(keepBuffer);
+				Bit#(8) curKeep = truncate(keep);
+				tlpKeepQ.enq({curKeep, lastKeep});
 			end
 		end else begin
 			if ( partOffset[3] == 0 ) begin
 				tlpQ.enq(tlp);
+				tlpKeepQ.enq(keep);
 			end else begin
 				if ( last != 1 ) begin
 					partBuffer <= tagged Valid (tlp>>64);
+					keepBuffer <= (keep>>8);
 				end
 				else partBuffer <= tagged Invalid;
 
-				if ( isValid(partBuffer) ) begin
+				//if ( isValid(partBuffer) ) begin
 					Bit#(64) lastPart = truncate(fromMaybe(?,partBuffer));
 					Bit#(64) curPart = truncate(tlp);
 					tlpQ.enq({curPart, lastPart});
-				end
+
+					Bit#(8) lastKeep = truncate(keepBuffer);
+					Bit#(8) curKeep = truncate(keep);
+					tlpKeepQ.enq({curKeep, lastKeep});
+				//end
 			end
 		end
 	endrule
@@ -201,6 +221,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	rule procCompletionTLP( completionRecvLength > 0 );
 		let tlp = tlpQ.first;
 		tlpQ.deq;
+		tlpKeepQ.deq;
+
 		tlpCount <= tlpCount + 1;
 		//TODO fix endianness?
 		dmaReadBuffer <= truncate(tlp>>(32*3));
@@ -216,6 +238,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	rule filterStatReadTLP( completionRecvLength == 0 );
 		let tlp = tlpQ.first;
 		tlpQ.deq;
+		let keep = tlpKeepQ.first;
+		tlpKeepQ.deq;
 		
 		Bit#(7) ptype = tlp[30:24];
 		
@@ -273,10 +297,17 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			end
 		end
 		else if ( ptype == type_completion 
-			|| ptype == type_completionl) begin
+			|| ptype == type_completion4
+			|| ptype == type_completionn
+			|| ptype == type_completionn4
+			) begin
 			Bit#(10) length = tlp[9:0];
 			Bit#(8) tag = tlp[15+64:8+64];
 			Bit#(32) data = reverseEndian(tlp[31+96:96]);
+		
+			if ( length <= 1 ) begin // should not happen but...
+				dmaReadWordQ.enq(DMAWordTagged{word:tlp, tag:tag}); //debug
+			end
 
 			completionRecvLength <= length -1; //one dw already arrived
 			completionRecvTag <= tag;
@@ -516,10 +547,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			(dmaWords<<2)//32 bit words
 		};
 		Bit#(32) cdw1 = {
-			//user.cfg_completer_id,
-			{8'h3,8'h0}, //FIXME
+			user.cfg_completer_id,
 			req.tag, 
-			4'h7, 4'hf
+			4'hf, 4'hf
 			};
 		Bit#(32) cdw2 = {
 			truncate(dmaAddr>>2),

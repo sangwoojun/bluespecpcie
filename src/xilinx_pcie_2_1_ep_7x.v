@@ -131,6 +131,7 @@ module xilinx_pcie_2_1_ep_7x # (
   assign sys_clk_o = sys_clk;
   wire  [3:0] s_axis_tx_tuser;
   assign cfg_completer_id = {cfg_bus_number, cfg_device_number, cfg_function_number};
+  //assign cfg_completer_id = {8'h3, cfg_device_number, cfg_function_number}; //FIXME hardcoded for bluedbm
 
   assign assert_interrupt_rdy = ((cfg_interrupt_msienable == 1) && (cfg_interrupt == 0)) ? 1 : 0;
   //assign assert_interrupt_rdy = ((cfg_interrupt_msienable == 1) && (cfg_interrupt_rdy == 0) && (cfg_interrupt == 0)) ? 1 : 0;

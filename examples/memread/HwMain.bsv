@@ -44,9 +44,9 @@ module mkHwMain#(PcieUserIfc pcie)
 		//Bit#(32) dmao = (1<<16)-zeroExtend(off);
 		Bit#(32) dmao = zeroExtend(off);
 		$display( "Sending DMA read request addr: %x", dmao );
-		if ( bytesReadLeft >= 128 ) begin
-			bytesReadLeft <= bytesReadLeft - 128;
-			dma.dmaReadReq(dmao, 8);
+		if ( bytesReadLeft >= 64 ) begin
+			bytesReadLeft <= bytesReadLeft - 64;
+			dma.dmaReadReq(dmao, 4);
 		end else begin
 			bytesReadLeft <= 0;
 			dma.dmaReadReq(dmao, truncate(bytesReadLeft/16));
@@ -57,6 +57,7 @@ module mkHwMain#(PcieUserIfc pcie)
 		$display( "read %d %x", bytesRecvLeft, d );
 		if ( bytesRecvLeft > 16 ) begin
 			bytesRecvLeft <= bytesRecvLeft - 16;
+			dma.enq(1,d);
 		end else begin
 			bytesRecvLeft <= 0;
 			dma.enq(0,d);

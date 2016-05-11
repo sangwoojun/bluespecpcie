@@ -183,7 +183,7 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqhQ.deq;
 		enqh2Q.enq(enqhQ.first);
 	endrule
-	FIFO#(Bit#(32)) enqIdxQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	//FIFO#(Bit#(32)) enqIdxQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
 	rule startEnqPacket ( enqState == 0 && enqIdx - enqReceivedIdx < (1024*4)/32 ); // Just 4K
 		enq2Q.deq;
 
@@ -191,8 +191,8 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 		enqOffset <= ((enqOffset+32)&32'hfff); // Just 4K
 		enqState <= 1;
 		wm00.enq[1].enq(tuple2(255, DMAReq{addr:enqOffset, words:2, tag:0}));
-		enqIdx <= enqIdx + 1;
-		enqIdxQ.enq(enqIdx);
+		//enqIdx <= enqIdx + 1;
+		//enqIdxQ.enq(enqIdx);
 		//$display( "DMA enq data start - %x", enqOffset );
 	endrule
 	rule sendEnqPacket ( enqState == 1 );
@@ -204,9 +204,10 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	rule sendEnqIdx ( enqState == 2 ) ;
 		enqh2Q.deq;
 
-		//enqIdx <= enqIdx + 1;
-		enqIdxQ.deq;
-		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdxQ.first), enqh2Q.first}, tag:0});
+		enqIdx <= enqIdx + 1;
+		//enqIdxQ.deq;
+		//enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdxQ.first), enqh2Q.first}, tag:0});
+		enqDmaWriteQ.enq(DMAWordTagged{word:{zeroExtend(enqIdx), enqh2Q.first}, tag:0});
 		enqState <= 0;
 	endrule
 
@@ -224,18 +225,18 @@ module mkDMASplitter#(PcieUserIfc pcie) (DMASplitterIfc#(ways));
 	rule reqDMARead;
 		dmaReadReqQ.deq;
 		let r = dmaReadReqQ.first;
-		let t = availReadTagQ.first;
-		availReadTagQ.deq;
-		flightReadTagQ.enq(tuple2(r.words,t));
+		//let t = availReadTagQ.first;
+		//availReadTagQ.deq;
+		//flightReadTagQ.enq(tuple2(r.words,t));
 
-		pcie.dmaReadReq(r.addr, r.words, t);
-		$display( "pcie.dmaReadReq %d %d %d", r.addr, r.words, t );
+		pcie.dmaReadReq(r.addr, r.words, 0);
 	endrule
 	SyncFIFOIfc#(DMAWord) dmaReadWordQ <- mkSyncFIFOToCC(16,pcieclk, pcierst);
 	rule recvDMARead;
 		let w <- pcie.dmaReadWord;
-		let t = w.tag;
-		dmaReadQ[t].enq(w.word);
+		//let t = w.tag;
+		//dmaReadQ[t].enq(w.word);
+		dmaReadWordQ.enq({truncate(w.word>>8),w.tag});
 		//$display( "pcie.dmaReadWord %x %d", w.word, w.tag );
 	endrule
 	Reg#(Bit#(10)) curReadWords <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
