@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 		dmabuf[i] = 0xaa;
 	}
 	printf( "Requesting memread with size %d\n", size );
-	dma->sendWord(0,size,0,0,0);
+	dma->sendWord(0, size,0,0,0);
 
 	while (1) {
 		PCIeWord w = dma->recvWord();
