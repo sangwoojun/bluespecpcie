@@ -4,7 +4,7 @@
 # line; invoke the kernel build system.
 
 ifneq ($(KERNELRELEASE),)
-	obj-m := pcie.o
+	obj-m := bdbmpcie.o
 else
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 	PWD := $(shell pwd)
@@ -16,11 +16,11 @@ clean:
 endif
 insmod:
 	cp pcieconfig /sys/bus/pci/devices/0000:03:00.0/config
-	insmod ./pcie.ko
+	insmod ./bdbmpcie.ko
 	chmod agu+rw /dev/bdbm_regs0
 
 rmmod:
-	rmmod pcie
+	rmmod bdbmpcie
 
 configbackup:
 	cp pcieconfig _pcieconfig
