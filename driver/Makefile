@@ -14,14 +14,20 @@ default:
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
 endif
-insmod:
-	cp pcieconfig /sys/bus/pci/devices/0000:03:00.0/config
-	insmod ./bdbmpcie.ko
-	chmod agu+rw /dev/bdbm_regs0
 
-rmmod:
-	rmmod bdbmpcie
+install:
+	sudo cp ./bdbmpcie.ko /lib/modules/`uname -r`/
+	sudo depmod -a
+	sudo cp 99-bscpcie.rules /etc/udev/rules.d/
 
-configbackup:
-	cp pcieconfig _pcieconfig
-	cp /sys/bus/pci/devices/0000:03:00.0/config pcieconfig
+#insmod:
+#	cp pcieconfig /sys/bus/pci/devices/0000:03:00.0/config
+#	insmod ./bdbmpcie.ko
+#	chmod agu+rw /dev/bdbm_regs0
+#
+#rmmod:
+#	rmmod bdbmpcie
+#
+#configbackup:
+#	cp pcieconfig _pcieconfig
+#	cp /sys/bus/pci/devices/0000:03:00.0/config pcieconfig
