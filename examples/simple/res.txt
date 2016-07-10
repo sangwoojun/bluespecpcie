@@ -1,0 +1,7 @@
+software shm_open /bdbm4651 returned 3 with errno 0
+bsim PCIe interface init done!
+Initializing DMASplitter
+Magic: c001d00d
+Requesting memread with size 16384
+1 4000 0 0 0
+0 cccccccc cccccccc cccccccc cccccccc
