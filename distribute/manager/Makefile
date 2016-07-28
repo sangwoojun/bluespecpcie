@@ -4,5 +4,5 @@ all:
 install: all
 	sudo chown root:root obj/main
 	sudo mkdir -p /opt/bluespecpcie_manager
-	sudo cp obj/main /opt/bluespecpcie_manager/bluespecpcie_manager
-	sudo chmod 4755 /opt/bluespecpcie_manager/bluespecpcie_manager
+	sudo cp obj/main /opt/bluespecpcie_manager/bsman
+	sudo chmod 4755 /opt/bluespecpcie_manager/bsman

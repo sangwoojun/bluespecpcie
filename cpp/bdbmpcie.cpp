@@ -23,7 +23,7 @@
 #define SHM_SIZE ((1024*8*3) + DMA_BUFFER_SIZE)
 #define IO_QUEUE_SIZE 16
 #define CONFIG_BUFFER_SIZE (1024*16)
-#define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZE/4)
+#define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZEi4)
 
 void interruptHandler() {
 	printf( "Interrupted!\n" );
@@ -144,6 +144,11 @@ BdbmPcie::BdbmPcie() {
 }
 
 void
+BdbmPcie::userWriteWord(unsigned int addr, unsigned int data) {
+	this->writeWord(addr+CONFIG_BUFFER_SIZE, data);
+}
+
+void
 BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 #ifdef BLUESIM
 	uint64_t d1 = 1;
@@ -194,6 +199,11 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 	io_wreq = (0xffff & (io_wreq + 1));
 	pthread_mutex_unlock(&write_lock);
 #endif
+}
+
+uint32_t
+BdbmPcie::userReadWord(unsigned int addr) {
+	return this->readWord(addr+CONFIG_BUFFER_SIZE);
 }
 
 uint32_t

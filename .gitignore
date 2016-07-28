@@ -9,6 +9,7 @@ obj
 
 *.jou
 *.log
+res.txt
 
 fsm_encoding.os
 webtalk.jou

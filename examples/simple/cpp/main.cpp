@@ -12,9 +12,11 @@ int main(int argc, char** argv) {
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
 
-	pcie->writeWord(0, 0xdeadbeef);
+	pcie->userWriteWord(0, 0xdeadbeef);
+	pcie->userWriteWord(4, 0xcafef00d);
 
-	printf( "read: %x\n", pcie->readWord(0) );
-
+	for ( int i = 0; i < 8; i++ ) {
+		printf( "read: %x\n", pcie->userReadWord(i*4) );
+	}
 	return 0;
 }

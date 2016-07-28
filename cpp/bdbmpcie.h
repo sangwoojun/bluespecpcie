@@ -16,6 +16,9 @@ public:
 
 	void writeWord(unsigned int addr, unsigned int data);
 	uint32_t readWord(unsigned int addr);
+	
+	void userWriteWord(unsigned int addr, unsigned int data);
+	uint32_t userReadWord(unsigned int addr);
 
 	void waitInterrupt(int timeout);
 	void waitInterrupt();

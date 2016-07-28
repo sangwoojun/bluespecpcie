@@ -22,17 +22,36 @@ module mkHwMain#(PcieUserIfc pcie)
 	Clock pcieclk = pcie.user_clk;
 	Reset pcierst = pcie.user_rst;
 
-	Reg#(Bit#(32)) dataBuffer <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) dataBuffer0 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) dataBuffer1 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 
 	rule echoRead;
+		// read request handle must be returned with pcie.dataSend
 		let r <- pcie.dataReq;
-		pcie.dataSend(r, dataBuffer);
+		let a = r.addr;
+
+		// PCIe IO is done at 4 byte granularities
+		// lower 2 bits are always zero
+		if ( (a>>2)[0] == 0 ) begin 
+			pcie.dataSend(r, dataBuffer0);
+		end else begin
+			pcie.dataSend(r, dataBuffer1);
+		end
+		$display( "Received read req at %x", r.addr );
 	endrule
 	rule recvWrite;
 		let w <- pcie.dataReceive;
 		let a = w.addr;
 		let d = w.data;
-		dataBuffer <= d;
+		
+		// PCIe IO is done at 4 byte granularities
+		// lower 2 bits are always zero
+		if ( (a>>2)[0] == 0 ) begin
+			dataBuffer0 <= d;
+		end else begin
+			dataBuffer1 <= d;
+		end
+		$display( "Received write req at %x : %x", a, d );
 	endrule
 
 endmodule

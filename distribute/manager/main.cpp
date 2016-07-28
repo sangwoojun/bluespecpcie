@@ -187,11 +187,17 @@ main (int argc, char** argv)
 
 	printf( "BluespecPCIe manager\n" ); fflush(stdout);
 	bool cmd_reboot = false;
-
+	bool cmd_exec = false;
+	char* cmd_exec_name = NULL;
+	int cmd_arg_count = 0;
 
 	if ( argc > 1 ) {
-		char cmd = argv[1][0];
-		if ( cmd == 'r' ) cmd_reboot = true;
+		char* cmd = argv[1];
+		if ( cmd[0] == 'r' && strlen(cmd) == 1 ) cmd_reboot = true;
+		else {
+			cmd_exec_name = cmd;
+			cmd_arg_count = argc - 1;
+		}
 	}
 
 	/*
@@ -237,12 +243,26 @@ main (int argc, char** argv)
 	bool config_exist = check_config_exist();
 	printf( "config exists: %s\n", config_exist ? "true" : "false" );
 
+	int retval = 0;
+
 	if ( found && config_exist ) {
 		printf( "device discovered, restoring pcie config\n" );
 		// restore config
 		do_setuid();
 		restore_config(loc);
 		undo_setuid();
+
+		char** args = (char**)malloc(sizeof(char*)*cmd_arg_count+1);
+		args[cmd_arg_count] = 0;
+		for ( int i = 0; i < cmd_arg_count; i++ ) {
+			args[i] = argv[i+1];
+		}
+
+		if ( cmd_exec ) {
+			execvp(cmd_exec_name, args);
+		}
+
+		retval = 0;
 	} else  {
 		printf( "device not discovered, setting reboot flag...\n" );
 		// set reboot flag
@@ -255,8 +275,12 @@ main (int argc, char** argv)
 			do_setuid();
 			reboot(LINUX_REBOOT_CMD_RESTART);
 			undo_setuid();
+			retval = 1;
 		} else {
 			printf( "not rebooting. %s r to reboot\n", argv[0] );
+			retval = 1;
 		}
 	}
+
+	return retval;
 }
