@@ -23,7 +23,7 @@
 #define SHM_SIZE ((1024*8*3) + DMA_BUFFER_SIZE)
 #define IO_QUEUE_SIZE 16
 #define CONFIG_BUFFER_SIZE (1024*16)
-#define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZEi4)
+#define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZE/4)
 
 void interruptHandler() {
 	printf( "Interrupted!\n" );
