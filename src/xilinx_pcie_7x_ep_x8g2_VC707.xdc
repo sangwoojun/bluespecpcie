@@ -305,3 +305,4 @@ set_property LOC AK3  [get_ports { pcie_pins_TXN[7] }]
 #endgroup
 
 set_clock_groups -asynchronous -group {clk_gen_pll_CLKOUT0} -group {userclk2}
+set_clock_groups -asynchronous -group {clk_gen_pll_CLKOUT1} -group {userclk2}
