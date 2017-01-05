@@ -15,6 +15,8 @@ typedef Bit#(DMAQueueWordSz) DMAQueueWord;
 
 interface DMACircularQueueIfc#(numeric type bufferSz);
 	method ActionValue#(Bit#(128)) getCmd;
+	method Action enqStat(Bit#(8) addr, Bit#(32) data);
+
 	method Action enq(DMAQueueWord word);
 
 	// TODO
@@ -22,6 +24,7 @@ interface DMACircularQueueIfc#(numeric type bufferSz);
 	method Action deq;
 endinterface
 
+// bufferSz is log(bytes)
 module mkDMACircularQueue#(PcieUserIfc pcie) (DMACircularQueueIfc#(bufferSz))
 	provisos(Add#(a__, bufferSz, 32));
 
@@ -40,6 +43,27 @@ module mkDMACircularQueue#(PcieUserIfc pcie) (DMACircularQueueIfc#(bufferSz))
 		IOWrite d <- pcie.dataReceive;
 		userWriteQ.enq(d);
 	endrule
+
+	SyncFIFOIfc#(Bit#(32)) enqSyncQ <- mkSyncFIFOFromCC(32,pcieclk);
+	Vector#(16,Reg#(Bit#(32))) statReg <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
+	FIFO#(IOReadReq) userReadReqQ <- mkFIFO;
+	rule getReadReq;
+		let req = pcie.dataReq;
+		userReadReqQ.enq(req);
+	endrule
+	rule procUserR;
+		let req = userReadReqQ.first;
+		userReadReqQ.deq;
+
+		let addr = (d.addr>>2);
+		if ( addr == 0 ) begin
+			enqSyncQ.deq;
+			pcie.dataSend(req, enqSyncQ.first);
+		end else if ( addr < 16 ) begin
+			pcie.dataSend(req, statReg[addr]);
+		end
+	endrule
+
 
 	Reg#(Bool) started <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
 	Vector#(4,Reg#(Bit#(32))) cmdbuffer <- replicateM(mkReg(0), clocked_by pcieclk, reset_by pcierst);
@@ -136,6 +160,14 @@ module mkDMACircularQueue#(PcieUserIfc pcie) (DMACircularQueueIfc#(bufferSz))
 		cmdQ.deq;
 		return cmdQ.first;
 	endmethod
+	method Action enqStat(Bit#(8) addr, Bit#(32) data);
+		if ( addr == 0 ) begin
+			enqSyncQ.enq(data);
+		end else if(addr<16) begin
+			statReg[addr] <= data;
+		end
+	endmethod
+
 	method Action enq(DMAQueueWord word);
 		enqSyncQ.enq(word);
 	endmethod
