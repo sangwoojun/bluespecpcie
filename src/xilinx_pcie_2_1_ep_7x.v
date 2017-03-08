@@ -254,6 +254,11 @@ module xilinx_pcie_2_1_ep_7x # (
   wire [1:0]                                  pl_directed_link_width;
   wire                                        pl_upstream_prefer_deemph;
 
+  wire                                        pl_directed_change_done;
+  wire                                        pl_sel_lnk_rate;
+  wire                                        pl_link_gen2_cap;
+  wire                                        pl_ltssm_state;                            
+
   wire                                        sys_rst_n_c;
   assign sys_rst_n_o = sys_rst_n_c;
   wire                                        sys_clk;
@@ -519,9 +524,9 @@ pcie_7x_0_support_i
   .pl_directed_link_auton                    ( pl_directed_link_auton ),
   .pl_upstream_prefer_deemph                 ( pl_upstream_prefer_deemph ),
 
-  .pl_sel_lnk_rate                           ( ),
+  .pl_sel_lnk_rate                           ( pl_sel_lnk_rate ),
   .pl_sel_lnk_width                          ( ),
-  .pl_ltssm_state                            ( ),
+  .pl_ltssm_state                            ( pl_ltssm_state ),
   .pl_lane_reversal_mode                     ( ),
 
   .pl_phy_lnk_up                             ( ),
@@ -529,11 +534,11 @@ pcie_7x_0_support_i
   .pl_rx_pm_state                            ( ),
 
   .pl_link_upcfg_cap                         ( ),
-  .pl_link_gen2_cap                          ( ),
+  .pl_link_gen2_cap                          ( pl_link_gen2_cap ),
   .pl_link_partner_gen2_supported            ( ),
   .pl_initial_link_width                     ( ),
 
-  .pl_directed_change_done                   ( ),
+  .pl_directed_change_done                   ( pl_directed_change_done ),
 
   //------------------------------------------------//
   // EP Only                                        //
@@ -612,11 +617,49 @@ pcie_7x_0_support_i
   //assign cfg_interrupt = 1'b0;                     // Never drive interrupt by qualifying cfg_interrupt_assert
   assign cfg_interrupt_di = 8'b0;                  // Do not set interrupt fields
 
-  assign pl_directed_link_change = 2'b00;          // Never initiate link change
+
+	// wjun
+	reg pl_directed_link_change_state = 1'b0;
+	reg [1:0] pl_directed_link_change_r = 2'b00;
+	//reg pl_directed_link_auton_r = 1'b0;
+  assign pl_directed_link_change = pl_directed_link_change_r; // (user_lnk_up && pl_sel_lnk_rate != 1'b1 && pl_directed_change_done) ? : 2'b00;          // No change
   assign pl_directed_link_width = 2'b00;          // Zero out directed link width
-  assign pl_directed_link_speed = 1'b0;            // Zero out directed link speed
+  assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
+  assign pl_directed_link_auton = 1'b1;// pl_directed_link_auton_r ; // 1'b0;            // Zero out link autonomous input
+
+
+  // wjun
+  // Zero recommended for short, reflection dominated channels (cables?)
+  // This was required to be set to zero for reliable Gen2 (5GT/s)
+  assign pl_upstream_prefer_deemph = 1'b0;         // Zero out preferred de-emphasis of upstream port
+
+	// wjun
+	// Code to attempt Directed Link Speed Change to 5GT/s if not already at 5GT/s
+	// This doesn't seem to be required, but maybe necessary for stable Gen2
+	always @(posedge user_clk) begin
+		if ( pl_directed_link_change_state == 0 ) begin
+
+			// FIXME check for pl_ltssm_state[5:0] = L0
+			if ( user_lnk_up == 1 && pl_sel_lnk_rate != 1 ) begin
+				pl_directed_link_change_r <= 2'b10;
+				pl_directed_link_change_state <= 1;
+			end
+		end else begin
+			if ( pl_directed_change_done == 1 || user_lnk_up == 0 ) begin
+				pl_directed_link_change_r <= 2'b00;
+				pl_directed_link_change_state <= 0;
+			end
+		end
+	end
+
+  
+/*
+  assign pl_directed_link_change = 2'b00;          // No change
+  assign pl_directed_link_width = 2'b00;          // Zero out directed link width
+  assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
   assign pl_directed_link_auton = 1'b0;            // Zero out link autonomous input
   assign pl_upstream_prefer_deemph = 1'b1;         // Zero out preferred de-emphasis of upstream port
+*/
 
   assign cfg_mgmt_di = 32'h0;                      // Zero out CFG MGMT input data bus
   assign cfg_mgmt_byte_en = 4'h0;                  // Zero out CFG MGMT byte enables
