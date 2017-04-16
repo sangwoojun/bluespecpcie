@@ -63,16 +63,18 @@ directory. Copy it to where you set $BLUEDBM_BINARY_DIR
 
 Run ./program.sh
 
-Run bluespecpcie_manager
+Run bsman
+
+bsman is usually installed to /opt/bluespecpcie\_manager/
 
 If the FPGA did not already have a bluespecpcie-based project programmed onto
 it, the system will need to be rebooted. If this is the case,
-bluespecpcie_manager will tell you.
+bsman will tell you.
 
-If the system needs to be rebooted, run "bluespecpcie_manager r" (with the
+If the system needs to be rebooted, run "bsman r" (with the
 argument 'r'). This will reboot the system.
 
-Once system is rebooted, run bluespecpcie_manager again.
+Once system is rebooted, run bsman again.
 
 Run the software binary
 
