@@ -19,8 +19,11 @@ endinterface
 interface PcieImportUser;
 	method Bit#(1) user_link_up;
 	method Bit#(16) cfg_completer_id;
+
+	method Bit#(32) debug_data;
 	
 	method Action assertInterrupt(Bit#(1) value);
+	method Action assertUptrain(Bit#(1) value);
 
 	method Action sendData(Bit#(PcieInterfaceSz) word);
 	method Action sendKeep(Bit#(PcieKeepSz) keep);
@@ -69,7 +72,10 @@ module mkPcieImport#(Clock sys_clk_p, Clock sys_clk_n, Reset sys_rst_n, Clock em
 		method user_lnk_up user_link_up;
 		method cfg_completer_id cfg_completer_id;
 
+		method debug_data debug_data;
+
 		method assertInterrupt(assert_interrupt_data) enable(assert_interrupt) ready(assert_interrupt_rdy) clocked_by(user_clk) reset_by(user_reset);
+		method assertUptrain(asser_uptrain_data) enable(assert_uptrain) ready(assert_interrupt_rdy) clocked_by(user_clk) reset_by(user_reset);
 
 		method sendData(s_axis_tx_tdata) enable(s_axis_tx_tvalid) ready(s_axis_tx_tready) clocked_by(user_clk) reset_by(user_reset);
 		method sendKeep(s_axis_tx_tkeep) enable(tx_en_keep) ready(s_axis_tx_tready) clocked_by(user_clk) reset_by(user_reset);
@@ -91,13 +97,16 @@ module mkPcieImport#(Clock sys_clk_p, Clock sys_clk_n, Reset sys_rst_n, Clock em
 		user_receiveData, user_receiveKeep, user_receiveLast, user_receiveUser,
 		user_cfg_completer_id,
 		user_assertInterrupt,
-		user_sendData, user_sendKeep, user_sendLast, user_user_link_up
+		user_sendData, user_sendKeep, user_sendLast, user_user_link_up,
+		user_debug_data, user_assertUptrain
+
 
 		) CF (
 		user_receiveData, user_receiveKeep, user_receiveLast, user_receiveUser,
 		user_cfg_completer_id,
 		user_assertInterrupt,
-		user_sendData, user_sendKeep, user_sendLast, user_user_link_up
+		user_sendData, user_sendKeep, user_sendLast, user_user_link_up,
+		user_debug_data, user_assertUptrain
 		);
 endmodule
 

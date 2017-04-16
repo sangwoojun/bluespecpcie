@@ -144,6 +144,13 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 		method Action assertInterrupt if ( bdpiInterruptReady() );
 			bdpiAssertInterrupt();
 		endmethod
+		method Action assertUptrain;
+		endmethod
+
+		method Bit#(32) debug_data;
+			return 0;
+		endmethod
+
 	endinterface
 endmodule
 

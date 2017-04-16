@@ -16,6 +16,7 @@
 
 #include <linux/sched.h>
 #include <linux/wait.h>
+#include <linux/delay.h>
 #include <linux/poll.h>
 
 //must match one in PcieCtrl
@@ -37,7 +38,9 @@ static struct pci_dev *pcidev = NULL;
 
 static unsigned int chrdev_major = 0;
 static unsigned int chrdev_minor = 0;
+
 static unsigned int ioctl_alloc_dma = 0;
+static unsigned int ioctl_refresh_link = 1;
 
 static unsigned long bar0_addr;
 static unsigned long bar0_size = 1024*1024;
@@ -295,6 +298,18 @@ static long bdbm_ioctl(struct file* filp, unsigned int cmd, unsigned long arg) {
 				lpa[i*4+0], lpa[i*4+1], lpa[i*4+2], lpa[i*4+3]);
 		}
 		kunmap(dma_pages[0]);
+	}
+	if ( cmd == ioctl_refresh_link ) {
+		u16 pci_cfg;
+		int cpos = 0;
+		printk(KERN_ALERT "BlueDBM refresh link IOCTL called\n");
+		cpos = pci_pcie_cap(pcidev);
+		pci_read_config_word(pcidev, cpos + PCI_EXP_LNKCTL, &pci_cfg);
+		//pci_cfg |= PCI_EXP_LNKCTL_RL;
+		pci_write_config_word(pcidev, cpos + PCI_EXP_LNKCTL, pci_cfg|PCI_EXP_LNKCTL_LD);
+		mdelay(125);
+		pci_write_config_word(pcidev, cpos + PCI_EXP_LNKCTL, pci_cfg|PCI_EXP_LNKCTL_RL);
+		mdelay(125);
 	}
 	return 0;
 }

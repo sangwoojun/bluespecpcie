@@ -95,6 +95,9 @@ interface PcieUserIfc;
 	method ActionValue#(DMAWordTagged) dmaReadWord;
 
 	method Action assertInterrupt;
+	method Action assertUptrain;
+
+	method Bit#(32) debug_data;
 endinterface
 
 interface PcieCtrlIfc;
@@ -205,12 +208,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(SendTLP) sendTLPQ <- mkSizedFIFO(8);
 	MergeNIfc#(8,SendTLP) sendTLPm <- mkMergeN;
 
-	FIFO#(IOWrite) userWriteQ <- mkSizedBRAMFIFO(128);
-	FIFO#(IOReadReq) userReadQ <- mkSizedBRAMFIFO(128);
+	FIFO#(IOWrite) userWriteQ <- mkSizedBRAMFIFO(4096);
+	FIFO#(IOReadReq) userReadQ <- mkSizedBRAMFIFO(4096);
 
 	Reg#(Bit#(16)) userWriteBudget <- mkReg(0);
-	Reg#(Bit#(16)) userWriteEmit <- mkReg(0);
-	Reg#(Bit#(16)) userReadEmit <- mkReg(0);
+	Reg#(Bit#(32)) userWriteEmit <- mkReg(0);
+	Reg#(Bit#(32)) userReadEmit <- mkReg(0);
 
 	Reg#(Bit#(10)) completionRecvLength <- mkReg(0);
 	Reg#(Bit#(8)) completionRecvTag <- mkReg(0);
@@ -283,12 +286,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
 			else if ( internalAddr == fromInteger(io_userspace_offset)-8) begin
-				cdw3 = reverseEndian(zeroExtend(userReadEmit));
+				cdw3 = reverseEndian(userReadEmit);
 				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
 			else if ( internalAddr == fromInteger(io_userspace_offset)-4) begin
-				cdw3 = reverseEndian(zeroExtend(userWriteEmit));
+				cdw3 = reverseEndian(userWriteEmit);
 				//sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 				sendTLPm.enq[0].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b1});
 			end
@@ -779,6 +782,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		endmethod
 		method Action assertInterrupt if ( dataWordsRemain == 0);
 			user.assertInterrupt(1);
+		endmethod
+		method Action assertUptrain;
+			user.assertUptrain(1);
+		endmethod
+		method Bit#(32) debug_data;
+			return user.debug_data;
 		endmethod
 	endinterface
 endmodule

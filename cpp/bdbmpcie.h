@@ -23,6 +23,8 @@ public:
 	void waitInterrupt(int timeout);
 	void waitInterrupt();
 	void* dmaBuffer();
+
+	void Ioctl(unsigned int cmd, unsigned long arg);
 	
 private:
 	BdbmPcie();
@@ -42,17 +44,17 @@ private:
 //#ifdef BLUESIM
 	void* shm_ptr;
 
-	unsigned int io_wreq;
-	unsigned int io_rreq;
-	unsigned int io_wbudget;
-	unsigned int io_rbudget;
+	uint32_t io_wreq;
+	uint32_t io_rreq;
+	uint32_t io_wbudget;
+	uint32_t io_rbudget;
 
 	ShmFifo* infifo;
 	ShmFifo* outfifo;
 	ShmFifo* interruptfifo;
 //#else
-	void* mmap_io;
 	void* mmap_dma;
+	void* mmap_io;
 	int reg_fd;
 //#endif
 
@@ -61,5 +63,6 @@ private:
 
 	//pthread_cond_t pcie_cond;
 };
+
 
 #endif

@@ -21,7 +21,7 @@
 #define DMA_BUFFER_SIZE (1024*1024*8)
 //For BSIM
 #define SHM_SIZE ((1024*8*3) + DMA_BUFFER_SIZE)
-#define IO_QUEUE_SIZE 64
+#define IO_QUEUE_SIZE 4096
 #define CONFIG_BUFFER_SIZE (1024*16)
 #define CONFIG_BUFFER_ISIZE (CONFIG_BUFFER_SIZE/4)
 
@@ -163,9 +163,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 
 	pthread_mutex_lock(&write_lock);
 	unsigned int* ummd = (unsigned int*)this->mmap_io;
-	//TODO lock?
 	if ( io_wbudget > 0 ) {
-		io_wreq = (0xffff & (io_wreq + 1));
 		io_wbudget--;
 
 		ummd[(addr>>2)] = data;
@@ -173,17 +171,11 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		return;
 	}
 	unsigned int io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];
-	io_wemit = (io_wemit & 0xffff);
-	unsigned int iob = io_wreq;
-	if ( io_wemit > iob ) {
-		iob += 0x10000;
-	}
 
 	int waitcount = 0;
-	while ( iob >= io_wemit + IO_QUEUE_SIZE ) {
-		usleep(50);
-		//pthread_cond_wait(&pcie_cond, &pcie_lock);
-		io_wemit = (ummd[CONFIG_BUFFER_ISIZE-1] & 0xffff);
+	while ( io_wreq - io_wemit >= IO_QUEUE_SIZE/2 ) {
+		//usleep(50);
+		io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];
 
 		if ( waitcount <= 1024*100) {
 			waitcount ++;
@@ -193,10 +185,10 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		}
 	}
 	
-	this->io_wbudget = io_wemit + IO_QUEUE_SIZE - iob;
+	this->io_wbudget = IO_QUEUE_SIZE - ( io_wreq - io_wemit);
+	this->io_wreq += IO_QUEUE_SIZE - ( io_wreq - io_wemit)+1;
 
 	ummd[(addr>>2)] = data;
-	io_wreq = (0xffff & (io_wreq + 1));
 	pthread_mutex_unlock(&write_lock);
 #endif
 }
@@ -293,5 +285,14 @@ BdbmPcie::dmaBuffer() {
 return shm_ptr;
 #else
 return mmap_dma;
+#endif
+}
+
+
+void 
+BdbmPcie::Ioctl(unsigned int cmd, unsigned long arg) {
+#ifdef BLUESIM
+#else
+	int res = ioctl(this->reg_fd, cmd, arg);
 #endif
 }

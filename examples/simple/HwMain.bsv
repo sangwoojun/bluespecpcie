@@ -32,10 +32,12 @@ module mkHwMain#(PcieUserIfc pcie)
 
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero
-		if ( (a>>2)[0] == 0 ) begin 
+		let offset = (a>>2);
+		if ( offset[0] == 0 ) begin 
 			pcie.dataSend(r, dataBuffer0);
 		end else begin
-			pcie.dataSend(r, dataBuffer1);
+			//pcie.dataSend(r, dataBuffer1);
+			pcie.dataSend(r, pcie.debug_data);
 		end
 		$display( "Received read req at %x", r.addr );
 	endrule
@@ -46,10 +48,13 @@ module mkHwMain#(PcieUserIfc pcie)
 		
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero
-		if ( (a>>2)[0] == 0 ) begin
+		let off = (a>>2);
+		if ( off == 0 ) begin
 			dataBuffer0 <= d;
-		end else begin
+		end else if ( off == 1 ) begin
 			dataBuffer1 <= d;
+		end else begin
+			pcie.assertUptrain;
 		end
 		$display( "Received write req at %x : %x", a, d );
 	endrule

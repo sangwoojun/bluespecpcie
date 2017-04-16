@@ -100,7 +100,14 @@ module xilinx_pcie_2_1_ep_7x # (
   input                        assert_interrupt,
   output assert_interrupt_rdy,
   input assert_interrupt_data,
+
+  output [31:0] debug_data,
  // output interrupt_msienable,
+  
+  input assert_uptrain,
+  output assert_uptrain_rdy,
+  input asser_uptrain_data,
+
   // Interface end
 
   output  [7:0]    pci_exp_txp,
@@ -123,6 +130,10 @@ module xilinx_pcie_2_1_ep_7x # (
   input                                       sys_clk_n,
   input                                       sys_rst_n
 );
+
+	reg [15:0] debug_data_r = 0;
+	//assign debug_data = debug_data_r;
+
 
   //assign interrupt_msienable = cfg_interrupt_msienable;
   wire cfg_interrupt_msienable;
@@ -257,7 +268,9 @@ module xilinx_pcie_2_1_ep_7x # (
   wire                                        pl_directed_change_done;
   wire                                        pl_sel_lnk_rate;
   wire                                        pl_link_gen2_cap;
-  wire                                        pl_ltssm_state;                            
+  wire                                        pl_link_partner_gen2_supported;
+  wire                                        pl_link_upcfg_cap;
+  wire [5:0]                                  pl_ltssm_state;                            
 
   wire                                        sys_rst_n_c;
   assign sys_rst_n_o = sys_rst_n_c;
@@ -464,13 +477,13 @@ pcie_7x_0_support_i
   .cfg_command                               ( ),
   .cfg_dstatus                               ( ),
   .cfg_lstatus                               ( ),
-  .cfg_pcie_link_state                       ( ),
+  .cfg_pcie_link_state                       ( cfg_pcie_link_state ),
   .cfg_dcommand                              ( ),
-  .cfg_lcommand                              ( ),
+  .cfg_lcommand                              ( cfg_lcommand ),
   .cfg_dcommand2                             ( ),
 
   .cfg_pmcsr_pme_en                          ( ),
-  .cfg_pmcsr_powerstate                      ( ),
+  .cfg_pmcsr_powerstate                      ( cfg_pmcsr_powerstate ),
   .cfg_pmcsr_pme_status                      ( ),
   .cfg_received_func_lvl_rst                 ( ),
   .tx_buf_av                                 ( ),
@@ -533,9 +546,9 @@ pcie_7x_0_support_i
   .pl_tx_pm_state                            ( ),
   .pl_rx_pm_state                            ( ),
 
-  .pl_link_upcfg_cap                         ( ),
+  .pl_link_upcfg_cap                         ( pl_link_upcfg_cap ),
   .pl_link_gen2_cap                          ( pl_link_gen2_cap ),
-  .pl_link_partner_gen2_supported            ( ),
+  .pl_link_partner_gen2_supported            ( pl_link_partner_gen2_supported ),
   .pl_initial_link_width                     ( ),
 
   .pl_directed_change_done                   ( pl_directed_change_done ),
@@ -619,35 +632,90 @@ pcie_7x_0_support_i
 
 
 	// wjun
-	reg pl_directed_link_change_state = 1'b0;
+	reg [3:0] pl_directed_link_change_state = 4'b0;
 	reg [1:0] pl_directed_link_change_r = 2'b00;
-	//reg pl_directed_link_auton_r = 1'b0;
+	reg pl_directed_link_auton_r = 1'b0;
   assign pl_directed_link_change = pl_directed_link_change_r; // (user_lnk_up && pl_sel_lnk_rate != 1'b1 && pl_directed_change_done) ? : 2'b00;          // No change
   assign pl_directed_link_width = 2'b00;          // Zero out directed link width
   assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
-  assign pl_directed_link_auton = 1'b1;// pl_directed_link_auton_r ; // 1'b0;            // Zero out link autonomous input
+  assign pl_directed_link_auton = pl_directed_link_auton_r ; // 1'b0;            // Zero out link autonomous input
 
+  wire [1:0] cfg_pmcsr_powerstate;
+  wire [15:0] cfg_lcommand;
+  wire [2:0] cfg_pcie_link_state;
+
+	reg [7:0] uptrain_count = 0;
+	assign debug_data = {0,
+
+	uptrain_fin_counter, // 4bit
+	uptrain_req_counter, //4bit
+
+	pl_directed_link_change_state, //4bit
+	//user_lnk_up, //1bit
+	pl_sel_lnk_rate, //1bit
+	pl_link_gen2_cap, //1bit
+	pl_link_partner_gen2_supported, //1bit
+	pl_link_upcfg_cap, //1bit
+
+	2'b00,pl_ltssm_state,
+
+	uptrain_count
+	};
 
   // wjun
   // Zero recommended for short, reflection dominated channels (cables?)
   // This was required to be set to zero for reliable Gen2 (5GT/s)
   assign pl_upstream_prefer_deemph = 1'b0;         // Zero out preferred de-emphasis of upstream port
+  reg [3:0] uptrain_req_counter = 0;
+  reg [3:0] uptrain_fin_counter = 0;
+  always @ (posedge user_clk) begin
+  	if (assert_uptrain) begin
+		uptrain_req_counter <= uptrain_req_counter + 1;
+	end
+  end
 
 	// wjun
 	// Code to attempt Directed Link Speed Change to 5GT/s if not already at 5GT/s
-	// This doesn't seem to be required, but maybe necessary for stable Gen2
 	always @(posedge user_clk) begin
 		if ( pl_directed_link_change_state == 0 ) begin
-
-			// FIXME check for pl_ltssm_state[5:0] = L0
-			if ( user_lnk_up == 1 && pl_sel_lnk_rate != 1 ) begin
-				pl_directed_link_change_r <= 2'b10;
-				pl_directed_link_change_state <= 1;
+			if ( user_lnk_up == 1 && pl_sel_lnk_rate != 1 && uptrain_req_counter != uptrain_fin_counter ) begin
+				pl_directed_link_change_state <= 2;
 			end
-		end else begin
-			if ( pl_directed_change_done == 1 || user_lnk_up == 0 ) begin
-				pl_directed_link_change_r <= 2'b00;
+		end
+		/*
+		else if ( pl_directed_link_change_state == 1 ) begin
+			if ( 
+			pl_link_upcfg_cap == 1 && pl_link_partner_gen2_supported == 1 
+			) begin
+				pl_directed_link_change_state <= 2;
+			end
+		end
+		*/
+		else if ( pl_directed_link_change_state == 2 ) begin
+			if ( 
+			pl_link_upcfg_cap == 1 && pl_link_partner_gen2_supported == 1  &&
+				cfg_lcommand[9] == 1'b0 && 
+				cfg_pmcsr_powerstate[1:0] == 2'b00
+				&& cfg_pcie_link_state[2:0] != 3'b101 && cfg_pcie_link_state[2:0] != 3'b110  &&
+				pl_ltssm_state == 6'h16 
+				) begin
+
+				pl_directed_link_change_state <= 3;
+				pl_directed_link_change_r <= 2'b10;
+				pl_directed_link_auton_r <= 1'b1;
+			end
+			else begin
 				pl_directed_link_change_state <= 0;
+			end
+		end
+		else begin
+			if ( pl_directed_change_done == 1 || user_lnk_up == 0 ) begin
+				pl_directed_link_change_state <= 0;
+
+				pl_directed_link_change_r <= 2'b00;
+				pl_directed_link_auton_r <= 1'b0;
+				uptrain_count <= uptrain_count + 1;
+				uptrain_fin_counter <= uptrain_fin_counter + 1;
 			end
 		end
 	end
