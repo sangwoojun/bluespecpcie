@@ -61,6 +61,16 @@ DMASplitter::sendWord(uint32_t header, uint32_t d1, uint32_t d2, uint32_t d3, ui
 	pcie->writeWord((IO_USER_OFFSET+0)*4, d1);
 }
 
+void 
+DMASplitter::sendWord(uint32_t header, uint32_t d1, uint32_t d2) {
+	BdbmPcie* pcie = BdbmPcie::getInstance();
+
+	pcie->writeWord((IO_USER_OFFSET+4)*4, header);
+	pcie->writeWord((IO_USER_OFFSET+1)*4, d2);
+	pcie->writeWord((IO_USER_OFFSET+0)*4, d1);
+}
+
+
 int
 DMASplitter::scanReceive() {
 	BdbmPcie* pcie = BdbmPcie::getInstance();

@@ -27,6 +27,7 @@ public:
 
 	//sends 16 bytes (128 bits)
 	void sendWord(uint32_t header, uint32_t d1, uint32_t d2, uint32_t d3, uint32_t d4);
+	void sendWord(uint32_t header, uint32_t d1, uint32_t d2);
 	void sendWord(PCIeWord word);
 	PCIeWord recvWord();
 	
