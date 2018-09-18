@@ -1,2 +1,2 @@
 all:
-	g++ -o test test.cpp -lrt -g
+	g++ -o test test.cpp -lrt -g -lpthread
