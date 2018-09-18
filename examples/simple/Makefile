@@ -1,7 +1,9 @@
 LIBPATH =../../
 
+BOARD=kc705
+
 BSVPATH =$(LIBPATH)/src/
-COREPATH =$(LIBPATH)/core/
+COREPATH =$(LIBPATH)/core/$(BOARD)/
 
 BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
 
@@ -14,6 +16,7 @@ BSIM_CPPFILES =$(BSVPATH)/PcieBdpi.cpp \
 DEBUGFLAGS = -D BSIM
 
 
+
 ## change txdiffctrl in auroraintra to 1100
 
 
@@ -22,7 +25,7 @@ all:
 	mkdir -p build/obj
 	mkdir -p build/verilog/top
 	bsc  $(BSCFLAGS) $(BSCFLAGS_SYNTH) -remove-dollar -p +:$(BSVPATH) -verilog -u -g mkProjectTop Top.bsv
-	cp vivado-impl.tcl ./build/impl.tcl
+	cp vivado-impl-$(BOARD).tcl ./build/impl.tcl
 	cd build; cd verilog/top; ../../../verilogcopy.sh; cd ../../; vivado -mode batch -source impl.tcl
 	tar czf c.tgz build/
 	mv c.tgz build/

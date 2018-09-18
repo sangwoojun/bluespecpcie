@@ -143,12 +143,12 @@ BdbmPcie::BdbmPcie() {
 #endif
 }
 
-void
+inline void
 BdbmPcie::userWriteWord(unsigned int addr, unsigned int data) {
 	this->writeWord(addr+CONFIG_BUFFER_SIZE, data);
 }
 
-void
+inline void
 BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 #ifdef BLUESIM
 	uint64_t d1 = 1;
@@ -193,12 +193,12 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 #endif
 }
 
-uint32_t
+inline uint32_t
 BdbmPcie::userReadWord(unsigned int addr) {
 	return this->readWord(addr+CONFIG_BUFFER_SIZE);
 }
 
-uint32_t
+inline uint32_t
 BdbmPcie::readWord(unsigned int addr) {
 #ifdef BLUESIM
 	uint64_t d2 = addr;
