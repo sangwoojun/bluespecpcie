@@ -14,6 +14,7 @@ interface PcieImportPins;
 	method Bit#(8) txn_out();
 	(* prefix = "", result = "TXP" *)
 	method Bit#(8) txp_out();
+
 endinterface
 
 interface PcieImportUser;

@@ -10,7 +10,8 @@
 	create_project -name local_synthesized_ip -in_memory -part xc7k325tffg900-2
 	set_property board_part xilinx.com:kc705:part0:1.5 [current_project]
 	create_ip -name pcie_7x -vendor xilinx.com -library ip -version 3.* -module_name $corename -dir ./$coredir
-set_property -dict [list CONFIG.Maximum_Link_Width {X8} CONFIG.Interface_Width {128_bit} CONFIG.Bar0_Scale {Megabytes} CONFIG.Bar0_Size {1} CONFIG.Link_Speed {2.5_GT/s} CONFIG.User_Clk_Freq {125} CONFIG.Device_ID {7028} CONFIG.Max_Payload_Size {512_bytes} CONFIG.Trgt_Link_Speed {4'h1} CONFIG.PCIe_Blk_Locn {X0Y0} CONFIG.Trans_Buf_Pipeline {None} CONFIG.Ref_Clk_Freq {100_MHz}] [get_ips $corename]
+#set_property -dict [list CONFIG.Maximum_Link_Width {X8} CONFIG.Interface_Width {128_bit} CONFIG.Bar0_Scale {Megabytes} CONFIG.Bar0_Size {1} CONFIG.Link_Speed {2.5_GT/s} CONFIG.User_Clk_Freq {125} CONFIG.Device_ID {7028} CONFIG.Max_Payload_Size {512_bytes} CONFIG.Trgt_Link_Speed {4'h1} CONFIG.PCIe_Blk_Locn {X0Y0} CONFIG.Trans_Buf_Pipeline {None} CONFIG.Ref_Clk_Freq {100_MHz}] [get_ips $corename]
+	set_property -dict [list CONFIG.Maximum_Link_Width {X8} CONFIG.Link_Speed {5.0_GT/s} CONFIG.Bar0_Scale {Megabytes} CONFIG.Bar0_Size {1} CONFIG.IntX_Generation {false} CONFIG.MSI_Enabled {false} CONFIG.Interface_Width {128_bit} CONFIG.User_Clk_Freq {250} CONFIG.Device_ID {7028} CONFIG.Max_Payload_Size {256_bytes} CONFIG.Trgt_Link_Speed {4'h2} CONFIG.Legacy_Interrupt {NONE} CONFIG.PCIe_Blk_Locn {X0Y0} CONFIG.Trans_Buf_Pipeline {None} CONFIG.Ref_Clk_Freq {100_MHz}] [get_ips $corename]
 
 	generate_target {instantiation_template} [get_files ./$coredir/$corename/$corename.xci]
 	generate_target all [get_files  ./$coredir/$corename/$corename.xci]

@@ -25,7 +25,7 @@ set_property part $partname [current_project]
 ############# Pcie Stuff
 read_ip $pciedir/core/kc705/pcie_7x_0/pcie_7x_0.xci
 read_verilog [ glob $pciedir/src/*.v ]
-read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g1_KC705.xdc
+read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_KC705.xdc
 ############## end Pcie Stuff
 
 ############# Flash Stuff

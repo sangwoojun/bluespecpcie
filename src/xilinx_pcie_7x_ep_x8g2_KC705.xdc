@@ -105,6 +105,17 @@
 # (UG) for guidelines regarding clock resource selection.
 #
 
+
+set_property IOSTANDARD LVCMOS25 [get_ports CLK_emcclk]
+#set_property LOC R24 [get_ports CLK_emcclk]
+set_property BITSTREAM.CONFIG.BPI_SYNC_MODE Type2 [current_design]
+set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-2 [current_design]
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+set_property BITSTREAM.CONFIG.UNUSEDPIN Pullup [current_design]
+set_property CONFIG_MODE BPI16 [current_design]
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 2.5 [current_design]
+
 set_property LOC IBUFDS_GTE2_X0Y1 [get_cells -hierarchical -regexp {.*pcie/refclk_ibuf}]
 
 ###############################################################################
@@ -192,7 +203,9 @@ set_property LOC GTXE2_CHANNEL_X0Y1 [get_cells -hierarchical -regexp {.*gt_top_i
 # PCIe Lane 7
 set_property LOC GTXE2_CHANNEL_X0Y0 [get_cells -hierarchical -regexp {.*gt_top_i/pipe_wrapper_i/pipe_lane\[7\].gt_wrapper_i/gtx_channel.gtxe2_channel_i}]
 
-set_property LOC PCIE_X0Y0 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
+set_property LOC PCIE_X0Y3 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
+#Why is it X0Y3?
+#set_property LOC PCIE_X0Y0 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
 
 #set_property LOC RAMB36_X4Y34 [get_cells -hier {pcie_7x_0pcie_7x_0_core_top/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[0].ram/use_sdp.ramb36sdp/genblk*.bram36_dp_bl.bram36_tdp_bl}]
 #set_property LOC RAMB36_X4Y33 [get_cells -hier {pcie_7x_0pcie_7x_0_core_top/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[1].ram/use_sdp.ramb36sdp/genblk*.bram36_dp_bl.bram36_tdp_bl}]
