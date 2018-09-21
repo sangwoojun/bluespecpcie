@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <errno.h>
 
+#include <sys/syscall.h>
 #include <sys/reboot.h>
 #include <linux/reboot.h>
 
@@ -63,6 +64,16 @@ int read_pci_file_hex(char* dname, char* fname) {
 	fgets(buf, 128, fdev);
 	int c = strtol(buf, NULL, 16);
 	return c;
+}
+
+void
+unload_driver() {
+	int ret = syscall(__NR_delete_module, "bdbmpcie", 0);
+	if ( ret != 0 ) {
+		printf( "delete_module returned %d\n", ret );
+	} else {
+		printf( "unloaded driver\n" );
+	}
 }
 
 bool
@@ -165,6 +176,8 @@ main (int argc, char** argv)
 	printf( "BluespecPCIe device found!\n" );
 
 	do_setuid();
+	unload_driver();
+	sleep(1);
 	bool ret = rescan_pcie_device(loc);
 	undo_setuid();
 	if ( ret ) { 

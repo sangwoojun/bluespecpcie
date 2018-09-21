@@ -116,17 +116,23 @@ set_property CONFIG_MODE BPI16 [current_design]
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 2.5 [current_design]
 
-set_property LOC IBUFDS_GTE2_X0Y1 [get_cells -hierarchical -regexp {.*pcie/refclk_ibuf}]
+set_property LOC IBUFDS_GTE2_X0Y1 [get_cells {pcie/refclk_ibuf}]
 
 ###############################################################################
 # Timing Constraints
 ###############################################################################
 #
 #create_clock -name sys_clk -period 10 [get_ports sys_clk_p]
-create_clock -name sys_clk -period 10 [get_pins -hier refclk_ibuf/O]
-set_property LOC U7 [get_ports CLK_sys_clk_n] 
+set_property LOC U7 [get_ports CLK_pcie_clk_n] 
 #actually PCIE_CLK_QO_N
-set_property LOC U8 [get_ports CLK_sys_clk_p]
+set_property LOC U8 [get_ports CLK_pcie_clk_p]
+create_clock -name pcie_clk -period 10 [get_pins -hier refclk_ibuf/O]
+
+set_property LOC AD12 [get_ports { CLK_sys_clk_p }]
+set_property LOC AD11 [get_ports { CLK_sys_clk_n }]
+create_clock -name sys_clk -period 5 [get_ports CLK_sys_clk_p]
+#set_property IOSTANDARD DIFF_SSTL15 [get_ports { CLK_pcie_clk_* }]
+set_property IOSTANDARD DIFF_SSTL15 [get_ports { CLK_sys_clk_* }]
 #
 # 
 #set_false_path -to [get_pins {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
@@ -160,10 +166,10 @@ set_property LOC AC9 [get_ports led[2]]
 # USER CLK HEART BEAT = led_3
 set_property LOC AB9 [get_ports led[3]]
 
-set_property IOSTANDARD LVCMOS25 [get_ports RST_N_sys_rst_n]
-set_property PULLUP true [get_ports RST_N_sys_rst_n]
-set_property LOC G25 [get_ports RST_N_sys_rst_n]
-set_false_path -from [get_ports RST_N_sys_rst_n]
+set_property IOSTANDARD LVCMOS25 [get_ports RST_N_pcie_rst_n]
+set_property PULLUP true [get_ports RST_N_pcie_rst_n]
+set_property LOC G25 [get_ports RST_N_pcie_rst_n]
+set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 
 
@@ -203,7 +209,7 @@ set_property LOC GTXE2_CHANNEL_X0Y1 [get_cells -hierarchical -regexp {.*gt_top_i
 # PCIe Lane 7
 set_property LOC GTXE2_CHANNEL_X0Y0 [get_cells -hierarchical -regexp {.*gt_top_i/pipe_wrapper_i/pipe_lane\[7\].gt_wrapper_i/gtx_channel.gtxe2_channel_i}]
 
-set_property LOC PCIE_X0Y3 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
+#set_property LOC PCIE_X0Y3 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
 #Why is it X0Y3?
 #set_property LOC PCIE_X0Y0 [get_cells -hierarchical -regexp {.*pcie_top_i/pcie_7x_i/pcie_block_i}]
 
@@ -249,8 +255,9 @@ set_property PACKAGE_PIN Y2 [get_ports {pcie_pins_TXP[7]}]
 
 
 
-
-
+#set_clock_groups -asynchronous -group {userclk2} -group{sys_clk}
+set_max_delay -from [get_clocks {userclk2}] -to   [get_clocks {sys_clk}] 4.0 -datapath_only
+set_max_delay -to   [get_clocks {userclk2}] -from [get_clocks {sys_clk}] 4.0 -datapath_only
 
 ###############################################################################
 # End

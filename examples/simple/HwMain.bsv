@@ -24,6 +24,8 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	Reg#(Bit#(32)) dataBuffer0 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) dataBuffer1 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) writeCounter <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+
 
 	rule echoRead;
 		// read request handle must be returned with pcie.dataSend
@@ -33,11 +35,13 @@ module mkHwMain#(PcieUserIfc pcie)
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero
 		let offset = (a>>2);
-		if ( offset[0] == 0 ) begin 
+		if ( offset == 0 ) begin 
 			pcie.dataSend(r, dataBuffer0);
+		end else if ( offset == 1 ) begin 
+			pcie.dataSend(r, dataBuffer1);
 		end else begin
-			//pcie.dataSend(r, dataBuffer1);
-			pcie.dataSend(r, pcie.debug_data);
+			//pcie.dataSend(r, pcie.debug_data);
+			pcie.dataSend(r, writeCounter);
 		end
 		$display( "Received read req at %x", r.addr );
 	endrule
@@ -54,7 +58,8 @@ module mkHwMain#(PcieUserIfc pcie)
 		end else if ( off == 1 ) begin
 			dataBuffer1 <= d;
 		end else begin
-			pcie.assertUptrain;
+			//pcie.assertUptrain;
+			writeCounter <= writeCounter + 1;
 		end
 		$display( "Received write req at %x : %x", a, d );
 	endrule

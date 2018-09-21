@@ -46,7 +46,96 @@ static unsigned long bar0_addr;
 static unsigned long bar0_size = 1024*1024;
 static void* bar0_ptr;
 static unsigned int irq;
-static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_device_id *id) {
+
+
+
+
+
+
+
+
+
+
+//TODO: unmap dma, free table on unload!
+struct page** dma_pages = NULL;
+unsigned int dma_pages_count = 0;
+void* dma_addr = NULL;
+unsigned long mmap_buffersize = 1024*1024;
+static int create_dma_buffer(unsigned int bufcount) {
+	int i;
+	int bufidx = 0;
+	unsigned int gfp_mask = GFP_KERNEL | __GFP_DMA; // Apparently PCIe doesn't need the DMA flag
+	//unsigned int gfp_mask = GFP_HIGHUSER | __GFP_ZERO | __GFP_NOWARN | __GFP_NORETRY;
+	dma_addr_t bus_addr;
+	u8* bar0_data;
+	bar0_data = (u8*)bar0_ptr;
+
+
+	printk(KERN_ALERT "BlueDBM DMA buffer alloc request: %d pages\n", bufcount);
+
+	if ( dma_pages != NULL ) {
+		printk(KERN_ALERT "BlueDBM DMA buffer already exist! Strange!\n");
+		/*
+		// this will not be called since we're only allocing buffers at init
+		//void* pageaddr = kmap(dma_pages[0]);
+		//unsigned long* lpa = (unsigned long*)pageaddr;
+		//int i = 0;
+		//for ( i = 0; i < 8; i++ ) {
+		//	printk(KERN_ALERT "BlueDBM DMA buffer exists! %lx %lx %lx %lx\n", 
+		//		lpa[i*4+0], lpa[i*4+1], lpa[i*4+2], lpa[i*4+3]);
+		//}
+		//kunmap(dma_pages[0]);
+
+
+		for ( i = 0; i < dma_pages_count; i++ ) {
+			unsigned int page_addr = (unsigned long)page_address(dma_pages[i]);
+			pci_unmap_single(pcidev, page_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
+			free_page(page_addr);
+		}
+		kfree(dma_pages);
+	*/	
+	}
+	dma_pages = kmalloc(sizeof(struct page*)*bufcount, GFP_KERNEL);
+	if ( dma_pages == NULL ) {
+		printk(KERN_ERR "BlueDBM DMA dma_pages alloc failed! \n" );
+		return 1;
+	}
+
+	for ( bufidx = 0; bufidx < bufcount; bufidx++ ) {
+		void __iomem *maddr = NULL;
+		struct page *pages = alloc_page(gfp_mask);
+		if ( pages == NULL ) {
+			printk(KERN_ERR "BlueDBM DMA buffer alloc failed! \n" );
+			return 1;
+		}
+		maddr = page_address(pages);
+		dma_pages[bufidx] = pages;
+
+		bus_addr = pci_map_single(pcidev, maddr, PAGE_SIZE, DMA_BIDIRECTIONAL);
+		iowrite32(bus_addr, &bar0_data[DMA_ADDR_OFFSET + 4*bufidx]);
+		wmb();
+
+		if ( pci_dma_mapping_error(pcidev, bus_addr) ) {
+			return 1;
+		}
+	}
+	dma_pages_count = bufcount;
+
+	printk(KERN_ALERT "BlueDBM DMA buffer alloc successful\n");
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+static int __init pcie_probe (struct pci_dev *dev, const struct pci_device_id *id) {
 	u16 vendor_id, device_id;
 	u32 bar0;
 	u8 interrupt_no, interrupt_pin;
@@ -64,6 +153,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	pci_read_config_word(dev, PCI_COMMAND, &device_cmd);
 	printk(KERN_ERR "BlueDBM PCIe driver enabling device cmd %x\n", device_cmd );
 	
+	/*
 	capability_pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
 	if ( capability_pos ) {
 		u16 linkctrl;
@@ -72,6 +162,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 		pci_write_config_word(dev, capability_pos + PCI_EXP_LNKCTL, linkctrl);
 		printk(KERN_ALERT "Set PCI_ECP_LNKCTL_RL to retain link. 5GT/s?");
 	}
+	*/
 
 	rc = pci_enable_device(dev);
 	if ( rc ) {
@@ -109,6 +200,8 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	}
 
 
+/*
+	//FIXME disabling interrupts
 	pci_enable_msi(dev);
 	pci_read_config_byte(dev,PCI_INTERRUPT_LINE, &interrupt_no);
 	pci_read_config_byte(dev,PCI_INTERRUPT_PIN, &interrupt_pin);
@@ -121,6 +214,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	} else {
 		printk(KERN_ALERT "Interrupt id %x pin %x irq: %d\n", interrupt_no, interrupt_pin, irq);
 	}
+*/
 
 	pci_set_master(dev);
 
@@ -152,6 +246,7 @@ static int /*__devinit*/ pcie_probe (struct pci_dev *dev, const struct pci_devic
 	
 	printk(KERN_ALERT "PCIe read: %x @ %x\n", r32, r32n);
 	*/
+	create_dma_buffer(mmap_buffersize/(1024*4)); // 1MB
 
 
 	return 0;
@@ -165,17 +260,18 @@ probe_fail_enable:
 }
 
 static void pcie_remove( struct pci_dev *dev) {
-	printk(KERN_ALERT "Removing bluespecpcie driver\n");
+	printk(KERN_ALERT "Removing BlueDBM PCIe driver\n");
 	pci_clear_master(dev);
 	printk(KERN_ALERT "Cleared PCIe master\n");
 
+/*
 	disable_irq(irq);
 	free_irq(irq, dev);
 	printk(KERN_ALERT "Disabled and freed irq\n");
 
 	pci_disable_msi(dev); 
 	printk(KERN_ALERT "Disabled MSI\n");
-
+*/
 	pci_iounmap(dev, bar0_ptr);
 	printk(KERN_ALERT "IOunmap\n");
 
@@ -222,69 +318,7 @@ static int chrdev_buffer_init(void) {
 
 
 
-//TODO: unmap dma, free table on unload!
-struct page** dma_pages = NULL;
-unsigned int dma_pages_count = 0;
-void* dma_addr = NULL;
-static int create_dma_buffer(unsigned int bufcount) {
-	int i;
-	int bufidx = 0;
-	unsigned int gfp_mask = GFP_KERNEL | __GFP_DMA | __GFP_ZERO;
-	dma_addr_t bus_addr;
-	u8* bar0_data;
-	bar0_data = (u8*)bar0_ptr;
-
-
-	printk(KERN_ALERT "BlueDBM DMA buffer alloc request: %d pages\n", bufcount);
-
-	if ( dma_pages != NULL ) {
-		// this will not be called since we're only allocing buffers at init
-		/*
-		void* pageaddr = kmap(dma_pages[0]);
-		unsigned long* lpa = (unsigned long*)pageaddr;
-		int i = 0;
-		for ( i = 0; i < 8; i++ ) {
-			printk(KERN_ALERT "BlueDBM DMA buffer exists! %lx %lx %lx %lx\n", 
-				lpa[i*4+0], lpa[i*4+1], lpa[i*4+2], lpa[i*4+3]);
-		}
-		kunmap(dma_pages[0]);
-		*/	
-
-
-		for ( i = 0; i < dma_pages_count; i++ ) {
-			unsigned int page_addr = (unsigned long)page_address(dma_pages[i]);
-			pci_unmap_single(pcidev, page_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-			free_page(page_addr);
-		}
-		kfree(dma_pages);
-	}
-	dma_pages = kmalloc(sizeof(struct page*)*bufcount, GFP_KERNEL);
-
-	for ( bufidx = 0; bufidx < bufcount; bufidx++ ) {
-		void __iomem *maddr = NULL;
-		struct page *pages = alloc_page(gfp_mask);
-		if ( pages == NULL ) {
-			printk(KERN_ERR "BlueDBM DMA buffer alloc failed! \n" );
-			return 1;
-		}
-		maddr = page_address(pages);
-		dma_pages[bufidx] = pages;
-
-		bus_addr = pci_map_single(pcidev, maddr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-		
-		iowrite32(bus_addr, &bar0_data[DMA_ADDR_OFFSET + 4*bufidx]);
-		wmb();
-
-		if ( pci_dma_mapping_error(pcidev, bus_addr) ) {
-			return 1;
-		}
-	}
-	dma_pages_count = bufcount;
-
-	printk(KERN_ALERT "BlueDBM DMA buffer alloc successful\n");
-	return 0;
-}
-
+/*
 static long bdbm_ioctl(struct file* filp, unsigned int cmd, unsigned long arg) {
 	if ( cmd == ioctl_alloc_dma ) {
 		//FIXME buffers are created by default
@@ -313,12 +347,11 @@ static long bdbm_ioctl(struct file* filp, unsigned int cmd, unsigned long arg) {
 	}
 	return 0;
 }
+*/
 
 static int bdbm_open(struct inode *inode, struct file *filp) {
 	return 0;
 }
-
-unsigned long mmap_buffersize = 8*1024*1024;
 static int bdbm_mmap(struct file *filp, struct vm_area_struct *vma) {
 	// First 1MB of the vmem is mapped to the BAR0 address space
 	// Next nMB is mapped to the pre-defined page buffer
@@ -410,8 +443,8 @@ struct file_operations chrdev_fops = {
 	.owner = THIS_MODULE,
 	.open = bdbm_open,
 	.mmap = bdbm_mmap,
-	.unlocked_ioctl = bdbm_ioctl,
-	.compat_ioctl = bdbm_ioctl,
+	//.unlocked_ioctl = bdbm_ioctl,
+	//.compat_ioctl = bdbm_ioctl,
 	.poll = bdbm_poll
 };
 
@@ -420,6 +453,7 @@ static struct cdev cdev;
 static struct class *class = NULL;
 
 static int chrdev_init(void) {
+	printk(KERN_ALERT "BlueDBM PCIe chrdev_init\n" );
 	int res = 0;
 	struct device *device = NULL;
 	
@@ -435,9 +469,10 @@ static int chrdev_init(void) {
 
 	chrdev_major = MAJOR(cdev.dev);
 	chrdev_minor = MINOR(cdev.dev);
+	/*
 	ioctl_alloc_dma = _IOW(chrdev_major, 0, unsigned long);
 	printk(KERN_ALERT "IOCTL command - alloc: %x\n", ioctl_alloc_dma );
-
+*/
 	res = cdev_add(&cdev, chrdev, 1);
 
 	if ( res ) {
@@ -447,26 +482,29 @@ static int chrdev_init(void) {
 	class = class_create(THIS_MODULE, "bdbmpcie");
 	device = device_create(class, NULL, chrdev, NULL, "bdbm_regs0");
 
-	create_dma_buffer(mmap_buffersize/(1024*4)); //4K * 1024 * 2 = 8MB
+	//create_dma_buffer(mmap_buffersize/(1024*4)); // 1MB
 	
+	/*
 	// writing ioctl command id to config address
 	bar0_data = (u8*)bar0_ptr;
 	iowrite32(ioctl_alloc_dma, &bar0_data[4]);
 	wmb();
 	r32 = ioread32(&bar0_data[4]);
 	printk(KERN_ALERT "IOCTL number written: %x\n", r32);
-
+*/
 
 	return 0;
 }
 
 static int __init pcie_init(void) {
 	int res = 0;
+	printk(KERN_ALERT "BlueDBM PCIe driver initializing\n" );
 	res = pci_register_driver(&pci_driver);
 	if ( res ) {
 		printk(KERN_ALERT "BlueDBM PCIe device not found\n");
 		return res;
-	} 
+	}
+	printk(KERN_ALERT "BlueDBM PCIe register driver success\n" );
 
 	res = chrdev_init();
 	if ( res ) {
@@ -482,6 +520,8 @@ static void __exit pcie_exit(void)
 	int i;
 	u8* bar0_data;
 	bar0_data = (u8*)bar0_ptr;
+	
+	printk(KERN_ALERT "BlueDBM PCIe driver unloading\n");
 
 	for ( i = 0; i < dma_pages_count; i++ ) {
 		//unsigned int page_addr = (unsigned long)page_address(dma_pages[i]);
@@ -489,12 +529,21 @@ static void __exit pcie_exit(void)
 		pci_unmap_single(pcidev, bar0_data[DMA_ADDR_OFFSET + 4*i], PAGE_SIZE, DMA_BIDIRECTIONAL);
 		__free_page(dma_pages[i]);
 	}
-	kfree(dma_pages);
+	if (dma_pages != NULL) kfree(dma_pages);
 
+	printk(KERN_ALERT "BlueDBM PCIe driver unregistering\n");
 	pci_unregister_driver(&pci_driver);
+
+	printk(KERN_ALERT "BlueDBM PCIe unregister_chrdev_region\n");
 	unregister_chrdev_region(chrdev, 1);
+
+	printk(KERN_ALERT "BlueDBM PCIe cdev_del\n");
 	cdev_del(&cdev);
+	
+	printk(KERN_ALERT "BlueDBM PCIe device_destroy\n");
 	device_destroy(class, chrdev);
+	
+	printk(KERN_ALERT "BlueDBM PCIe class_destroy\n");
 	class_destroy(class);
 	printk(KERN_ALERT "BlueDBM PCIe driver unloaded\n");
 }

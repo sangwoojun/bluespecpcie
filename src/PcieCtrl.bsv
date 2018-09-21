@@ -645,7 +645,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			1'h0, //EP
 			2'h0, //ATTR
 			2'b0, //R
-			(dmaWords<<2)//32 bit words
+			(dmaWords<<2)+1//32 bit words
 		};
 		Bit#(32) cdw1 = {
 			user.cfg_completer_id,
@@ -659,12 +659,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			//ioreq.addr
 		};
 
-		dataWordsRemain <= dmaWords;
-		//let cdw3 = reverseEndian(32'hf00dbeef);
-		Bit#(32) cdw3 = reverseEndian(truncate(data));
+		let cdw3 = reverseEndian(32'hf00dbeef);
+		//Bit#(32) cdw3 = reverseEndian(truncate(data));
 
 		sendTLPQ.enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b0});
-		//sendTLPm.enq[4].enq(SendTLP{tlp:{cdw3,cdw2,cdw1,cdw0},keep:16'hffff,last:1'b0});
+		dataWordsRemain <= dmaWords;
 	endrule
 
 	rule generateDataTLP ( dataWordsRemain > 0 );
@@ -695,7 +694,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				reverseEndian(data[95:64]),
 				reverseEndian(data[63:32]),
 				reverseEndian(data[31:0])
-				},keep:16'h0fff,last:1'b1});
+				},keep:16'hffff,last:1'b1});
 			//sendTLPQ.enq(SendTLP{tlp:data,keep:16'h0fff,last:1'b1});
 		end
 	endrule

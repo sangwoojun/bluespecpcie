@@ -1,14 +1,14 @@
-LIBPATH=../../../
+LIBROOT=../../../
+LIBPATH=$(LIBROOT)/cpp/obj/
 
-BDBMPCIEFILES=$(LIBPATH)/src/ShmFifo.cpp $(LIBPATH)/cpp/bdbmpcie.cpp $(LIBPATH)/cpp/dmasplitter.cpp
-BDBMPCIEINCLUDE= -I $(LIBPATH)/src/ -I $(LIBPATH)/cpp/
-LIB= -lrt -lpthread 
+BDBMPCIEINCLUDE= -I$(LIBROOT)/cpp/
+LIB= -lrt -lpthread -lbluespecpcie -L$(LIBPATH)
 
 
 all:
 	echo "building for pcie"
 	mkdir -p obj
-	g++ main.cpp $(BDBMPCIEFILES) $(BDBMPCIEINCLUDE) -o obj/main $(LIB) -pedantic -g -O3
+	g++ main.cpp  $(BDBMPCIEINCLUDE) -o obj/main $(LIB) -pedantic -g -O2
 bsim:
 	echo "building for bluesim"
 	mkdir -p obj

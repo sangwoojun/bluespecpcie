@@ -32,16 +32,21 @@ int main(int argc, char** argv) {
 
 	printf( "Starting performance testing\n" );
 	timespec start;
-	clock_gettime(CLOCK_REALTIME, & start);
-	
-	for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
-		pcie->userWriteWord(4, 0xcccccaaf);
-	}
 	timespec now;
+	
+	clock_gettime(CLOCK_REALTIME, & start);
+	for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
+	//for ( int i = 0; i < 2048; i++ ) { // 256MB
+		pcie->userWriteWord(8, 0xcccccaaf);
+		//usleep(1001);
+	}
 	clock_gettime(CLOCK_REALTIME, & now);
 	double diff = timespec_diff_sec(start, now);
+
+	printf( "read: %x\n", pcie->userReadWord(4) );
 	printf( "Write elapsed: %f\n", diff );
-	
+	fflush(stdout);
+
 	clock_gettime(CLOCK_REALTIME, & start);
 	
 	for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB

@@ -21,6 +21,7 @@ DMACircularQueue::DMACircularQueue() {
 void 
 DMACircularQueue::deq(uint32_t bytes) {
 	readBytes += bytes;
+	BdbmPcie* pcie = BdbmPcie::getInstance();
 	pcie->userWriteWord(17*4, readBytes);
 }
 

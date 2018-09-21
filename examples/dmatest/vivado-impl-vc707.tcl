@@ -21,7 +21,7 @@ read_verilog [ glob {verilog/top/*.v} ]
 set_property part $partname [current_project]
 
 ############# Pcie Stuff
-read_ip $pciedir/core/pcie_7x_0/pcie_7x_0.xci
+read_ip $pciedir/core/vc707/pcie_7x_0/pcie_7x_0.xci
 read_verilog [ glob $pciedir/src/*.v ]
 read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_VC707.xdc
 ############## end Pcie Stuff
