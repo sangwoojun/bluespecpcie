@@ -24,7 +24,8 @@ int main(int argc, char** argv) {
 	fflush(stdout);
 
 
-	uint8_t* dmabuf = (uint8_t*)dma->dmaBuffer();
+	//uint8_t* dmabuf = (uint8_t*)dma->dmaBuffer();
+	uint8_t* dmabuf = (uint8_t*)pcie->dmaBuffer();
 	for ( int i = 0; i < 8*1024; i++ ) {
 		dmabuf[i] = (char)i;
 	}
@@ -37,6 +38,7 @@ int main(int argc, char** argv) {
 
 	printf( "read 0: %x\n", pcie->userReadWord(0) );
 	printf( "read 4: %x\n", pcie->userReadWord(4) );
+	printf( "read 8: %x\n", pcie->userReadWord(8) );
 
 
 	for ( int i = 0; i < 8*4; i++ ) {

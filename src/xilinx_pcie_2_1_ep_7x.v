@@ -75,7 +75,7 @@ module xilinx_pcie_2_1_ep_7x # (
   input rx_en_last,
   input rx_en_user,
 
-  output cfg_completer_id,
+  output [15:0] cfg_completer_id,
   // Interface begin
   output                         user_clk,
   output                         user_reset_n,
@@ -142,7 +142,7 @@ module xilinx_pcie_2_1_ep_7x # (
   assign sys_clk_o = sys_clk;
   wire  [3:0] s_axis_tx_tuser;
   assign cfg_completer_id = {cfg_bus_number, cfg_device_number, cfg_function_number};
-  //assign cfg_completer_id = {8'h3, cfg_device_number, cfg_function_number}; //FIXME hardcoded for bluedbm
+
 
   assign assert_interrupt_rdy = ((cfg_interrupt_msienable == 1) && (cfg_interrupt == 0)) ? 1 : 0;
   //assign assert_interrupt_rdy = ((cfg_interrupt_msienable == 1) && (cfg_interrupt_rdy == 0) && (cfg_interrupt == 0)) ? 1 : 0;
@@ -314,6 +314,10 @@ module xilinx_pcie_2_1_ep_7x # (
 
 
       assign pipe_mmcm_rst_n                        = 1'b1;
+
+  wire [1:0] cfg_pmcsr_powerstate;
+  wire [15:0] cfg_lcommand;
+  wire [2:0] cfg_pcie_link_state;
 
 
 
@@ -631,24 +635,27 @@ pcie_7x_0_support_i
   assign cfg_interrupt_di = 8'b0;                  // Do not set interrupt fields
 
 
+///*
+  assign pl_directed_link_change = 2'b00;          // No change
+  assign pl_directed_link_width = 2'b00;          // Zero out directed link width
+  assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
+  assign pl_directed_link_auton = 1'b0;            // Zero out link autonomous input
+  assign pl_upstream_prefer_deemph = 1'b1;         // Zero out preferred de-emphasis of upstream port
+//*/
+
+
 	// wjun
 	reg [3:0] pl_directed_link_change_state = 4'b0;
 	reg [1:0] pl_directed_link_change_r = 2'b00;
-	reg pl_directed_link_auton_r = 1'b0;
-  assign pl_directed_link_change = pl_directed_link_change_r; // (user_lnk_up && pl_sel_lnk_rate != 1'b1 && pl_directed_change_done) ? : 2'b00;          // No change
-  assign pl_directed_link_width = 2'b00;          // Zero out directed link width
-  assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
-  assign pl_directed_link_auton = pl_directed_link_auton_r ; // 1'b0;            // Zero out link autonomous input
-
-  wire [1:0] cfg_pmcsr_powerstate;
-  wire [15:0] cfg_lcommand;
-  wire [2:0] cfg_pcie_link_state;
+	//reg pl_directed_link_auton_r = 1'b0;
+  //assign pl_directed_link_change = pl_directed_link_change_r; // (user_lnk_up && pl_sel_lnk_rate != 1'b1 && pl_directed_change_done) ? : 2'b00;          // No change
+  //assign pl_directed_link_width = 2'b00;          // Zero out directed link width
+  //assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
+  //assign pl_directed_link_auton = pl_directed_link_auton_r ; // 1'b0;            // Zero out link autonomous input
 
 	reg [7:0] uptrain_count = 0;
 	assign debug_data = {0,
 
-	uptrain_fin_counter, // 4bit
-	uptrain_req_counter, //4bit
 
 	pl_directed_link_change_state, //4bit
 	//user_lnk_up, //1bit
@@ -662,6 +669,7 @@ pcie_7x_0_support_i
 	uptrain_count
 	};
 
+/*
   // wjun
   // Zero recommended for short, reflection dominated channels (cables?)
   // This was required to be set to zero for reliable Gen2 (5GT/s)
@@ -682,15 +690,6 @@ pcie_7x_0_support_i
 				pl_directed_link_change_state <= 2;
 			end
 		end
-		/*
-		else if ( pl_directed_link_change_state == 1 ) begin
-			if ( 
-			pl_link_upcfg_cap == 1 && pl_link_partner_gen2_supported == 1 
-			) begin
-				pl_directed_link_change_state <= 2;
-			end
-		end
-		*/
 		else if ( pl_directed_link_change_state == 2 ) begin
 			if ( 
 			pl_link_upcfg_cap == 1 && pl_link_partner_gen2_supported == 1  &&
@@ -719,126 +718,14 @@ pcie_7x_0_support_i
 			end
 		end
 	end
-
-  
-/*
-  assign pl_directed_link_change = 2'b00;          // No change
-  assign pl_directed_link_width = 2'b00;          // Zero out directed link width
-  assign pl_directed_link_speed = 1'b1; // wjun // 1'b0;            // Zero out directed link speed
-  assign pl_directed_link_auton = 1'b0;            // Zero out link autonomous input
-  assign pl_upstream_prefer_deemph = 1'b1;         // Zero out preferred de-emphasis of upstream port
 */
 
+  
   assign cfg_mgmt_di = 32'h0;                      // Zero out CFG MGMT input data bus
   assign cfg_mgmt_byte_en = 4'h0;                  // Zero out CFG MGMT byte enables
   assign cfg_mgmt_dwaddr = 10'h0;                  // Zero out CFG MGMT 10-bit address port
   assign cfg_mgmt_wr_en = 1'b0;                    // Do not write CFG space
   assign cfg_mgmt_rd_en = 1'b0;                    // Do not read CFG space
   assign cfg_mgmt_wr_readonly = 1'b0;              // Never treat RO bit as RW
-/*
-pcie_app_7x  #(
-  .C_DATA_WIDTH( C_DATA_WIDTH ),
-  .TCQ( TCQ )
-
-) app (
-
-  //----------------------------------------------------------------------------------------------------------------//
-  // AXI-S Interface                                                                                                //
-  //----------------------------------------------------------------------------------------------------------------//
-
-  // Common
-  .user_clk                       ( user_clk ),
-  .user_reset                     ( user_reset_q ),
-  .user_lnk_up                    ( user_lnk_up_q ),
-
-  // Tx
-  .s_axis_tx_tready               ( s_axis_tx_tready ),
-  .s_axis_tx_tdata                ( s_axis_tx_tdata ),
-  .s_axis_tx_tkeep                ( s_axis_tx_tkeep ),
-  .s_axis_tx_tuser                ( s_axis_tx_tuser ),
-  .s_axis_tx_tlast                ( s_axis_tx_tlast ),
-  .s_axis_tx_tvalid               ( s_axis_tx_tvalid ),
-
-  // Rx
-  .m_axis_rx_tdata                ( m_axis_rx_tdata ),
-  .m_axis_rx_tkeep                ( m_axis_rx_tkeep ),
-  .m_axis_rx_tlast                ( m_axis_rx_tlast ),
-  .m_axis_rx_tvalid               ( m_axis_rx_tvalid ),
-  .m_axis_rx_tready               ( m_axis_rx_tready ),
-  .m_axis_rx_tuser                ( m_axis_rx_tuser ),
-
-  .tx_cfg_gnt                     ( tx_cfg_gnt ),
-  .rx_np_ok                       ( rx_np_ok ),
-  .rx_np_req                      ( rx_np_req ),
-  .cfg_turnoff_ok                 ( cfg_turnoff_ok ),
-  .cfg_trn_pending                ( cfg_trn_pending ),
-  .cfg_pm_halt_aspm_l0s           ( cfg_pm_halt_aspm_l0s ),
-  .cfg_pm_halt_aspm_l1            ( cfg_pm_halt_aspm_l1 ),
-  .cfg_pm_force_state_en          ( cfg_pm_force_state_en ),
-  .cfg_pm_force_state             ( cfg_pm_force_state ),
-  .cfg_pm_wake                    ( cfg_pm_wake ),
-  .cfg_dsn                        ( cfg_dsn ),
-
-  // Flow Control
-  .fc_sel                         ( fc_sel ),
-
-  //----------------------------------------------------------------------------------------------------------------//
-  // Configuration (CFG) Interface                                                                                  //
-  //----------------------------------------------------------------------------------------------------------------//
-  .cfg_err_cor                    ( cfg_err_cor ),
-  .cfg_err_atomic_egress_blocked  ( cfg_err_atomic_egress_blocked ),
-  .cfg_err_internal_cor           ( cfg_err_internal_cor ),
-  .cfg_err_malformed              ( cfg_err_malformed ),
-  .cfg_err_mc_blocked             ( cfg_err_mc_blocked ),
-  .cfg_err_poisoned               ( cfg_err_poisoned ),
-  .cfg_err_norecovery             ( cfg_err_norecovery ),
-  .cfg_err_ur                     ( cfg_err_ur ),
-  .cfg_err_ecrc                   ( cfg_err_ecrc ),
-  .cfg_err_cpl_timeout            ( cfg_err_cpl_timeout ),
-  .cfg_err_cpl_abort              ( cfg_err_cpl_abort ),
-  .cfg_err_cpl_unexpect           ( cfg_err_cpl_unexpect ),
-  .cfg_err_posted                 ( cfg_err_posted ),
-  .cfg_err_locked                 ( cfg_err_locked ),
-  .cfg_err_acs                    ( cfg_err_acs ), //1'b0 ),
-  .cfg_err_internal_uncor         ( cfg_err_internal_uncor ), //1'b0 ),
-  .cfg_err_tlp_cpl_header         ( cfg_err_tlp_cpl_header ),
-  //----------------------------------------------------------------------------------------------------------------//
-  // Advanced Error Reporting (AER) Interface                                                                       //
-  //----------------------------------------------------------------------------------------------------------------//
-  .cfg_err_aer_headerlog          ( cfg_err_aer_headerlog ),
-  .cfg_aer_interrupt_msgnum       ( cfg_aer_interrupt_msgnum ),
-
-  .cfg_to_turnoff                 ( cfg_to_turnoff ),
-  .cfg_bus_number                 ( cfg_bus_number ),
-  .cfg_device_number              ( cfg_device_number ),
-  .cfg_function_number            ( cfg_function_number ),
-
-  //----------------------------------------------------------------------------------------------------------------//
-  // Management (MGMT) Interface                                                                                    //
-  //----------------------------------------------------------------------------------------------------------------//
-  .cfg_mgmt_di                    ( cfg_mgmt_di ),
-  .cfg_mgmt_byte_en               ( cfg_mgmt_byte_en ),
-  .cfg_mgmt_dwaddr                ( cfg_mgmt_dwaddr ),
-  .cfg_mgmt_wr_en                 ( cfg_mgmt_wr_en ),
-  .cfg_mgmt_rd_en                 ( cfg_mgmt_rd_en ),
-  .cfg_mgmt_wr_readonly           ( cfg_mgmt_wr_readonly ),
-
-  //----------------------------------------------------------------------------------------------------------------//
-  // Physical Layer Control and Status (PL) Interface                                                               //
-  //----------------------------------------------------------------------------------------------------------------//
-  .pl_directed_link_auton         ( pl_directed_link_auton ),
-  .pl_directed_link_change        ( pl_directed_link_change ),
-  .pl_directed_link_speed         ( pl_directed_link_speed ),
-  .pl_directed_link_width         ( pl_directed_link_width ),
-  .pl_upstream_prefer_deemph      ( pl_upstream_prefer_deemph ),
-
-  .cfg_interrupt                  ( cfg_interrupt ),
-  .cfg_interrupt_assert           ( cfg_interrupt_assert ),
-  .cfg_interrupt_di               ( cfg_interrupt_di ),
-  .cfg_interrupt_stat             ( cfg_interrupt_stat ),
-  .cfg_pciecap_interrupt_msgnum   ( cfg_pciecap_interrupt_msgnum )
-
-);
-*/
 
 endmodule
