@@ -24,6 +24,7 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	//DMASplitterIfc#(4) dma <- mkDMASplitter(pcie);
 
+	Reg#(Bit#(32)) wordReadLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) wordWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) wordWriteReq <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 
@@ -36,6 +37,19 @@ module mkHwMain#(PcieUserIfc pcie)
 			wordWriteLeft <= d;
 			wordWriteReq <= d;
 			pcie.dmaWriteReq( 0, truncate(d), 0 ); // offset, words, tag
+		end else if ( off == 1 ) begin
+			pcie.dmaReadReq( 0, truncate(d), 1 ); // offset, words, tag
+			wordReadLeft <= d;
+		end
+	endrule
+
+	Reg#(DMAWord) lastRecvWord <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+
+	rule recvDMAData;
+		DMAWordTagged rd <- pcie.dmaReadWord;
+		wordReadLeft <= wordReadLeft - 1;
+		if ( wordReadLeft > 0 ) begin
+			lastRecvWord <= rd.word;
 		end
 	endrule
 
@@ -55,8 +69,12 @@ module mkHwMain#(PcieUserIfc pcie)
 			pcie.dataSend(r, wordWriteLeft);
 		end else if ( offset == 1 ) begin
 			pcie.dataSend(r, wordWriteReq);
+		end else if ( offset == 2 ) begin
+			pcie.dataSend(r, wordReadLeft);
 		end else begin
-			pcie.dataSend(r, pcie.debug_data);
+			let noff = (offset-3)*32;
+			//pcie.dataSend(r, pcie.debug_data);
+			pcie.dataSend(r, truncate(lastRecvWord>>noff));
 		end
 	endrule
 

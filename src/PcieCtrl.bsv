@@ -227,9 +227,13 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		tlpKeepQ.deq;
 
 		tlpCount <= tlpCount + 1;
-		//TODO fix endianness?
-		dmaReadBuffer <= truncate(tlp>>(32*3));
-		dmaReadWordQ.enq(DMAWordTagged{word:{truncate(tlp), dmaReadBuffer}, tag:completionRecvTag});
+
+		dmaReadBuffer <= reverseEndian(truncate(tlp>>(32*3)));
+		Bit#(32) data0 = reverseEndian(truncate(tlp));
+		Bit#(32) data1 = reverseEndian(truncate(tlp>>32));
+		Bit#(32) data2 = reverseEndian(truncate(tlp>>64));
+
+		dmaReadWordQ.enq(DMAWordTagged{word:{data2,data1,data0,dmaReadBuffer}, tag:completionRecvTag});
 
 		if ( completionRecvLength >= 4 ) begin
 			completionRecvLength <= completionRecvLength - 4;
@@ -314,7 +318,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 			completionRecvLength <= length -1; //one dw already arrived
 			completionRecvTag <= tag;
-			dmaReadBuffer <= data;
+			dmaReadBuffer <= reverseEndian(data);
 		end
 		else begin
 			tlp2Q.enq(tlp);

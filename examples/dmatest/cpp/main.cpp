@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 		dmabuf[i] = 0xaa;
 	}
 
-	pcie->userWriteWord(0, 1);
+	pcie->userWriteWord(0, 8);
 	sleep(1);
 
 	printf( "read 0: %x\n", pcie->userReadWord(0) );
@@ -41,10 +41,25 @@ int main(int argc, char** argv) {
 	printf( "read 8: %x\n", pcie->userReadWord(8) );
 
 
-	for ( int i = 0; i < 8*4; i++ ) {
-		printf( "%d %x\n", i, dmabuf[i] );
+	uint32_t* buf32 = (uint32_t*)dmabuf;
+	for ( int i = 0; i < 8; i++ ) {
+		printf( "%d %x\n", i, buf32[i] );
+		buf32[i] = i;
 	}
+
+	pcie->userWriteWord(4, 2);
 	
+	sleep(1);
+	
+	printf( "read  0: %x\n", pcie->userReadWord(0) );
+	printf( "read  4: %x\n", pcie->userReadWord(4) );
+	printf( "read  8: %x\n", pcie->userReadWord(8) );
+	printf( "read 12: %x\n", pcie->userReadWord(12) );
+	printf( "read 16: %x\n", pcie->userReadWord(16) );
+	printf( "read 20: %x\n", pcie->userReadWord(20) );
+	printf( "read 24: %x\n", pcie->userReadWord(24) );
+	
+	sleep(1);
 
 	//printf( "Requesting memread with size %d\n", size );
 	//dma->sendWord(0, size,0,0,0);
