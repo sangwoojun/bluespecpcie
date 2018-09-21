@@ -64,8 +64,7 @@ unsigned long mmap_buffersize = 1024*1024;
 static int create_dma_buffer(unsigned int bufcount) {
 	int i;
 	int bufidx = 0;
-	unsigned int gfp_mask = GFP_KERNEL | __GFP_DMA; // Apparently PCIe doesn't need the DMA flag
-	//unsigned int gfp_mask = GFP_HIGHUSER | __GFP_ZERO | __GFP_NOWARN | __GFP_NORETRY;
+	unsigned int gfp_mask = GFP_KERNEL | __GFP_DMA;
 	dma_addr_t bus_addr;
 	u8* bar0_data;
 	bar0_data = (u8*)bar0_ptr;

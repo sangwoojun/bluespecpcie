@@ -4,6 +4,11 @@
 #include "bdbmpcie.h"
 #include "dmasplitter.h"
 
+double timespec_diff_sec( timespec start, timespec end ) {
+	double t = end.tv_sec - start.tv_sec;
+	t += ((double)(end.tv_nsec - start.tv_nsec)/1000000000L);
+	return t;
+}
 
 int main(int argc, char** argv) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
@@ -33,7 +38,16 @@ int main(int argc, char** argv) {
 		dmabuf[i] = 0xaa;
 	}
 
-	pcie->userWriteWord(0, 8);
+	timespec start;
+	timespec now;
+	clock_gettime(CLOCK_REALTIME, & start);
+	for ( int i = 0; i < 1024*1024*32; i++ ) {
+		pcie->userWriteWord(0, 8);
+	}
+
+	clock_gettime(CLOCK_REALTIME, & now);
+	double diff = timespec_diff_sec(start, now);
+	printf( "DMA HW->SW elapsed: %f\n", diff );
 	sleep(1);
 
 	printf( "read 0: %x\n", pcie->userReadWord(0) );
@@ -47,7 +61,14 @@ int main(int argc, char** argv) {
 		buf32[i] = i;
 	}
 
-	pcie->userWriteWord(4, 2);
+	clock_gettime(CLOCK_REALTIME, & start);
+	for ( int i = 0; i < 1024*1024*32; i++ ) {
+		pcie->userWriteWord(4, 8);
+	}
+
+	clock_gettime(CLOCK_REALTIME, & now);
+	diff = timespec_diff_sec(start, now);
+	printf( "DMA SW->HW elapsed: %f\n", diff );
 	
 	sleep(1);
 	

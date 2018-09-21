@@ -39,7 +39,7 @@ module mkHwMain#(PcieUserIfc pcie)
 			pcie.dmaWriteReq( 0, truncate(d), 0 ); // offset, words, tag
 		end else if ( off == 1 ) begin
 			pcie.dmaReadReq( 0, truncate(d), 1 ); // offset, words, tag
-			wordReadLeft <= d;
+			wordReadLeft <= wordReadLeft + d;
 		end
 	endrule
 
@@ -48,13 +48,13 @@ module mkHwMain#(PcieUserIfc pcie)
 	rule recvDMAData;
 		DMAWordTagged rd <- pcie.dmaReadWord;
 		wordReadLeft <= wordReadLeft - 1;
-		if ( wordReadLeft > 0 ) begin
-			lastRecvWord <= rd.word;
-		end
+		lastRecvWord <= rd.word;
 	endrule
 
+	Reg#(Bit#(32)) writeData <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	rule sendDMAData ( wordWriteLeft > 0 );
-		pcie.dmaWriteData({wordWriteLeft,wordWriteLeft,wordWriteLeft,wordWriteLeft}, 0);
+		pcie.dmaWriteData({writeData+3,writeData+2,wordWriteLeft+1,wordWriteLeft}, 0);
+		writeData <= writeData + 4;
 		wordWriteLeft <= wordWriteLeft - 1;
 	endrule
 
