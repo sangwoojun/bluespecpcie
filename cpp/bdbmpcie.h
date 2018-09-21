@@ -21,54 +21,10 @@ class BdbmPcie {
 public:
 	static BdbmPcie* getInstance();
 
-	inline void writeWord(unsigned int addr, unsigned int data) {
-	#ifdef BLUESIM
-		uint64_t d1 = 1;
-		d1 <<= (32+24);
-		uint64_t d2 = addr;
-		d2 <<= (32);
-		uint64_t d = ((uint64_t)data) | d1 | d2;
-		while ( outfifo->full() ) {usleep(1000);}
-		
-		outfifo->push(d);
-	#else
-
-		//pthread_mutex_lock(&write_lock);
-		unsigned int* ummd = (unsigned int*)this->mmap_io;
-		if ( io_wbudget > 0 ) {
-			io_wbudget--;
-
-			ummd[(addr>>2)] = data;
-			//pthread_mutex_unlock(&write_lock);
-			return;
-		}
-		unsigned int io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];
-
-		int waitcount = 0;
-		while ( io_wreq - io_wemit >= IO_QUEUE_SIZE/2 ) {
-			//usleep(50);
-			io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];
-
-			if ( waitcount <= 1024*1024*128) {
-				waitcount ++;
-			} else {
-				printf( "\t!! writeWord waiting... %d %d %d\n", io_wbudget, io_wreq, io_wemit );
-				waitcount = 0;
-			}
-		}
-		
-		this->io_wbudget = IO_QUEUE_SIZE - ( io_wreq - io_wemit);
-		this->io_wreq += IO_QUEUE_SIZE - ( io_wreq - io_wemit)+1;
-
-		ummd[(addr>>2)] = data;
-		//pthread_mutex_unlock(&write_lock);
-	#endif
-	};
+	void writeWord(unsigned int addr, unsigned int data);
 	uint32_t readWord(unsigned int addr);
 	
-	inline void userWriteWord(unsigned int addr, unsigned int data) {
-		this->writeWord(addr+CONFIG_BUFFER_SIZE, data);
-	};
+	void userWriteWord(unsigned int addr, unsigned int data);
 	uint32_t userReadWord(unsigned int addr);
 
 	void waitInterrupt(int timeout);

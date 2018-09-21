@@ -53,7 +53,7 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	Reg#(Bit#(32)) writeData <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	rule sendDMAData ( wordWriteLeft > 0 );
-		pcie.dmaWriteData({writeData+3,writeData+2,wordWriteLeft+1,wordWriteLeft}, 0);
+		pcie.dmaWriteData({writeData+3,writeData+2,writeData+1,writeData}, 0);
 		writeData <= writeData + 4;
 		wordWriteLeft <= wordWriteLeft - 1;
 	endrule

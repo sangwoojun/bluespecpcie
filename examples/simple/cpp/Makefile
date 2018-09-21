@@ -12,4 +12,4 @@ all:
 bsim:
 	echo "building for bluesim"
 	mkdir -p obj
-	g++ main.cpp $(BDBMPCIEFILES) $(BDBMPCIEINCLUDE) -o obj/bsim $(LIB) -DBLUESIM -g -pedantic
+	g++ main.cpp $(BDBMPCIEINCLUDE) -o obj/bsim $(LIB) -DBLUESIM -g -pedantic

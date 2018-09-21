@@ -137,7 +137,6 @@ BdbmPcie::BdbmPcie() {
 #endif
 }
 
-/*
 void
 BdbmPcie::userWriteWord(unsigned int addr, unsigned int data) {
 	this->writeWord(addr+CONFIG_BUFFER_SIZE, data);
@@ -155,7 +154,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 	outfifo->push(d);
 #else
 
-	//pthread_mutex_lock(&write_lock);
+	pthread_mutex_lock(&write_lock);
 	unsigned int* ummd = (unsigned int*)this->mmap_io;
 	if ( io_wbudget > 0 ) {
 		io_wbudget--;
@@ -183,10 +182,9 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 	this->io_wreq += IO_QUEUE_SIZE - ( io_wreq - io_wemit)+1;
 
 	ummd[(addr>>2)] = data;
-	//pthread_mutex_unlock(&write_lock);
+	pthread_mutex_unlock(&write_lock);
 #endif
 }
-*/
 
 uint32_t
 BdbmPcie::userReadWord(unsigned int addr) {
