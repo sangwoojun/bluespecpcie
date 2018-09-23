@@ -1,8 +1,8 @@
-LIBROOT=../../../
-LIBPATH=$(LIBROOT)/cpp/obj/
+LIBPATH=../../../
+LIBOBJ=$(LIBPATH)/cpp/obj/
 
-BDBMPCIEINCLUDE= -I$(LIBROOT)/cpp/
-LIB= -lrt -lpthread -lbluespecpcie -L$(LIBPATH)
+BDBMPCIEINCLUDE= -I$(LIBPATH)/cpp/
+LIB= -lrt -lpthread -lbluespecpcie -L$(LIBOBJ)
 
 
 all:

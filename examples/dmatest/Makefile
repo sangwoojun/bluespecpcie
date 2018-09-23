@@ -1,14 +1,16 @@
-BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
-
+LIBPATH =../../
 BOARD=kc705
+
+BSVPATH =$(LIBPATH)/src/:
+COREPATH =$(LIBPATH)/core/$(BOARD)/
+
+BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
 
 BSCFLAGS_SYNTH = -bdir ./build/obj -vdir ./build/verilog/top -simdir ./build/obj -info-dir ./build -fdir ./build
 BSCFLAGS_BSIM = -bdir ./bsim/obj -vdir ./bsim/verilog/top -simdir ./bsim/obj -info-dir ./bsim -fdir ./bsim
 
-BSVPATH =../../src/:
-COREPATH =$(LIBPATH)/core/$(BOARD)/
-BSIM_CPPFILES =../../cpp/PcieBdpi.cpp \
-	../../cpp/ShmFifo.cpp
+BSIM_CPPFILES =$(LIBPATH)/cpp/PcieBdpi.cpp \
+	$(LIBPATH)/cpp/ShmFifo.cpp
 
 DEBUGFLAGS = -D BSIM
 
