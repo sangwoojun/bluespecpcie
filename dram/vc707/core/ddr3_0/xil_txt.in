@@ -1,0 +1,24 @@
+SET_FLAG MODE BATCH
+SET_FLAG STANDALONE_MODE TRUE
+SET_PREFERENCE ipi_mode no
+SET_PREFERENCE is_ip_locked false
+SET_PREFERENCE devicefamily virtex7
+SET_PREFERENCE device xc7vx485t
+SET_PREFERENCE speedgrade -2
+SET_PREFERENCE package ffg1761
+SET_PREFERENCE verilogsim true
+SET_PREFERENCE vhdlsim false
+SET_PREFERENCE designentry Verilog
+SET_PREFERENCE outputdirectory /home/swjun/bluespecpcie/dram/vc707/core/ddr3_0/_tmp/
+SET_PREFERENCE subworkingdirectory /home/swjun/bluespecpcie/dram/vc707/core/ddr3_0/_tmp/
+SET_PREFERENCE flowvendor Other
+SET_PREFERENCE tool vivado
+SET_PREFERENCE compnamestatus 0
+SET_PARAMETER component_name ddr3_0
+SET_PARAMETER xml_input_file /home/swjun/bluespecpcie/dram/vc707/mig_a.prj
+SET_PARAMETER data_dir_path /opt/Xilinx/Vivado/2018.2/data/ip/xilinx/mig_7series_v4_1
+SET_CORE_NAME Memory Interface Generator (MIG 7 Series)
+SET_CORE_VERSION 2.3
+SET_CORE_VLNV xilinx.com:ip:mig_7series:2.3
+SET_CORE_PATH /opt/Xilinx/Vivado/2018.2/data/ip/xilinx/mig_7series_v4_1
+SET_CORE_DATASHEET /opt/Xilinx/Vivado/2018.2/data/ip/xilinx/mig_7series_v4_1/data/docs/ds176_7series_MIS.pdf

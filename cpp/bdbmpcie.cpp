@@ -160,7 +160,7 @@ BdbmPcie::writeWord(unsigned int addr, unsigned int data) {
 		io_wbudget--;
 
 		ummd[(addr>>2)] = data;
-		//pthread_mutex_unlock(&write_lock);
+		pthread_mutex_unlock(&write_lock);
 		return;
 	}
 	unsigned int io_wemit = ummd[CONFIG_BUFFER_ISIZE-1];

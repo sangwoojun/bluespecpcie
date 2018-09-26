@@ -96,20 +96,20 @@ set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S1}]
 #                        -divide_by 1 -add -master_clock [get_clocks -of [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I1]] \
 #                        [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/O]
 
-create_generated_clock -name clk_125mhz_x1y0 [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
-create_generated_clock -name clk_250mhz_x1y0 [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
+create_generated_clock -name pcie_clk_125mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
+create_generated_clock -name pcie_clk_250mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
 
-create_generated_clock -name clk_125mhz_mux_x1y0 \ 
+create_generated_clock -name pcie_clk_125mhz_mux \ 
                         -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I0] \
                         -divide_by 1 \
                         [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
 #
-create_generated_clock -name clk_250mhz_mux_x1y0 \ 
+create_generated_clock -name pcie_clk_250mhz_mux \ 
                         -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1] \
                         -divide_by 1 -add -master_clock [get_clocks -of [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1]] \
                         [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
 #
-set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux_x1y0 -group clk_250mhz_mux_x1y0
+set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux -group clk_250mhz_mux
 #
 #
 
@@ -304,5 +304,6 @@ set_property LOC AK3  [get_ports { pcie_pins_TXN[7] }]
 #add_cells_to_pblock pblock_PCIe [get_cells -regexp {NAME=~pcieCtrl*}]
 #endgroup
 
-set_clock_groups -asynchronous -group {clk_125mhz} -group {userclk2}
-set_clock_groups -asynchronous -group {clk_250mhz} -group {userclk2}
+set_clock_groups -asynchronous -group {sys_clk} -group {userclk2}
+set_clock_groups -asynchronous -group {pcie_clk_125mhz} -group {userclk2}
+set_clock_groups -asynchronous -group {pcie_clk_250mhz} -group {userclk2}

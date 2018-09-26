@@ -176,19 +176,19 @@ set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 
 
-create_generated_clock -name clk_125mhz_x0y0 [get_pins -hierarchical -regexp {.*pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
-create_generated_clock -name clk_250mhz_x0y0 [get_pins -hier -regexp {.*pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
-create_generated_clock -name clk_125mhz_mux_x0y0 \ 
+create_generated_clock -name pcie_clk_125mhz [get_pins -hierarchical -regexp {.*pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
+create_generated_clock -name pcie_clk_250mhz [get_pins -hier -regexp {.*pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
+create_generated_clock -name pcie_clk_125mhz_mux \ 
 -source [get_pins -hier -regexp {.*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I0}] \
 		-divide_by 1 \
 		[get_pins -hier -regexp {.*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/O}]
 #
-create_generated_clock -name clk_250mhz_mux_x0y0 \ 
+create_generated_clock -name pcie_clk_250mhz_mux \ 
 -source [get_pins -hier -regexp { .*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I1}] \
 	-divide_by 1 -add -master_clock [get_clocks -of [get_pins -hier -regexp { .*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I1}]] \
 	[get_pins -hier -regexp { .*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/O}]
 #
-set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux_x0y0 -group clk_250mhz_mux_x0y0
+set_clock_groups -name pcieclkmux -physically_exclusive -group pcie_clk_125mhz_mux -group pcie_clk_250mhz_mux
 
 
 
@@ -259,6 +259,13 @@ set_property PACKAGE_PIN Y2 [get_ports {pcie_pins_TXP[7]}]
 set_max_delay -from [get_clocks {userclk2}] -to   [get_clocks {sys_clk}] 4.0 -datapath_only
 set_max_delay -to   [get_clocks {userclk2}] -from [get_clocks {sys_clk}] 4.0 -datapath_only
 
+set_clock_groups -asynchronous -group {sys_clk} -group {userclk2}
+
+set_clock_groups -asynchronous -group {pcie_clk_125mhz} -group {userclk2}
+set_clock_groups -asynchronous -group {pcie_clk_250mhz} -group {userclk2}
+
 ###############################################################################
 # End
 ###############################################################################
+
+
