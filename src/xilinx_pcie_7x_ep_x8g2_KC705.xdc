@@ -89,8 +89,6 @@
 # with these devices that contain only 1.8 V banks.
 #
 
-#set_property PULLUP true [get_ports sys_rst_n]
-
 ###############################################################################
 # Physical Constraints
 ###############################################################################
@@ -133,14 +131,28 @@ set_property LOC AD11 [get_ports { CLK_sys_clk_n }]
 create_clock -name sys_clk -period 5 [get_ports CLK_sys_clk_p]
 #set_property IOSTANDARD DIFF_SSTL15 [get_ports { CLK_pcie_clk_* }]
 set_property IOSTANDARD DIFF_SSTL15 [get_ports { CLK_sys_clk_* }]
+
+set_property PACKAGE_PIN AP37 [get_ports FPGA_EMCCLK]
+set_property IOSTANDARD LVCMOS18 [get_ports FPGA_EMCCLK]
+
+set_property IOSTANDARD LVCMOS15 [get_ports led[0]]
+set_property IOSTANDARD LVCMOS15 [get_ports led[1]]
+set_property IOSTANDARD LVCMOS15 [get_ports led[2]]
+set_property IOSTANDARD LVCMOS15 [get_ports led[3]]
+set_property LOC AB8 [get_ports led[0]]
+set_property LOC AA8 [get_ports led[1]]
+set_property LOC AC9 [get_ports led[2]]
+# USER CLK HEART BEAT = led_3
+set_property LOC AB9 [get_ports led[3]]
+set_property IOSTANDARD LVCMOS25 [get_ports RST_N_pcie_rst_n]
+set_property PULLUP true [get_ports RST_N_pcie_rst_n]
+set_property LOC G25 [get_ports RST_N_pcie_rst_n]
+set_false_path -from [get_ports RST_N_pcie_rst_n]
+
 #
 # 
-#set_false_path -to [get_pins {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
-#set_false_path -to [get_pins {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S1}]
-set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S0}]
-set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S1}]
-#
-#
+
+
 #set_case_analysis 1 [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
 #set_case_analysis 0 [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S1}]
 set_property DONT_TOUCH true [get_cells -of [get_nets -of [get_pins -hier -regexp { .*pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]]]
@@ -154,22 +166,8 @@ set_property DONT_TOUCH true [get_cells -of [get_nets -of [get_pins -hier -regex
 # Tandem Configuration Constraints
 ###############################################################################
 
-#set_false_path -from [get_ports sys_rst_n]
 
-set_property IOSTANDARD LVCMOS15 [get_ports led[0]]
-set_property IOSTANDARD LVCMOS15 [get_ports led[1]]
-set_property IOSTANDARD LVCMOS15 [get_ports led[2]]
-set_property IOSTANDARD LVCMOS15 [get_ports led[3]]
-set_property LOC AB8 [get_ports led[0]]
-set_property LOC AA8 [get_ports led[1]]
-set_property LOC AC9 [get_ports led[2]]
-# USER CLK HEART BEAT = led_3
-set_property LOC AB9 [get_ports led[3]]
 
-set_property IOSTANDARD LVCMOS25 [get_ports RST_N_pcie_rst_n]
-set_property PULLUP true [get_ports RST_N_pcie_rst_n]
-set_property LOC G25 [get_ports RST_N_pcie_rst_n]
-set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 
 
@@ -255,14 +253,18 @@ set_property PACKAGE_PIN Y2 [get_ports {pcie_pins_TXP[7]}]
 
 
 
-#set_clock_groups -asynchronous -group {userclk2} -group{sys_clk}
+
 set_max_delay -from [get_clocks {userclk2}] -to   [get_clocks {sys_clk}] 4.0 -datapath_only
 set_max_delay -to   [get_clocks {userclk2}] -from [get_clocks {sys_clk}] 4.0 -datapath_only
 
 set_clock_groups -asynchronous -group {sys_clk} -group {userclk2}
-
 set_clock_groups -asynchronous -group {pcie_clk_125mhz} -group {userclk2}
 set_clock_groups -asynchronous -group {pcie_clk_250mhz} -group {userclk2}
+
+#set_false_path -to [get_pins {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
+#set_false_path -to [get_pins {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S1}]
+set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S0}]
+set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S1}]
 
 ###############################################################################
 # End

@@ -100,8 +100,8 @@ BdbmPcie::Init_Pcie() {
 	this->bsim = false;
 
 	int fd = open("/dev/bdbm_regs0", O_RDWR, 0);
-	void* mmd = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	void* mmdbuf = mmap(NULL, DMA_BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 1024*1024);
+	void* mmd = mmap(NULL, BAR0_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	void* mmdbuf = mmap(NULL, DMA_BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, BAR0_SIZE);
 
 	unsigned int* ummd = (unsigned int*)mmd;
 	/*

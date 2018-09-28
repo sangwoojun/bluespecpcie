@@ -33,7 +33,12 @@ interface TopIfc;
 	(* always_ready *)
 	method Bit#(4) led;
 	
+`ifdef kc705
 	interface DDR3_Pins_KC705_1GB pins_ddr3;
+`endif
+`ifdef vc707
+	interface DDR3_Pins_VC707_1GB pins_ddr3;
+`endif
 endinterface
 
 (* no_default_clock, no_default_reset *)
@@ -70,7 +75,13 @@ module mkProjectTop #(
 
 	DDR3Common::DDR3_Configure ddr3_cfg = defaultValue;
 	ddr3_cfg.reads_in_flight = 32;   // adjust as needed
+
+`ifdef kc705
 	DDR3_Controller_KC705_1GB ddr3_ctrl <- mkDDR3Controller_KC705_1GB(ddr3_cfg, ddr_buf, clocked_by ddr_buf, reset_by ddr3ref_rst_n);
+`endif
+`ifdef vc707
+	DDR3_Controller_VC707_1GB ddr3_ctrl <- mkDDR3Controller_VC707_1GB(ddr3_cfg, ddr_buf, clocked_by ddr_buf, reset_by ddr3ref_rst_n);
+`endif
 
 	Clock ddr3clk = ddr3_ctrl.user.clock;
 	Reset ddr3rstn = ddr3_ctrl.user.reset_n;
@@ -82,7 +93,13 @@ module mkProjectTop #(
 
 	// Interfaces ////
 	interface PcieImportPins pcie_pins = pcie.pins;
+
+`ifdef kc705
 	interface DDR3_Pins_KC705_1GB pins_ddr3 = ddr3_ctrl.ddr3;
+`endif
+`ifdef vc707
+	interface DDR3_Pins_VC707_1GB pins_ddr3 = ddr3_ctrl.ddr3;
+`endif
 
 	method Bit#(4) led;
 		//return leddata;

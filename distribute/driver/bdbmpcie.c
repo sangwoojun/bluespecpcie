@@ -60,7 +60,7 @@ static unsigned int irq;
 struct page** dma_pages = NULL;
 unsigned int dma_pages_count = 0;
 void* dma_addr = NULL;
-unsigned long mmap_buffersize = 1024*1024;
+unsigned long mmap_buffersize = 1024*1024*4;
 static int create_dma_buffer(unsigned int bufcount) {
 	int i;
 	int bufidx = 0;
@@ -245,7 +245,7 @@ static int __init pcie_probe (struct pci_dev *dev, const struct pci_device_id *i
 	
 	printk(KERN_ALERT "PCIe read: %x @ %x\n", r32, r32n);
 	*/
-	create_dma_buffer(mmap_buffersize/(1024*4)); // 1MB
+	create_dma_buffer(mmap_buffersize/(1024*4)); // 1MB / 4KB pages
 
 
 	return 0;

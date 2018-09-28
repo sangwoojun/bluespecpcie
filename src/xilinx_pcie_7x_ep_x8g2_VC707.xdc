@@ -72,51 +72,6 @@
 
 
 ###############################################################################
-# Timing Constraints
-###############################################################################
-#
-create_clock -name sys_clk -period 10 [get_pins -hier refclk_ibuf/O]
-#
-# 
-#set_false_path -to [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
-#set_false_path -to [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S1}]
-set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S0}]
-set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S1}]
-#
-#
-#create_generated_clock -name clk_125mhz_x1y0 [get_pins -hier pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0]
-#create_generated_clock -name clk_250mhz_x1y0 [get_pins -hier pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1]
-#create_generated_clock -name clk_125mhz_mux_x1y0 \ 
-#                        -source [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I0] \
-#                        -divide_by 1 \
-#                        [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/O]
-##
-#create_generated_clock -name clk_250mhz_mux_x1y0 \ 
-#                        -source [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I1] \
-#                        -divide_by 1 -add -master_clock [get_clocks -of [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/I1]] \
-#                        [get_pins pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/O]
-
-create_generated_clock -name pcie_clk_125mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
-create_generated_clock -name pcie_clk_250mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
-
-create_generated_clock -name pcie_clk_125mhz_mux \ 
-                        -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I0] \
-                        -divide_by 1 \
-                        [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
-#
-create_generated_clock -name pcie_clk_250mhz_mux \ 
-                        -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1] \
-                        -divide_by 1 -add -master_clock [get_clocks -of [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1]] \
-                        [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
-#
-set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux -group clk_250mhz_mux
-#
-#
-
-# Timing ignoring the below pins to avoid CDC analysis, but care has been taken in RTL to sync properly to other clock domain.
-#
-#
-###############################################################################
 # Pinout and Related I/O Constraints
 ###############################################################################
 
@@ -134,16 +89,31 @@ set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux -g
 # with these devices that contain only 1.8 V banks.
 #
 
+###############################################################################
+# Physical Constraints
+###############################################################################
+#
+# SYS clock 100 MHz (input) signal. The sys_clk_p and sys_clk_n
+# signals are the PCI Express reference clock. Virtex-7 GT
+# Transceiver architecture requires the use of a dedicated clock
+# resources (FPGA input pins) associated with each GT Transceiver.
+# To use these pins an IBUFDS primitive (refclk_ibuf) is
+# instantiated in user's design.
+# Please refer to the Virtex-7 GT Transceiver User Guide
+# (UG) for guidelines regarding clock resource selection.
+#
+
 set_property IOSTANDARD LVCMOS18 [get_ports RST_N_sys_rst_n]
 set_property PULLUP true [get_ports RST_N_sys_rst_n]
 set_property LOC AV35 [get_ports RST_N_sys_rst_n]
 
+set_property IOSTANDARD DIFF_SSTL15 [get_ports CLK_pcie_clk_*]
+set_property LOC AB7 [get_ports CLK_pcie_clk_n]
+set_property LOC AB8 [get_ports CLK_pcie_clk_p]
+
 set_property IOSTANDARD DIFF_SSTL15 [get_ports CLK_sys_clk_*]
-#set_property IOSTANDARD LVDS [get_ports CLK_sys_clk_p]
-set_property LOC AB7 [get_ports CLK_sys_clk_n]
-set_property LOC AB8 [get_ports CLK_sys_clk_p]
-#set_property LOC AB7 [get_ports CLK_sys_clk_n]
-#set_property LOC AB8 [get_ports CLK_sys_clk_p]
+set_property LOC E18 [get_ports CLK_sys_clk_n]
+set_property LOC E19 [get_ports CLK_sys_clk_p]
 
 set_property IOSTANDARD LVCMOS18 [get_ports CLK_emcclk]
 set_property LOC AP37 [get_ports CLK_emcclk]
@@ -159,17 +129,11 @@ set_property CONFIG_MODE BPI16 [current_design]
 set_property CFGBVS GND [current_design]
 set_property CONFIG_VOLTAGE 1.8 [current_design]
 
-#
-# LED Status Indicators for Example Design.
-# LED 0-2 should be ON if link is up and functioning correctly
-# LED 3 should be blinking if user applicaiton is receiving valid clock
-#
+
 set_property IOSTANDARD LVCMOS18 [get_ports led[0]]
 set_property IOSTANDARD LVCMOS18 [get_ports led[1]]
 set_property IOSTANDARD LVCMOS18 [get_ports led[2]]
-# SYS RESET = led_0
-# USER RESET = led_0
-# USER LINK UP = led_2
+
 
 set_property IOSTANDARD LVCMOS18 [get_ports led[3]]
 
@@ -179,60 +143,31 @@ set_property LOC AR37 [get_ports led[2]]
 # USER CLK HEART BEAT = led_3
 set_property LOC AT37 [get_ports led[3]]
 
-
-#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst125*}]
-#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst250*}]
-#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/dclk_rst_reg*}]
-#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset_reg/C}]
-#set_false_path -from [get_pins -hierarchical -filter {NAME=~*pcie_7x_0_i/inst/inst/user_reset_out_reg/C}]
-
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dEnqPtr*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dNotEmptyReg*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *PRE}]
-
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *CLR}]
-#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *PRE}]
-
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *CLR}]
-#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *PRE}]
-
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *CLR}]
-set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *PRE}]
-
-#rst125/reset_hold_reg[7]_replica/C
-set_false_path -from [get_pins -of_objects [get_cells -hier -filter {NAME=~ *rst125/*}] -filter {NAME=~ *C}]
-set_false_path -from [get_pins -hier -filter {NAME =~ *pcie_7x_0_i/inst/inst/user_reset_out_*/C}]
-
-
-
-
-###############################################################################
-# Physical Constraints
-###############################################################################
-#
-# SYS clock 100 MHz (input) signal. The sys_clk_p and sys_clk_n
-# signals are the PCI Express reference clock. Virtex-7 GT
-# Transceiver architecture requires the use of a dedicated clock
-# resources (FPGA input pins) associated with each GT Transceiver.
-# To use these pins an IBUFDS primitive (refclk_ibuf) is
-# instantiated in user's design.
-# Please refer to the Virtex-7 GT Transceiver User Guide
-# (UG) for guidelines regarding clock resource selection.
-#
-
 set_property LOC IBUFDS_GTE2_X1Y5 [get_cells -hier refclk_ibuf]
 
-set_false_path -from [get_ports RST_N_sys_rst_n]
-
-
-
 
 
 ###############################################################################
-# End
+# Timing Constraints
 ###############################################################################
+#
+create_clock -name sys_clk -period 10 [get_pins -hier refclk_ibuf/O]
+#
 
+create_generated_clock -name pcie_clk_125mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
+create_generated_clock -name pcie_clk_250mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
+
+create_generated_clock -name pcie_clk_125mhz_mux \ 
+                        -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I0] \
+                        -divide_by 1 \
+                        [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
+#
+create_generated_clock -name pcie_clk_250mhz_mux \ 
+                        -source [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1] \
+                        -divide_by 1 -add -master_clock [get_clocks -of [get_pins -hier pclk_i1_bufgctrl.pclk_i1/I1]] \
+                        [get_pins -hier pclk_i1_bufgctrl.pclk_i1/O]
+#
+set_clock_groups -name pcieclkmux -physically_exclusive -group clk_125mhz_mux -group clk_250mhz_mux
 
 
 
@@ -292,18 +227,45 @@ set_property LOC AH3  [get_ports { pcie_pins_TXN[5] }]
 set_property LOC AJ1  [get_ports { pcie_pins_TXN[6] }]
 set_property LOC AK3  [get_ports { pcie_pins_TXN[7] }]
 
-# 250MHz
-#create_clock -name clk_gen_250 -period 4 [get_pins clk_gen_pll/CLKOUT0] -add
-# 125MHz
-#create_clock -name clk_gen_125 -period 8 [get_pins clk_gen_pll/CLKOUT1] -add
 
-#startgroup
-#create_pblock pblock_PCIe
-#resize_pblock pblock_PCIe -add {CLOCKREGION_X1Y1:CLOCKREGION_X1Y2}
-#add_cells_to_pblock pblock_PCIe [get_cells pcie]
-#add_cells_to_pblock pblock_PCIe [get_cells -regexp {NAME=~pcieCtrl*}]
-#endgroup
+set_false_path -from [get_ports RST_N_sys_rst_n]
 
 set_clock_groups -asynchronous -group {sys_clk} -group {userclk2}
 set_clock_groups -asynchronous -group {pcie_clk_125mhz} -group {userclk2}
 set_clock_groups -asynchronous -group {pcie_clk_250mhz} -group {userclk2}
+
+#set_false_path -to [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]
+#set_false_path -to [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S1}]
+set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S0}]
+set_false_path -to [get_pins -hier {pclk_i1_bufgctrl.pclk_i1/S1}]
+#
+
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst125*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~rst250*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/dclk_rst_reg*}]
+#set_false_path -from [get_cells -hierarchical -regexp {NAME=~*pcie_7x_0_i/inst/inst/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset_reg/C}]
+#set_false_path -from [get_pins -hierarchical -filter {NAME=~*pcie_7x_0_i/inst/inst/user_reset_out_reg/C}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dEnqPtr*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dNotEmptyReg*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dGDeqPtr*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *CLR}]
+#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/sSyncReg*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *CLR}]
+#set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/dSyncReg*}] -filter {NAME =~ *PRE}]
+
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *CLR}]
+set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME =~ *ioRecvQ/*}] -filter {NAME =~ *PRE}]
+
+#rst125/reset_hold_reg[7]_replica/C
+set_false_path -from [get_pins -of_objects [get_cells -hier -filter {NAME=~ *rst125/*}] -filter {NAME=~ *C}]
+set_false_path -from [get_pins -hier -filter {NAME =~ *pcie_7x_0_i/inst/inst/user_reset_out_*/C}]
+
+###############################################################################
+# End
+###############################################################################
+
+

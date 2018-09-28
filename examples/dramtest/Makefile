@@ -7,7 +7,7 @@ DRAMPATH =$(LIBPATH)/dram/src/
 
 BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
 
-BSCFLAGS_SYNTH = -bdir ./build/obj -vdir ./build/verilog/top -simdir ./build/obj -info-dir ./build -fdir ./build
+BSCFLAGS_SYNTH = -bdir ./build/obj -vdir ./build/verilog/top -simdir ./build/obj -info-dir ./build -fdir ./build -D $(BOARD)
 BSCFLAGS_BSIM = -bdir ./bsim/obj -vdir ./bsim/verilog/top -simdir ./bsim/obj -info-dir ./bsim -fdir ./bsim
 
 BSIM_CPPFILES =$(LIBPATH)/cpp/PcieBdpi.cpp \

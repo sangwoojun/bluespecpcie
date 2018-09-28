@@ -1,17 +1,10 @@
 set_param general.maxThreads 8
 
-# NOTE: typical usage would be "vivado -mode tcl -source create_mkPcieTop_batch.tcl" 
-#
-# STEP#0: define output directory area.
-#
 set pciedir ../../../
-#set flashdir ../../../flash/
+set ddr3dir ../../../dram/vc707/
 
 set outputDir ./hw
 file mkdir $outputDir
-#
-# STEP#1: setup design sources and constraints
-#
 #source board.tcl
 
 set partname {xc7vx485tffg1761-2}
@@ -25,6 +18,12 @@ read_ip $pciedir/core/vc707/pcie_7x_0/pcie_7x_0.xci
 read_verilog [ glob $pciedir/src/*.v ]
 read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_VC707.xdc
 ############## end Pcie Stuff
+
+############# DDR3 Stuff
+read_ip $ddr3dir/core/ddr3_0/ddr3_0.xci
+read_verilog [ glob $ddr3dir/*.v ]
+read_xdc $ddr3dir/dram.xdc
+############# end Flash Stuff
 
 ############# Flash Stuff
 #read_ip $flashdir/aurora_8b10b_fmc1/aurora_8b10b_fmc1.xci
@@ -44,8 +43,6 @@ read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_VC707.xdc
 #read_xdc {../../xilinx/constraints/ac701.xdc}
 
 
-# STEP#2: run synthesis, report utilization and timing estimates, write checkpoint design
-#
 synth_design -name mkProjectTop -top mkProjectTop -part $partname -flatten rebuilt
 
 write_checkpoint -force $outputDir/mkprojecttop_post_synth
@@ -57,10 +54,6 @@ write_verilog -force $outputDir/mkprojecttop_netlist.v
 write_debug_probes -force probes.ltx
 #report_power -file $outputDir/mkprojecttop_post_synth_power.rpt
 
-#
-# STEP#3: run placement and logic optimization, report utilization and timing estimates, write checkpoint design
-#
-
 
 opt_design
 # power_opt_design
@@ -68,9 +61,6 @@ place_design
 phys_opt_design
 write_checkpoint -force $outputDir/mkprojecttop_post_place
 report_timing_summary -file $outputDir/mkprojecttop_post_place_timing_summary.rpt
-#
-# STEP#4: run router, report actual utilization and timing, write checkpoint design, run drc, write verilog and xdc out
-#
 route_design
 write_checkpoint -force $outputDir/mkprojecttop_post_route
 report_timing_summary -file $outputDir/mkprojecttop_post_route_timing_summary.rpt
@@ -82,7 +72,4 @@ report_datasheet -file $outputDir/mkprojecttop_post_route_datasheet.rpt
 #report_drc -file $outputDir/mkprojecttop_post_imp_drc.rpt
 #write_verilog -force $outputDir/mkprojecttop_impl_netlist.v
 write_xdc -no_fixed_only -force $outputDir/mkprojecttop_impl.xdc
-#
-# STEP#5: generate a bitstream
-# 
 write_bitstream -force -bin_file $outputDir/mkProjectTop.bit

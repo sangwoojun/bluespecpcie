@@ -14,6 +14,7 @@ import Clocks :: *;
 
 import Vector::*;
 import FIFO::*;
+import FIFOF::*;
 import BRAM::*;
 import BRAMFIFO::*;
 
@@ -208,8 +209,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(SendTLP) sendTLPQ <- mkSizedFIFO(8);
 	MergeNIfc#(8,SendTLP) sendTLPm <- mkMergeN;
 
-	FIFO#(IOWrite) userWriteQ <- mkSizedBRAMFIFO(4096);
-	FIFO#(IOReadReq) userReadQ <- mkSizedBRAMFIFO(4096);
+	FIFOF#(IOWrite) userWriteQ <- mkSizedBRAMFIFOF(512);
+	FIFOF#(IOReadReq) userReadQ <- mkSizedBRAMFIFOF(512);
 
 	Reg#(Bit#(16)) userWriteBudget <- mkReg(0);
 	Reg#(Bit#(32)) userWriteEmit <- mkReg(0);
@@ -380,8 +381,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 					tc:tc,td:td,ep:ep,attr:attr});
 			end
 			else begin
-				userReadQ.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
-					tc:tc,td:td,ep:ep,attr:attr});
+				if ( userReadQ.notFull() ) begin
+					userReadQ.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
+						tc:tc,td:td,ep:ep,attr:attr});
+				end else begin
+					// IoRead is dropped!
+				end
 			end
 		end
 		else if ( ptype == type_wr32_io 
@@ -449,7 +454,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			);
 		end
 		else if (internalAddr >= fromInteger(io_userspace_offset) ) begin
-			userWriteQ.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
+			if ( userWriteQ.notFull() ) begin
+				userWriteQ.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
+			end else begin
+				// IOWrite is dropped!
+			end
 		end
 
 		Bit#(32) cdw0 = {
