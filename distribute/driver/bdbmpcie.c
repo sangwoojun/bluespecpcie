@@ -245,7 +245,7 @@ static int __init pcie_probe (struct pci_dev *dev, const struct pci_device_id *i
 	
 	printk(KERN_ALERT "PCIe read: %x @ %x\n", r32, r32n);
 	*/
-	create_dma_buffer(mmap_buffersize/(1024*4)); // 1MB / 4KB pages
+	create_dma_buffer(mmap_buffersize/(1024*4)); // 4 MB / 4KB pages
 
 
 	return 0;

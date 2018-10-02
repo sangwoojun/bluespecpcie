@@ -1,10 +1,6 @@
 package DRAMController;
 
-
 import Clocks          :: *;
-//import XilinxVC707DDR3::*;
-//import Xilinx       :: *;
-//import XilinxCells ::*;
 import DDR3Controller::*;
 import DDR3Common::*;
 
@@ -30,6 +26,9 @@ interface DRAMUserIfc;
 
 	method ActionValue#(Bit#(512)) read;
 	method Action readReq(Bit#(64) addr, Bit#(7) bytes);
+	
+	interface Clock user_clk;
+	interface Reset user_rst;
 endinterface
 
 interface DRAMControllerIfc;
@@ -193,6 +192,9 @@ module mkDRAMController(DRAMControllerIfc);
    Wire#(DDRResponse) resp_wire <- mkWire;
    
    interface DRAMUserIfc user;
+   interface Clock user_clk = clk;
+   interface Reset user_rst = rst_n;
+
    method Action write(Bit#(64) addr, Bit#(512) data, Bit#(7) bytes);
       let mappedaddr = addrReMapping(addr);
       DDRPhyAddr v = unpack(truncate(mappedaddr));      

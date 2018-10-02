@@ -210,6 +210,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	MergeNIfc#(8,SendTLP) sendTLPm <- mkMergeN;
 
 	FIFOF#(IOWrite) userWriteQ <- mkSizedBRAMFIFOF(512);
+	FIFO#(IOWrite) userWrite1Q <- mkFIFO;
 	FIFOF#(IOReadReq) userReadQ <- mkSizedBRAMFIFOF(512);
 
 	Reg#(Bit#(16)) userWriteBudget <- mkReg(0);
@@ -311,7 +312,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			) begin
 			Bit#(10) length = tlp[9:0];
 			Bit#(8) tag = tlp[15+64:8+64];
-			Bit#(32) data = reverseEndian(tlp[31+96:96]);
+			Bit#(32) data = tlp[31+96:96];
 		
 			if ( length <= 1 ) begin // should not happen but...
 				dmaReadWordQ.enq(DMAWordTagged{word:tlp, tag:tag}); //debug
@@ -454,11 +455,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			);
 		end
 		else if (internalAddr >= fromInteger(io_userspace_offset) ) begin
-			if ( userWriteQ.notFull() ) begin
-				userWriteQ.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
-			end else begin
-				// IOWrite is dropped!
-			end
+			userWrite1Q.enq(IOWrite{addr:internalAddr-fromInteger(io_userspace_offset), data:data});
 		end
 
 		Bit#(32) cdw0 = {
@@ -743,14 +740,28 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		sendTLPm.enq[5].enq(userSendTLPQ.first);
 	endrule
 
+	FIFO#(IOWrite) userWrite2Q <- mkFIFO;
+	rule relayUserWriteQ;
+		userWrite1Q.deq;
+		if ( userWriteQ.notFull() ) begin
+			userWriteQ.enq(userWrite1Q.first);
+		end else begin
+			// IOWrite is dropped!
+		end
+	endrule
+	rule relayUserWrite2Q;
+		userWriteQ.deq;
+		userWrite2Q.enq(userWriteQ.first);
+	endrule
+
 	interface PcieUserIfc user;
 		interface Clock user_clk = curClk;
 		interface Reset user_rst = curRst;
 
 		method ActionValue#(IOWrite) dataReceive;
-			userWriteQ.deq;
+			userWrite2Q.deq;
 			userWriteEmit <= userWriteEmit + 1;
-			return userWriteQ.first;
+			return userWrite2Q.first;
 		endmethod
 		method ActionValue#(IOReadReq) dataReq;
 			userReadQ.deq;
