@@ -37,9 +37,9 @@ int main(int argc, char** argv) {
 
 	clock_gettime(CLOCK_REALTIME, & start);
 	for ( int i = 0; i < pageCnt; i++ ) {
-		pcie->userWriteWord(256*4, 0); // host mem page 1 
-		pcie->userWriteWord(257*4, 4); // fpga mem page 2
-		pcie->userWriteWord(258*4, 64); // copy 256 Pages host->fpga
+		pcie->userWriteWord(256*4, 0); // host mem page 0
+		pcie->userWriteWord(257*4, 4); // fpga mem page 4
+		pcie->userWriteWord(258*4, 64); 
 	}
 
 	while ( writeDoneCnt + pageCnt > pcie->userReadWord(writeStatOff) );
@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
 
 	clock_gettime(CLOCK_REALTIME, & start);
 	for ( int i = 0; i < 1024*4; i++ ) {
-		pcie->userWriteWord(256*4, 0); // host mem page 1 
-		pcie->userWriteWord(257*4, 12); // fpga mem page 2
-		pcie->userWriteWord(259*4, 64); // copy 256 Pages fpga->host
+		pcie->userWriteWord(256*4, 0); // host mem page 0 
+		pcie->userWriteWord(257*4, 12); // fpga mem page 12
+		pcie->userWriteWord(259*4, 64); 
 	}
 	
 	while ( readDoneCnt + pageCnt > pcie->userReadWord(readStatOff) );

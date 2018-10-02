@@ -46,9 +46,9 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	// 32 in flight good?
     SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dmaReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, dramclk);
 	
-	Integer dmaReadTagCount  = 8;
+	Integer dmaReadTagCount  = 32;
 	FIFO#(Bit#(8)) dmaReadFreeTagQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
-	Vector#(8, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
+	Vector#(32, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
 	Reg#(Bit#(8)) dmaReadTagInit <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	rule initDmaTagR(dmaReadTagInit < fromInteger(dmaReadTagCount));
 		dmaReadTagInit <= dmaReadTagInit + 1;
@@ -133,7 +133,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	** DMA DRAM -> Host Start
 	**************************************/
 
-	Integer dmaWriteTagCount  = 16;
+	Integer dmaWriteTagCount  = 32;
 	FIFO#(Bit#(8)) dmaWriteFreeTagQ <- mkSizedFIFO(dmaWriteTagCount, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) dmaWriteTagInit <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	rule initDmaTagW(dmaWriteTagInit < fromInteger(dmaWriteTagCount));
