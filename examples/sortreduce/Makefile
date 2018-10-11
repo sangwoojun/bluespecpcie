@@ -1,9 +1,9 @@
 LIBPATH =../../
 BOARD=kc705
 
-BSVPATH =$(LIBPATH)/src/:
-COREPATH =$(LIBPATH)/core/$(BOARD)/
-DRAMPATH =$(LIBPATH)/dram/src/
+BSVPATH = $(LIBPATH)/src/:./hwlib/
+COREPATH = $(LIBPATH)/core/$(BOARD)/
+DRAMPATH = $(LIBPATH)/dram/src/
 
 BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
 

@@ -70,7 +70,7 @@ module mkProjectTop #(
 	//DRAMControllerIfc dramController <- mkDRAMController(clocked_by pcieCtrl.user.user_clk, reset_by pcieCtrl.user.user_rst);
 	DRAMControllerIfc dramController <- mkDRAMController(clocked_by clk_100mhz, reset_by rst_100mhz);
 
-	HwMainIfc hwmain <- mkHwMain(pcieCtrl.user, dramController.user, clocked_by sys_clk_200mhz_buf, reset_by rst200);
+	HwMainIfc hwmain <- mkHwMain(pcieCtrl.user, dramController.user, clocked_by clk_100mhz, reset_by rst_100mhz);
 	
 	Clock ddr_buf = sys_clk_200mhz_buf;
 	//Clock ddr_buf = clk200;

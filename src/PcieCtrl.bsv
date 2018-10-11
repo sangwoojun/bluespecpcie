@@ -382,12 +382,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 					tc:tc,td:td,ep:ep,attr:attr});
 			end
 			else begin
-				if ( userReadQ.notFull() ) begin
+				//if ( userReadQ.notFull() ) begin
 					userReadQ.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
 						tc:tc,td:td,ep:ep,attr:attr});
-				end else begin
+				//end else begin
 					// IoRead is dropped!
-				end
+				//end
 			end
 		end
 		else if ( ptype == type_wr32_io 
@@ -743,11 +743,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(IOWrite) userWrite2Q <- mkFIFO;
 	rule relayUserWriteQ;
 		userWrite1Q.deq;
-		if ( userWriteQ.notFull() ) begin
+		//if ( userWriteQ.notFull() ) begin
 			userWriteQ.enq(userWrite1Q.first);
-		end else begin
+		//end else begin
 			// IOWrite is dropped!
-		end
+		//end
 	endrule
 	rule relayUserWrite2Q;
 		userWriteQ.deq;
