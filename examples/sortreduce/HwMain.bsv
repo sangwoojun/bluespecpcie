@@ -10,6 +10,7 @@ import PcieCtrl::*;
 import DRAMController::*;
 import DRAMBurstController::*;
 import DRAMHostDMA::*;
+import MergeN::*;
 
 import DRAMVectorPacker::*;
 import MergeSorter::*;
@@ -45,16 +46,32 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 			end
 		endrule
 	end
+	
+	DRAMVectorPacker#(3,Tuple2#(Bit#(64),Bit#(32))) dramWriter <- mkDRAMVectorPacker(dramBurst, 128);
 
 	Reg#(Bool) doneReached <- mkReg(False);
 	Reg#(Bit#(64)) sortedCnt <- mkReg(0);
 	rule getMerged;
 		let r <- sorter8.get;
+		dramWriter.put(r);
+
 		if ( !isValid(r) ) begin
 			doneReached <= True;
 		end else begin
 			sortedCnt <= sortedCnt + 1;
+			doneReached <= False;
 		end
+	endrule
+
+	MergeNIfc#(9, Bit#(8)) mBufferDone <- mkMergeN;
+	for (Integer i = 0; i < 8; i=i+1 ) begin
+		rule relayReadDone;
+			dramReaders[i].bufferDone;
+			mBufferDone.enq[i].enq(fromInteger(i));
+		endrule
+	end
+	rule relayWriteDone;
+		mBufferDone.enq[8].enq(8);
 	endrule
 
 
@@ -68,9 +85,10 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		if ( off < 4 ) begin // args
 			cmdArgs[off] <= d;
 		end else if ( off == 8 ) begin
-			//dramReaders[d].start({cmdArgs[0], cmdArgs[1]});
+			dramWriter.addBuffer({cmdArgs[0], cmdArgs[1]}, cmdArgs[2]);
 		end else if ( off == 9 ) begin
-			dramReaders[d].addBuffer({cmdArgs[0], cmdArgs[1]}, cmdArgs[2]);
+			dramReaders[d].addBuffer({cmdArgs[0], cmdArgs[1]}, cmdArgs[2], False);
+			//doneReached <= False;
 		end
 	endrule
 
@@ -86,13 +104,8 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		else if ( off < 10 ) begin
 			dramHostDma.dataSend(r, dramReadCnt[off-2]);
 		end else if ( off == 16 ) begin
-			Tuple2#(Bit#(64), Bit#(32)) ov = tuple2(64'h1111222233334444, 32'h55556666);
-			Bit#(96) up = pack(ov);
-			dramHostDma.dataSend(r, truncate(up));
-		end else if ( off == 17 ) begin
-			Tuple2#(Bit#(64), Bit#(32)) ov = tuple2(64'h1111222233334444, 32'h55556666);
-			Bit#(96) up = pack(ov);
-			dramHostDma.dataSend(r, truncate(up>>32));
+			mBufferDone.deq;
+			dramHostDma.dataSend(r, zeroExtend(mBufferDone.first));
 		end else begin
 			dramHostDma.dataSend(r, 32'hffffffff);
 		end

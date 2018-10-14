@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 #include <algorithm>
 
+
 #include "bdbmpcie.h"
+#include "DRAMHostDMA.h"
 
 double timespec_diff_sec( timespec start, timespec end ) {
 	double t = end.tv_sec - start.tv_sec;
@@ -17,9 +20,78 @@ int main(int argc, char** argv) {
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
 
+	timespec start;
+	timespec now;
+	double diff = 0;
+
+
+	DRAMHostDMA* dma = DRAMHostDMA::GetInstance();
+
+	for ( size_t testidx = 0; testidx < 1; testidx++ ) {
+		size_t buffer_bytes = 1024*1024*16*(testidx+1);
+		size_t dramoffset = testidx * 32*1024*1024;
+
+		printf( "Testing: %ld bytes at offset %ld\n", buffer_bytes, dramoffset );
+
+
+
+		uint32_t seed = time(NULL);
+		srand(seed);
+		uint32_t* buffer = (uint32_t*)malloc(buffer_bytes);
+		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
+			buffer[i] = rand();
+		}
+		
+		
+
+
+		clock_gettime(CLOCK_REALTIME, & start);
+		dma->CopyToFPGA(0, buffer, buffer_bytes);
+		clock_gettime(CLOCK_REALTIME, & now);
+		printf( "\tCopy To FPGA done %lf\n", timespec_diff_sec(start,now) );
+		sleep(1);
+
+		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
+			buffer[i] = 0xcccccccc;
+		}
+
+		clock_gettime(CLOCK_REALTIME, & start);
+		dma->CopyFromFPGA(0, buffer, buffer_bytes);
+		clock_gettime(CLOCK_REALTIME, & now);
+		printf( "\tCopy From FPGA done %lf\n", timespec_diff_sec(start,now) );
+		int errorcount = 0;
+		
+		srand(seed);
+		bool wrongstreak = false;
+		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
+			uint32_t val = rand();
+			if ( buffer[i] != val ) {
+				
+				if ( wrongstreak == false ) {
+					printf( "\tError! %d: %x != %x\n", i, buffer[i], val );
+					wrongstreak = true;
+				}
+				errorcount ++;
+			} else {
+				wrongstreak = false;
+			}
+		}
+		printf( "\tTotal errors: 0x%x\n", errorcount );
+	}
+
+	exit(0);
+
+
+
 	
 	uint8_t* dmabuf8 = (uint8_t*)pcie->dmaBuffer();
 	uint32_t* dmabuf32 = (uint32_t*)dmabuf8;
+
+
+	
+
+
+
 
 	int writeStatOff = 256*4;
 	int readStatOff = 257*4;
@@ -31,10 +103,10 @@ int main(int argc, char** argv) {
 
 	for ( int s = 0; s < 16; s++ ) {
 		for ( int i = 0; i < 1024*256; i++ ) { // 1MB
-			//dmabuf32[i] = rand();
-			dmabuf32[i] = 0;
+			dmabuf32[i] = rand();
+			//dmabuf32[i] = 0;
 		}
-		//std::sort(dmabuf32, dmabuf32+(1024*256));
+		std::sort(dmabuf32, dmabuf32+(1024*256));
 		pcie->userWriteWord(256*4, 0); // host mem page
 		pcie->userWriteWord(257*4, s*1024/4);// fpga mem page
 		pcie->userWriteWord(258*4, 1024/4); // 1MB
@@ -55,9 +127,18 @@ int main(int argc, char** argv) {
 		for ( int s = 0; s < 8; s++ ) {
 			pcie->userWriteWord(0*4, 0);
 			pcie->userWriteWord(1*4, 1024*32*s); //FIXME
-			pcie->userWriteWord(2*4, 1024);
+			pcie->userWriteWord(2*4, 1024*64);
 			pcie->userWriteWord(9*4, s);// Add buffer to reader
 		}
+		sleep(1);
+
+		uint32_t cnt = pcie->userReadWord(0);
+		uint32_t done = pcie->userReadWord(1*4);
+		printf( "%d %d\n", cnt, done );
+		for ( int i = 0; i < 8; i++ ) {
+			printf( "%x ", pcie->userReadWord((i+2)*4));
+		}
+		printf( "\n" );
 	}
 	for ( int s = 0; s < 8; s++ ) {
 		// indicates input done
@@ -66,6 +147,8 @@ int main(int argc, char** argv) {
 		pcie->userWriteWord(2*4, 0);
 		pcie->userWriteWord(9*4, s);// Add buffer to reader
 	}
+			
+	printf( "-- %x %x\n",pcie->userReadWord(16*4), pcie->userReadWord(17*4));
 
 	while (true) {
 		uint32_t cnt = pcie->userReadWord(0);
@@ -76,6 +159,7 @@ int main(int argc, char** argv) {
 		}
 		printf( "\n" );
 		sleep(1);
+		if ( done > 0 ) break;
 	}
 
 
@@ -90,9 +174,6 @@ int main(int argc, char** argv) {
 		dmabuf32[i] = (i/1024)<<24 | i;
 	}
 
-	timespec start;
-	timespec now;
-	double diff = 0;
 
 
 	clock_gettime(CLOCK_REALTIME, & start);

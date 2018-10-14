@@ -2,7 +2,7 @@ LIBPATH=../../../
 LIBOBJ=$(LIBPATH)/cpp/obj/
 
 BDBMPCIEINCLUDE= -I$(LIBPATH)/cpp/
-BDBMPCIECPP= $(LIBPATH)/cpp/bdbmpcie.cpp $(LIBPATH)/cpp/ShmFifo.cpp
+BDBMPCIECPP= $(LIBPATH)/cpp/bdbmpcie.cpp $(LIBPATH)/cpp/ShmFifo.cpp $(LIBPATH)/cpp/DRAMHostDMA.cpp
 LIB= -lpthread -lrt
 
 
