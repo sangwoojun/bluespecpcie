@@ -260,6 +260,19 @@ probe_fail_enable:
 
 static void pcie_remove( struct pci_dev *dev) {
 	printk(KERN_ALERT "Removing BlueDBM PCIe driver\n");
+
+	int i;
+	u8* bar0_data;
+	bar0_data = (u8*)bar0_ptr;
+	for ( i = 0; i < dma_pages_count; i++ ) {
+		//unsigned int page_addr = (unsigned long)page_address(dma_pages[i]);
+		//pci_unmap_single(pcidev, page_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
+		pci_unmap_single(pcidev, bar0_data[DMA_ADDR_OFFSET + 4*i], PAGE_SIZE, DMA_BIDIRECTIONAL);
+		__free_page(dma_pages[i]);
+	}
+	if (dma_pages != NULL) kfree(dma_pages);
+	printk(KERN_ALERT "Freed DMA pages\n");
+
 	pci_clear_master(dev);
 	printk(KERN_ALERT "Cleared PCIe master\n");
 
@@ -522,6 +535,7 @@ static void __exit pcie_exit(void)
 	
 	printk(KERN_ALERT "BlueDBM PCIe driver unloading\n");
 
+/*
 	for ( i = 0; i < dma_pages_count; i++ ) {
 		//unsigned int page_addr = (unsigned long)page_address(dma_pages[i]);
 		//pci_unmap_single(pcidev, page_addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
@@ -529,6 +543,7 @@ static void __exit pcie_exit(void)
 		__free_page(dma_pages[i]);
 	}
 	if (dma_pages != NULL) kfree(dma_pages);
+	*/
 
 	printk(KERN_ALERT "BlueDBM PCIe driver unregistering\n");
 	pci_unregister_driver(&pci_driver);

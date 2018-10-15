@@ -40,12 +40,9 @@ private: // constants
 	static const uint32_t m_host_mem_arg = 256*4;
 	static const uint32_t m_fpga_mem_arg = 257*4;
 	static const uint32_t m_fpga_write_stat_off = 256*4;
-	static const uint32_t m_fpga_read_stat_off = 256*4;
+	static const uint32_t m_fpga_read_stat_off = 257*4;
 	static const uint32_t m_to_fpga_cmd = 258*4;
 	static const uint32_t m_to_host_cmd = 259*4;
-
-	static const uint32_t m_maximum_read_inflight = 16;
-	static const uint32_t m_maximum_write_inflight = 16;
 
 	// m_max_dma_bytes MUST be multiples of m_fpga_alignment
 	static const uint32_t m_fpga_alignment = (4*1024);

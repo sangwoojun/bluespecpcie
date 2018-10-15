@@ -27,36 +27,44 @@ int main(int argc, char** argv) {
 
 	DRAMHostDMA* dma = DRAMHostDMA::GetInstance();
 
-	for ( size_t testidx = 0; testidx < 1; testidx++ ) {
+	uint32_t* buffer = (uint32_t*)malloc(1024*1024*1024);
+	for ( int i = 0; i < 1024*1024*1024/sizeof(uint32_t); i++ ) {
+		buffer[i] = 0xcccccccc;
+	}
+	dma->CopyToFPGA(0, buffer, 1024*1024*1024);
+	free(buffer);
+
+	for ( size_t testidx = 0; testidx < 32; testidx++ ) {
 		size_t buffer_bytes = 1024*1024*16*(testidx+1);
 		size_t dramoffset = testidx * 32*1024*1024;
+		uint32_t* buffer = (uint32_t*)malloc(buffer_bytes);
 
-		printf( "Testing: %ld bytes at offset %ld\n", buffer_bytes, dramoffset );
+		printf( "Testing: 0x%lx bytes at offset 0x%lx\n", buffer_bytes, dramoffset );
 
 
 
 		uint32_t seed = time(NULL);
 		srand(seed);
-		uint32_t* buffer = (uint32_t*)malloc(buffer_bytes);
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
 			buffer[i] = rand();
+			//buffer[i] = i;
 		}
 		
 		
 
 
 		clock_gettime(CLOCK_REALTIME, & start);
-		dma->CopyToFPGA(0, buffer, buffer_bytes);
+		dma->CopyToFPGA(dramoffset, buffer, buffer_bytes);
 		clock_gettime(CLOCK_REALTIME, & now);
 		printf( "\tCopy To FPGA done %lf\n", timespec_diff_sec(start,now) );
 		sleep(1);
 
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
-			buffer[i] = 0xcccccccc;
+			buffer[i] = 0xaaaaaaaa;
 		}
 
 		clock_gettime(CLOCK_REALTIME, & start);
-		dma->CopyFromFPGA(0, buffer, buffer_bytes);
+		dma->CopyFromFPGA(dramoffset, buffer, buffer_bytes);
 		clock_gettime(CLOCK_REALTIME, & now);
 		printf( "\tCopy From FPGA done %lf\n", timespec_diff_sec(start,now) );
 		int errorcount = 0;
@@ -65,6 +73,7 @@ int main(int argc, char** argv) {
 		bool wrongstreak = false;
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
 			uint32_t val = rand();
+			//uint32_t val = i;
 			if ( buffer[i] != val ) {
 				
 				if ( wrongstreak == false ) {
@@ -76,7 +85,8 @@ int main(int argc, char** argv) {
 				wrongstreak = false;
 			}
 		}
-		printf( "\tTotal errors: 0x%x\n", errorcount );
+		printf( "\tTotal errors: 0x%x / 0x%lx\n", errorcount, buffer_bytes/sizeof(uint32_t) );
+		free(buffer);
 	}
 
 	exit(0);

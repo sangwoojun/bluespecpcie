@@ -46,10 +46,18 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 	size_t writes_cnt = ( bytes/(m_max_dma_bytes/2) );
 	if ( bytes%(m_max_dma_bytes/2) != 0 ) writes_cnt ++;
 
-	// check write done/make sure we have enough write tokens
-
 	size_t host_offset = 0;
 	uint8_t* dmabuf8 = (uint8_t*)pcie->dmaBuffer();
+		
+	size_t pageoff = offset/m_fpga_alignment;
+	size_t curbyte = m_max_dma_bytes/2;
+	if ( m_max_dma_bytes/2 > bytes ) curbyte = bytes;
+	size_t pages = curbyte/m_fpga_alignment;
+	pcie->userWriteWord(m_host_mem_arg, 0); // host mem page
+	pcie->userWriteWord(m_fpga_mem_arg, pageoff);// fpga mem page
+	pcie->userWriteWord(m_to_fpga_cmd, pages);
+
+	//printf( "Starting write with %ld chunks\n", writes_cnt ); fflush(stdout);
 	for ( size_t i = 0; i < writes_cnt; i++ ) {
 		size_t curbyte = m_max_dma_bytes/2;
 		if ( m_max_dma_bytes/2 > bytes ) curbyte = bytes;
@@ -70,11 +78,14 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 		pcie->userWriteWord(m_host_mem_arg, hostpageoff); // host mem page
 		pcie->userWriteWord(m_fpga_mem_arg, pageoff);// fpga mem page
 		pcie->userWriteWord(m_to_fpga_cmd, pages);
+
 	
 		uint32_t writecnt = pcie->userReadWord(m_fpga_write_stat_off);
+		//printf( "Waiting for %d to reach %ld\n", writecnt, m_write_done_total + i );
 		while ( writecnt < m_write_done_total + i ) {
 			writecnt = pcie->userReadWord(m_fpga_write_stat_off);
 		}
+		//printf( "Write done!\n" );
 
 		host_offset += curbyte;
 		offset += curbyte;
@@ -92,6 +103,7 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 	}
 	m_write_done_total = writecnt;
 
+
 	m_mutex.unlock();
 	return true;
 }
@@ -100,6 +112,7 @@ bool
 DRAMHostDMA::CopyFromFPGA(size_t offset, void* buffer, size_t bytes) {
 	m_mutex.lock();
 	BdbmPcie* pcie = BdbmPcie::getInstance();
+	//m_read_done_total = pcie->userReadWord(m_fpga_read_stat_off);
 
 	size_t dst_bytes = bytes;
 	size_t offset_frag = offset % m_fpga_alignment;
@@ -118,6 +131,8 @@ DRAMHostDMA::CopyFromFPGA(size_t offset, void* buffer, size_t bytes) {
 	size_t host_offset = 0;
 	uint8_t* dmabuf8 = (uint8_t*)pcie->dmaBuffer();
 	size_t curbyte = 0;
+	size_t lastbyte = 0;
+	//printf( "Starting write with %ld chunks\n", reads_cnt ); fflush(stdout);
 	for ( size_t i = 0; i < reads_cnt; i++ ) {
 		curbyte = m_max_dma_bytes/2;
 		if ( m_max_dma_bytes/2 > bytes ) curbyte = bytes;
@@ -129,21 +144,25 @@ DRAMHostDMA::CopyFromFPGA(size_t offset, void* buffer, size_t bytes) {
 		size_t pages = curbyte/m_fpga_alignment;
 		size_t pageoff = offset/m_fpga_alignment;
 
+		//printf( "%lx,%lx,%lx\n", hostpageoff, pageoff, pages );
 		pcie->userWriteWord(m_host_mem_arg, hostpageoff);
 		pcie->userWriteWord(m_fpga_mem_arg, pageoff);
 		pcie->userWriteWord(m_to_host_cmd, pages);
 		
 		uint32_t readcnt = pcie->userReadWord(m_fpga_read_stat_off);
+		//printf( "Waiting for %d to be %ld\n", readcnt, m_read_done_total + i );
 		while ( readcnt < m_read_done_total + i ) {
 			readcnt = pcie->userReadWord(m_fpga_read_stat_off);
 		}
+
 		if ( i > 0 ) {
 			size_t bufoff = 0;
 			if ( i%2 == 0 ) bufoff = m_max_dma_bytes/2;
-			memcpy(((uint8_t*)buffer)+host_offset, dmabuf8 + bufoff, curbyte);
-			host_offset += curbyte;
-			dst_bytes -= curbyte;
+			memcpy(((uint8_t*)buffer)+host_offset, dmabuf8 + bufoff, lastbyte);
+			host_offset += lastbyte;
+			dst_bytes -= lastbyte;
 		}
+		lastbyte = curbyte;
 
 		offset += curbyte;
 		bytes -= curbyte;
@@ -156,7 +175,8 @@ DRAMHostDMA::CopyFromFPGA(size_t offset, void* buffer, size_t bytes) {
 	while ( readcnt < m_read_done_total + reads_cnt ) {
 		readcnt = pcie->userReadWord(m_fpga_read_stat_off);
 	}
-	m_read_done_total += reads_cnt;
+	m_read_done_total = readcnt;
+
 	size_t bufoff = 0;
 	if ( reads_cnt%2 == 0 ) bufoff = m_max_dma_bytes/2;
 	if ( dst_bytes >= m_max_dma_bytes/2 ) {

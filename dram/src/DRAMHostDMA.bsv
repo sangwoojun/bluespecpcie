@@ -178,13 +178,10 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	
 	
 	Reg#(Bit#(8)) dmaWriteCurTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	FIFO#(Tuple3#(Bit#(32), Bit#(8), Bit#(8))) pcieWriteReqQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Tuple2#(Bit#(32), Bit#(8))) pcieWriteReqQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
 	
 	FIFO#(Bool) dramReadBurstDoneQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
 	rule genPcieDmaWrite(memWriteLeft > 0 && memReadLeft == 0 );
-		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
-		dmaWriteFreeTagQ.deq;
-		dmaWriteCurTag <= writeTag;
 
 		if ( memWriteLeft > 128 ) begin
 			memWriteLeft <= memWriteLeft - 128;
@@ -192,16 +189,17 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 			Bit#(8) words = (128>>4);
 			hostMemOff <= hostMemOff + 128;
 			//pcie.dmaWriteReq(hostMemOff, zeroExtend(words), writeTag);
-			pcieWriteReqQ.enq(tuple3(hostMemOff, words, writeTag));
+			pcieWriteReqQ.enq(tuple2(hostMemOff, words));
 			dramReadBurstDoneQ.enq(False);
 		end else begin
 			memWriteLeft <= 0;
 			
 			// +8 to take ceiling, but should not happen because 4KB units
-			Bit#(8) words = truncate((memWriteLeft+8)>>4);
+			Bit#(8) words = truncate(memWriteLeft>>4);
+			if ( memWriteLeft[3:0] > 0 ) words = words + 1;
 
 			//pcie.dmaWriteReq(hostMemOff, zeroExtend(words), writeTag);
-			pcieWriteReqQ.enq(tuple3(hostMemOff, words, writeTag));
+			pcieWriteReqQ.enq(tuple2(hostMemOff, words));
 
 			dramReadBurstDoneQ.enq(True);
 		end
@@ -224,12 +222,15 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	rule sendPcieDmaWrite(dmaCurWriteLeft == 0 && dramReadWordCntUp-dramReadWordCntDn >= zeroExtend(tpl_2(pcieWriteReqQ.first)>>2));
 		let d = pcieWriteReqQ.first;
 		pcieWriteReqQ.deq;
+		
+		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
+		dmaWriteFreeTagQ.deq;
+		dmaWriteCurTag <= writeTag;
 
 		let off = tpl_1(d);
 		let words = tpl_2(d);
-		let tag = tpl_3(d);
 
-		pcie.dmaWriteReq(off, zeroExtend(words), tag);
+		pcie.dmaWriteReq(off, zeroExtend(words), writeTag);
 		dmaCurWriteLeft <= words;
 
 		dramReadBurstDoneQ.deq;
@@ -242,8 +243,12 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		dmaCurWriteLeft <= dmaCurWriteLeft - 1;
 		dmaWriteDRAMWordBufferOffset <= dmaWriteDRAMWordBufferOffset + 1;
 
-		if ( dmaCurWriteLeft == 1 && dmaCurWriteLast ) begin
-			pcieDmaWriteDoneQ.enq(True);
+		if ( dmaCurWriteLeft == 1 ) begin
+			dmaWriteFreeTagQ.enq(dmaWriteCurTag);
+
+			if (dmaCurWriteLast ) begin
+				pcieDmaWriteDoneQ.enq(True);
+			end
 		end
 
 
@@ -298,6 +303,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	endrule
 	Reg#(Bit#(32)) hostMemTemp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) fpgaMemTemp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bool) cmdTemp <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
 	rule getCmd; // ( memReadLeft == 0 && memWriteLeft == 0 );
 		let w <- pcie.dataReceive;
 		let a = w.addr;
