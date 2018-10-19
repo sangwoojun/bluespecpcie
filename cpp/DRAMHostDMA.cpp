@@ -48,14 +48,6 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 
 	size_t host_offset = 0;
 	uint8_t* dmabuf8 = (uint8_t*)pcie->dmaBuffer();
-		
-	size_t pageoff = offset/m_fpga_alignment;
-	size_t curbyte = m_max_dma_bytes/2;
-	if ( m_max_dma_bytes/2 > bytes ) curbyte = bytes;
-	size_t pages = curbyte/m_fpga_alignment;
-	pcie->userWriteWord(m_host_mem_arg, 0); // host mem page
-	pcie->userWriteWord(m_fpga_mem_arg, pageoff);// fpga mem page
-	pcie->userWriteWord(m_to_fpga_cmd, pages);
 
 	//printf( "Starting write with %ld chunks\n", writes_cnt ); fflush(stdout);
 	for ( size_t i = 0; i < writes_cnt; i++ ) {

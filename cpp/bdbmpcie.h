@@ -39,8 +39,8 @@ private:
 	void Init_Bluesim();
 	void Init_Pcie();
 
-	BdbmPcie(BdbmPcie const&){};
-	BdbmPcie& operator=(BdbmPcie const&){};
+	BdbmPcie(BdbmPcie const&) = delete;
+	BdbmPcie& operator=(BdbmPcie const&) = delete;
 
 	bool bsim;
 

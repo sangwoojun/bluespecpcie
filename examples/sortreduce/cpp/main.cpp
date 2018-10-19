@@ -27,23 +27,58 @@ int main(int argc, char** argv) {
 
 	DRAMHostDMA* dma = DRAMHostDMA::GetInstance();
 
+/*
 	uint32_t* buffer = (uint32_t*)malloc(1024*1024*1024);
 	for ( int i = 0; i < 1024*1024*1024/sizeof(uint32_t); i++ ) {
-		buffer[i] = 0xcccccccc;
+		buffer[i] = i;
 	}
 	dma->CopyToFPGA(0, buffer, 1024*1024*1024);
+	dma->CopyFromFPGA(0, buffer, 1024*1024*1024);
 	free(buffer);
+*/
+
+
+/*
+	void* inbufs[8] = {0};
+	for ( int i = 0; i < 8; i++ ) {
+		size_t inbuf_bytes = 1024*1024*64;
+		void* inbuf = malloc(inbuf_bytes);
+		size_t off = 0;
+		uint64_t keyskip = (uint64_t)rand()%8;
+		uint64_t curkey = (uint64_t)rand()%1024;
+
+		while ( off + sizeof(uint64_t) + sizeof(uint32_t) < inbuf_bytes ) {
+			*(uint64_t*)(((uint8_t*)inbuf)+off) = curkey;
+			*(uint32_t*)(((uint8_t*)inbuf)+off+sizeof(uint64_t)) = 1;
+
+			curkey += keyskip;
+			off += sizeof(uint64_t) + sizeof(uint32_t);
+		}
+		while ( off < inbuf_bytes ) {
+			*(((uint8_t*)inbuf)+off) = 0xff;
+			off++;
+		}
+		inbufs[i] = inbuf;
+	}
+
+	for ( int i = 0; i < 2; i++ ) {
+		for ( int j = 0; j < 8; j++ ) {
+		}
+	}
+*/
+
+
 
 	for ( size_t testidx = 0; testidx < 32; testidx++ ) {
 		size_t buffer_bytes = 1024*1024*16*(testidx+1);
-		size_t dramoffset = testidx * 32*1024*1024;
+		size_t dramoffset = testidx * 16*1024*1024;
 		uint32_t* buffer = (uint32_t*)malloc(buffer_bytes);
 
 		printf( "Testing: 0x%lx bytes at offset 0x%lx\n", buffer_bytes, dramoffset );
 
 
 
-		uint32_t seed = time(NULL);
+		uint32_t seed = time(NULL)+testidx;
 		srand(seed);
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
 			buffer[i] = rand();

@@ -74,6 +74,8 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 		end else begin
 			dramBlockReadLeft <= 0;
 			bufferSplitQ.enq(tuple2(dramBlockReadOff, dramBlockReadLeft));
+
+			// Not super accurate timing, but probably okay
 			bufferDoneQ.enq(True);
 		end
 	endrule
@@ -103,12 +105,13 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 
 
 
-	ByteShiftIfc#(Bit#(1024), 6) byteShifter <- mkPipelineRightShifter;
+	ByteShiftIfc#(Bit#(1024), 6) byteShifter <- mkPipelineLeftShifter;
 	Reg#(Maybe#(Bit#(512))) dramReadBuffer <- mkReg(tagged Invalid);
 	Reg#(Bit#(8)) shiftBytes <- mkReg(0);
 
 	Reg#(Bit#(32)) dramWordsLeft <- mkReg(0);
 	Reg#(Bool) dramLastBuffer <- mkReg(False);
+	Reg#(Bool) dramBufferExit <- mkReg(False);
 
 	FIFO#(Bool) isShiftedValidQ <- mkSizedFIFO(8);
 
@@ -119,7 +122,7 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 			dramReadBuffer <= tagged Valid d;
 			dramWordsLeft <= dramWordsLeft - 1;
 
-			byteShifter.rotateByteBy(zeroExtend(d), 0);
+			byteShifter.rotateByteBy({d,0}, 0);
 			shiftBytes <= fromInteger(iVectorBytes);
 			isShiftedValidQ.enq(True);
 		end else if (shiftBytes + fromInteger(iVectorBytes) >= fromInteger(iDRAMWordBytes) ) begin
@@ -133,7 +136,7 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 				dramReadQ2.deq;
 				let d = dramReadQ2.first;
 				let d0 = fromMaybe(?,dramReadBuffer);
-				let dt = {d,d0};
+				let dt = {d0,d};
 				
 				byteShifter.rotateByteBy(dt, truncate(shiftBytes));
 
@@ -144,7 +147,7 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 			end
 		end else begin
 			let d = fromMaybe(?,dramReadBuffer);
-			byteShifter.rotateByteBy(zeroExtend(d), truncate(shiftBytes));
+			byteShifter.rotateByteBy({d,0}, truncate(shiftBytes));
 			shiftBytes <= shiftBytes + fromInteger(iVectorBytes);
 			isShiftedValidQ.enq(True);
 		end
@@ -158,13 +161,19 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 		isShiftedValidQ.deq;
 
 		Vector#(vcnt,valType) rv;
+		//We want to take the top (vectorSz) bits
+		Bit#(vectorSz) ds = d[1023:(1024-valueOf(vectorSz))];
 		for ( Integer i = 0; i < valueOf(vcnt); i=i+1 ) begin
-			rv[i] = unpack(d[valueOf(valTypeSz)*(i+1)-1:valueOf(valTypeSz)*i]);
+			Integer loweroff = valueOf(valTypeSz)*i;
+			Integer upperoff = valueOf(valTypeSz)*(i+1)-1;
+
+			rv[valueOf(vcnt)-1-i] = unpack(ds[upperoff:loweroff]);
 		end
 		if ( v ) begin
 			vectorQ.enq(tagged Valid rv);
 		end else begin
 			vectorQ.enq(tagged Invalid);
+			dramBufferExit <= False;
 		end
 	endrule
 
@@ -188,8 +197,13 @@ module mkDRAMVectorUnpacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVe
 	method Action addBuffer(Bit#(64) addr, Bit#(32) words, Bool last) if ( dramLastBuffer == False );
 
 		if ( words == 0 || last ) begin
-			dramLastBuffer <= True;
+			if ( dramBufferExit ) begin
+				dramLastBuffer <= True;
+			end else begin
+				outQ.enq(tagged Invalid);
+			end
 		end else begin
+			dramBufferExit <= True;
 			dramWordsLeft <= dramWordsLeft + words;
 			bufferQ.enq(tuple2(addr,words));
 
@@ -210,7 +224,7 @@ endmodule
 interface DRAMVectorPacker#(numeric type vcnt, type valType);
 	method Action addBuffer(Bit#(64) addr, Bit#(32) words);
 	method Action put(Maybe#(Vector#(vcnt,valType)) data);
-	method Action bufferDone;
+	method ActionValue#(Bit#(64)) bufferDone;
 endinterface
 
 // qsize: the amount of data it will try to buffer before starting DRAM burst
@@ -252,7 +266,7 @@ module mkDRAMVectorPacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVect
 	SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) bufferQ <- mkSyncFIFO(32, curclk, currst, dramclk);
 	Reg#(Bool) dramLastBuffer <- mkReg(False);
 
-	ByteShiftIfc#(Bit#(1024), 6) byteShifter <- mkPipelineLeftShifter;
+	ByteShiftIfc#(Bit#(1024), 6) byteShifter <- mkPipelineRightShifter;
 	FIFO#(Bool) isShiftedValidQ <- mkSizedFIFO(8);
 	Reg#(Bit#(8)) shiftBytes <- mkReg(0);
 
@@ -263,10 +277,11 @@ module mkDRAMVectorPacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVect
 		if ( isValid(d_) ) begin
 			if ( shiftBytes + fromInteger(iVectorBytes ) >= fromInteger(iDRAMWordBytes) ) begin
 
+				byteShifter.rotateByteBy({d,0}, truncate(shiftBytes));
 				shiftBytes <= shiftBytes + fromInteger(iVectorBytes) - fromInteger(iDRAMWordBytes);
 				isShiftedValidQ.enq(True);
 			end else begin
-				byteShifter.rotateByteBy(zeroExtend(d), truncate(shiftBytes));
+				byteShifter.rotateByteBy({d,0}, truncate(shiftBytes));
 				shiftBytes <= shiftBytes + fromInteger(iVectorBytes);
 				isShiftedValidQ.enq(True);
 			end
@@ -277,44 +292,73 @@ module mkDRAMVectorPacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVect
 		end
 	endrule
 
-	FIFO#(Bool) writeBufferDoneQ <- mkSizedFIFO(32);
+	FIFO#(Bit#(64)) writeBufferDoneQ <- mkSizedFIFO(32);
 	
 	SyncFIFOIfc#(Maybe#(Tuple2#(Bit#(64), Bit#(512)))) dramWriteQ <- mkSyncFIFO(16, curclk, currst, dramclk);
 	Reg#(Bit#(64)) curBufferOffset <- mkReg(0);
 	Reg#(Bit#(32)) curBufferWordLeft <- mkReg(0);
 	Reg#(Bit#(8)) curShiftBytes <- mkReg(0);
 	Reg#(Bit#(512)) dramWriteBuffer <- mkReg(0);
-	rule getPacked;
+
+	Reg#(Bit#(64)) curBufferBytesWritten <- mkReg(0);
+	Reg#(Bool) flushing <- mkReg(False);
+	rule getPacked (!flushing);
 		let d <- byteShifter.getVal;
 		let v = isShiftedValidQ.first;
 		isShiftedValidQ.deq;
 
 		if ( v ) begin
 			if ( curShiftBytes + fromInteger(iVectorBytes) >= fromInteger(iDRAMWordBytes) ) begin
-				dramWriteBuffer <= truncate(d>>iDRAMWordSz);
 				curShiftBytes <= curShiftBytes + fromInteger(iVectorBytes) - fromInteger(iDRAMWordBytes);
-				if ( curBufferWordLeft > 0 ) begin
-					curBufferWordLeft <= curBufferWordLeft - 1;
-					curBufferOffset <= curBufferOffset + fromInteger(iDRAMWordBytes);
-					dramWriteQ.enq(tagged Valid tuple2(curBufferOffset, (dramWriteBuffer | truncate(d)) ));
-				end else begin
+				dramWriteBuffer <= truncate(d);
+
+				let wordsleft = curBufferWordLeft;
+				let offset = curBufferOffset;
+				let byteswritten = curBufferBytesWritten;
+
+				if ( curBufferWordLeft == 0 ) begin
 					bufferQ.deq;
 					let b = bufferQ.first;
-					curBufferOffset <= tpl_1(b) + fromInteger(iDRAMWordBytes);
-					curBufferWordLeft <= tpl_2(b) - 1;
-					dramWriteQ.enq(tagged Valid tuple2(tpl_1(b), (dramWriteBuffer | truncate(d)) ));
-					writeBufferDoneQ.enq(True);
+					offset = tpl_1(b);
+					wordsleft = tpl_2(b);
+					byteswritten = 0;
+
+					if ( curBufferBytesWritten > 0 ) begin
+						writeBufferDoneQ.enq(curBufferBytesWritten);
+					end
 				end
+				curBufferWordLeft <= wordsleft - 1;
+				curBufferOffset <= offset + fromInteger(iDRAMWordBytes);
+				curBufferBytesWritten <= byteswritten + fromInteger(iDRAMWordBytes);
+
+				
+				dramWriteQ.enq(tagged Valid tuple2(offset, (dramWriteBuffer | truncate(d>>iDRAMWordSz)) ));
 			end else begin
-				dramWriteBuffer <= dramWriteBuffer | truncate(d);
+				dramWriteBuffer <= dramWriteBuffer | truncate(d>>iDRAMWordSz);
 				curShiftBytes <= curShiftBytes + fromInteger(iVectorBytes);
 			end
 		end else begin
 			curShiftBytes <= 0;
 			curBufferWordLeft <= 0;
-			dramWriteQ.enq(tagged Invalid);
+			if ( curBufferWordLeft > 0 ) begin
+				dramWriteQ.enq(tagged Valid tuple2(curBufferOffset, dramWriteBuffer ));
+			end else begin
+				bufferQ.deq;
+				let b = bufferQ.first;
+				dramWriteQ.enq(tagged Valid tuple2(tpl_1(b), dramWriteBuffer));
+
+				writeBufferDoneQ.enq(curBufferBytesWritten);
+			end
+			curBufferBytesWritten <= curBufferBytesWritten + fromInteger(iDRAMWordBytes);
+			flushing <= True;
 		end
 
+	endrule
+	rule flushout ( flushing );
+		flushing <= False;
+		dramWriteQ.enq(tagged Invalid);
+		writeBufferDoneQ.enq(curBufferBytesWritten);
+		curBufferBytesWritten <= 0;
 	endrule
 
 
@@ -346,13 +390,15 @@ module mkDRAMVectorPacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVect
 
 	rule initDRAMWriteFlush( dramWriteLeft == 0 && dramWriteFlush );
 		let curq = dramWriteCntUp-dramWriteCntDn;
-		if ( curq >= fromInteger(qsize) ) begin
-			dram.writeReq(tpl_1(dramWriteStagedQ.first), curq);
-			dramWriteCntDn <= dramWriteCntDn + curq;
-		end else begin
+		if ( curq > fromInteger(qsize) ) begin
 			dram.writeReq(tpl_1(dramWriteStagedQ.first), fromInteger(qsize));
 			dramWriteCntDn <= dramWriteCntDn + fromInteger(qsize);
+			dramWriteLeft <= fromInteger(qsize);
+		end else begin
+			dram.writeReq(tpl_1(dramWriteStagedQ.first), curq);
+			dramWriteCntDn <= dramWriteCntDn + curq;
 			dramWriteFlush <= False;
+			dramWriteLeft <= curq;
 		end
 	endrule
 
@@ -380,7 +426,11 @@ module mkDRAMVectorPacker#(DRAMBurstControllerIfc dram, Integer qsize) (DRAMVect
 	method Action put(Maybe#(Vector#(vcnt,valType)) data);
 		inQ.enq(data);
 	endmethod
-	method Action bufferDone;
+	method ActionValue#(Bit#(64)) bufferDone;
 		writeBufferDoneQ.deq;
+		return writeBufferDoneQ.first;
 	endmethod
 endmodule
+
+
+
