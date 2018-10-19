@@ -2,6 +2,9 @@
 Note:
 Commands operate on 4 KB pages
 Host offset/cpy bytes limited to 32 bits
+
+TODO:
+Merger/Scatter to handle dram reqs in a conflict free way
 **/
 
 
@@ -29,9 +32,9 @@ endinterface
 
 function Bit#(128) reverseEndian(Bit#(128) data);
 	Bit#(32) d1 = data[31:0];
-	Bit#(32) d2 = data[(32*2)-1:(32*1)];
-	Bit#(32) d3 = data[(32*3)-1:(32*2)];
-	Bit#(32) d4 = data[127:(32*3)];
+	Bit#(32) d2 = data[63:32];
+	Bit#(32) d3 = data[95:64];
+	Bit#(32) d4 = data[127:96];
 
 	return {d1,d2,d3,d4};
 endfunction
@@ -54,6 +57,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	
 	Reg#(Bit#(32)) memReadLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst); // host->fpga
 	Reg#(Bit#(32)) memWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst); // fpga->host
+
 
 	
 	/**************************************
@@ -101,11 +105,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		let d_ <- pcie.dmaReadWord;
 
 
-		let dw = reverseEndian(d_.word);
+		let dw = d_.word;
 		let dt = d_.tag;
 
 
-		if ( !isValid(dmaFirstWord) ) begin
+		if ( !isValid(dmaFirstWord) || ( isValid(dmaFirstWord) && fromMaybe(?,dmaFirstWord) == 0) ) begin
 			dmaFirstWord <= tagged Valid dw;
 		end
 		let word = dw;
@@ -145,10 +149,10 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		end
 
 		if ( dramWriteBufferOffset == 3 || dramWriteBurstLeft == 1 ) begin
-			dram.write({truncate(dramWriteBuffer),d});
+			dram.write({d,truncateLSB(dramWriteBuffer)});
 			dramWriteBufferOffset <= 0;
 		end else begin
-			dramWriteBuffer <= {truncate(dramWriteBuffer),d};
+			dramWriteBuffer <= {d,truncateLSB(dramWriteBuffer)};
 			dramWriteBufferOffset <= dramWriteBufferOffset + 1;
 		end
 	endrule
@@ -275,11 +279,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 			let d = dramReadWordQ2.first;
 			dramReadWordCntDn <= dramReadWordCntDn + 1;
 
-			pcie.dmaWriteData(reverseEndian(d[511:(512-128)]), dmaWriteCurTag);
-			dmaWriteDRAMWordBuffer <= (d<<128);
+			pcie.dmaWriteData(truncate(d), dmaWriteCurTag);
+			dmaWriteDRAMWordBuffer <= (d>>128);
 		end else begin
-			pcie.dmaWriteData(reverseEndian(dmaWriteDRAMWordBuffer[511:(512-128)]), dmaWriteCurTag);
-			dmaWriteDRAMWordBuffer <= (dmaWriteDRAMWordBuffer<<128);
+			pcie.dmaWriteData(truncate(dmaWriteDRAMWordBuffer), dmaWriteCurTag);
+			dmaWriteDRAMWordBuffer <= (dmaWriteDRAMWordBuffer>>128);
 		end
 	endrule
     
@@ -338,9 +342,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 			dmaCmdQ.enq(tuple4(True, hostMemTemp, fpgaMemTemp, d));
 			//memWriteLeft <= (d<<12);
 		end else begin
-			if ( pcieOutQ.notFull() ) begin
-				pcieOutQ.enq(w);
-			end
+			pcieOutQ.enq(w);
 		end
 	endrule
 
@@ -385,6 +387,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
     SyncFIFOIfc#(Tuple3#(Bool, Bit#(64), Bit#(32))) chainIoCmdQ <- mkSyncFIFO(16, curclk, currst, dramclk);
 	SyncFIFOIfc#(Bit#(512)) chainWriteQ <- mkSyncFIFO(16, curclk, currst, dramclk);
     SyncFIFOIfc#(Bit#(512)) chainReadQ <- mkSyncFIFO(16, dramclk, dramrst, curclk);
+	(* descending_urgency = "relayChainCmd, dramStartBurst" *)
 	rule relayChainCmd( chainReadWordsLeft == 0 && chainWriteWordsLeft == 0 );
 		let c = chainIoCmdQ.first;
 		chainIoCmdQ.deq;
@@ -402,12 +405,12 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		end
 	endrule
 
-	rule relayChainWrite ( chainWriteWordsLeft > 0 ) ;
+	rule relayChainWrite ( chainWriteWordsLeft > 0 && dramWriteBurstLeft == 0 ) ;
 		chainWriteWordsLeft <= chainWriteWordsLeft - 1;
 		chainWriteQ.deq;
 		dram.write(chainWriteQ.first);
 	endrule
-	rule relayChainRead ( chainReadWordsLeft > 0 ) ;
+	rule relayChainRead ( chainReadWordsLeft > 0 && dramBurstReadLeft == 0) ;
 		chainReadWordsLeft <= chainReadWordsLeft - 1;
 		let d <- dram.read;
 		chainReadQ.enq(d);
@@ -434,8 +437,8 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	endmethod
 
 	interface DRAMBurstControllerIfc dram;
-	interface Clock user_clk = dram.user_clk;
-	interface Reset user_rst = dram.user_rst;
+	interface Clock user_clk = curclk;
+	interface Reset user_rst = currst;
 	method Action writeReq(Bit#(64) addr, Bit#(32) words);
 		chainIoCmdQ.enq(tuple3(True, addr, words));
 	endmethod

@@ -89,18 +89,11 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 			inQ2.deq;
 		end
 
-		let cleaned = halfCleanKV(d1,d2,descending);
 
+		let cleaned = halfCleanKV(d1,d2,descending);
 		let top = tpl_1(cleaned);
 		let bot = tpl_2(cleaned);
-		//tailReg1 <= tail1;
-		//tailReg2 <= tail2;
-		//mergestate <= 1;
-
 		abuf <= sortBitonicKV(bot, descending); 
-		//abuf <= bot; 
-		//let tail1 = tailReg1;
-		//let tail2 = tailReg2;
 
 		if ( descending ) begin
 			if ( tail1 >= tail2 ) begin
@@ -121,10 +114,7 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		end
 
 		//$display( "doMerge" );
-		//TODO outQ must be pushed through a sorting network
-		//it is only bitonic!
 		outQ.enq(tagged Valid top);
-		//mergestate <= 0;
 	endrule
 
 	rule sortOut;
