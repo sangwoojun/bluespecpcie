@@ -25,7 +25,7 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 
 	Reg#(Vector#(vcnt,Tuple2#(keyType,valType))) abuf <- mkReg(?);
 	Reg#(Maybe#(Bool)) append1 <- mkReg(tagged Invalid);
-	Reg#(Tuple2#(keyType,valType)) atail <- mkReg(?);
+	Reg#(keyType) atail <- mkReg(?);
 
 	rule lastInvalid (!isValid(inQ1.first) && !isValid(inQ2.first));
 		inQ1.deq;
@@ -71,8 +71,8 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		//Bool valid2 = isValid(d2_);
 
 		
-		let tail1 = d1[count-1];
-		let tail2 = d2[count-1];
+		keyType tail1 = tpl_1(d1[count-1]);
+		keyType tail2 = tpl_1(d2[count-1]);
 		if ( isValid(append1) ) begin
 			let is1 = fromMaybe(?, append1);
 			if ( is1 ) begin
@@ -93,10 +93,11 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		let cleaned = halfCleanKV(d1,d2,descending);
 		let top = tpl_1(cleaned);
 		let bot = tpl_2(cleaned);
-		abuf <= sortBitonicKV(bot, descending); 
+		let bots = sortBitonicKV(bot, descending);
+		abuf <= bots;
 
 		if ( descending ) begin
-			if ( tail1 >= tail2 ) begin
+			if ( tail1 > tail2 ) begin
 				append1 <= tagged Valid False;
 				atail <= tail2;
 			end else begin
@@ -104,7 +105,7 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 				atail <= tail1;
 			end
 		end else begin
-			if ( tail2 >= tail1 ) begin
+			if ( tail2 > tail1 ) begin
 				append1 <= tagged Valid False;
 				atail <= tail2;
 			end else begin
@@ -121,7 +122,9 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		outQ.deq;
 		let d = outQ.first;
 		if ( isValid(d) ) begin
-			outQ2.enq(tagged Valid sortBitonicKV(fromMaybe(?,d), descending));
+			Vector#(vcnt, Tuple2#(keyType,valType)) sorted = sortBitonicKV(fromMaybe(?,d), descending);
+			outQ2.enq(tagged Valid sorted);
+			//outQ2.enq(tagged Valid sortBitonicKV(fromMaybe(?,d), descending));
 		end else begin
 			outQ2.enq(d);
 		end

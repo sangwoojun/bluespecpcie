@@ -39,12 +39,9 @@ function Bit#(128) reverseEndian(Bit#(128) data);
 	return {d1,d2,d3,d4};
 endfunction
 
-module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDMAIfc);
+module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWriterIfc dramw) (DRAMHostDMAIfc);
 	Clock pcieclk = pcie.user_clk;
 	Reset pcierst = pcie.user_rst;
-
-	Clock dramclk = dram.user_clk;
-	Reset dramrst = dram.user_rst;
 
 	Clock curclk <- exposeCurrentClock;
 	Reset currst <- exposeCurrentReset;
@@ -64,11 +61,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	** DMA Host -> DRAM Start
 	**************************************/
 	// 32 in flight good?
-    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dmaReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, dramclk);
+    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dmaReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
 	
-	Integer dmaReadTagCount  = 32;
+	Integer dmaReadTagCount  = 16;
 	FIFO#(Bit#(8)) dmaReadFreeTagQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
-	Vector#(32, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
+	Vector#(16, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
 	Reg#(Bit#(8)) dmaReadTagInit <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bool) dmaReadTagInitDone <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
 	rule initDmaTagR(dmaReadTagInit < fromInteger(dmaReadTagCount));
@@ -91,15 +88,15 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 			hostMemOff <= hostMemOff + 128;
 			vDmaReadTagWordsLeft[freeTag] <= words;
 		end else begin
-			// +8 to take ceiling, but should not happen because 4KB units
-			Bit#(8) words = truncate((memReadLeft+8)>>4);
+			// +15 to take ceiling, but should not happen because 4KB units
+			Bit#(8) words = truncate((memReadLeft+15)>>4);
 			pcie.dmaReadReq(hostMemOff, zeroExtend(words), freeTag);
 
 			memReadLeft <= 0;
 			vDmaReadTagWordsLeft[freeTag] <= words;
 		end
 	endrule
-    SyncFIFOIfc#(Bit#(128)) dmaReadWordsQ <- mkSyncFIFO(32, pcieclk, pcierst, dramclk);
+    SyncFIFOIfc#(Bit#(128)) dmaReadWordsQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
 	Reg#(Maybe#(Bit#(128))) dmaFirstWord <- mkReg(tagged Invalid, clocked_by pcieclk, reset_by pcierst);
 	rule getDMARead ( dmaReadTagInitDone );
 		let d_ <- pcie.dmaReadWord;
@@ -125,20 +122,20 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		end
 	endrule
 	// units are DMA WORDS! not DRAM WORDS!
-	Reg#(Bit#(32)) dramWriteBurstLeft <- mkReg(0, clocked_by dramclk, reset_by dramrst);
+	Reg#(Bit#(32)) dramWriteBurstLeft <- mkReg(0);
 	rule dramStartBurst ( dramWriteBurstLeft == 0 );
 		dmaReadWordCntQ.deq;
 		let cnt = dmaReadWordCntQ.first;
 		let words = tpl_2(cnt);
 		let off = tpl_1(cnt);
 		Bit#(32) dramwords = (words>>2);// 128bit dma words, 512bit dram words
-		dram.writeReq(off, dramwords); 
+		dramw.writeReq(off, dramwords); 
 		dramWriteBurstLeft <= words;
 	endrule
-	Reg#(Bit#(512)) dramWriteBuffer <- mkReg(0, clocked_by dramclk, reset_by dramrst);
-	Reg#(Bit#(2)) dramWriteBufferOffset <- mkReg(0, clocked_by dramclk, reset_by dramrst);
+	Reg#(Bit#(512)) dramWriteBuffer <- mkReg(0);
+	Reg#(Bit#(2)) dramWriteBufferOffset <- mkReg(0);
 	
-	SyncFIFOIfc#(Bool) dramWriteBurstDoneQ <- mkSyncFIFO(32, dramclk, dramrst, pcieclk);
+	SyncFIFOIfc#(Bool) dramWriteBurstDoneQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
 	rule relayDRAMWriteBurst(dramWriteBurstLeft > 0);
 		let d = dmaReadWordsQ.first;
 		dmaReadWordsQ.deq;
@@ -149,7 +146,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		end
 
 		if ( dramWriteBufferOffset == 3 || dramWriteBurstLeft == 1 ) begin
-			dram.write({d,truncateLSB(dramWriteBuffer)});
+			dramw.write({d,truncateLSB(dramWriteBuffer)});
 			dramWriteBufferOffset <= 0;
 		end else begin
 			dramWriteBuffer <= {d,truncateLSB(dramWriteBuffer)};
@@ -180,20 +177,20 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	endrule
 
 
-    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dramReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, dramclk);
-	SyncFIFOIfc#(Bit#(512)) dramReadWordQ <- mkSyncFIFO(16, dramclk, dramrst, pcieclk);
-	Reg#(Bit#(32)) dramBurstReadLeft <- mkReg(0, clocked_by dramclk, reset_by dramrst);
+    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dramReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
+	SyncFIFOIfc#(Bit#(512)) dramReadWordQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
+	Reg#(Bit#(32)) dramBurstReadLeft <- mkReg(0);
 
 	rule startDRAMRead ( dramBurstReadLeft == 0 );
 		dramReadWordCntQ.deq;
 		let r = dramReadWordCntQ.first;
 		let off = tpl_1(r);
 		let words = tpl_2(r);
-		dram.readReq(off, words);
+		dramr.readReq(off, words);
 		dramBurstReadLeft <= words;
 	endrule
 	rule relayDRAMWord ( dramBurstReadLeft > 0 );
-		let d <- dram.read;
+		let d <- dramr.read;
 		dramBurstReadLeft <= dramBurstReadLeft - 1;
 		dramReadWordQ.enq(d);
 	endrule
@@ -382,11 +379,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	** Chained DRAM interface start
 	*********************************/
 
-	Reg#(Bit#(32)) chainReadWordsLeft <- mkReg(0, clocked_by dramclk, reset_by dramrst);
-	Reg#(Bit#(32)) chainWriteWordsLeft <- mkReg(0, clocked_by dramclk, reset_by dramrst);
-    SyncFIFOIfc#(Tuple3#(Bool, Bit#(64), Bit#(32))) chainIoCmdQ <- mkSyncFIFO(16, curclk, currst, dramclk);
-	SyncFIFOIfc#(Bit#(512)) chainWriteQ <- mkSyncFIFO(16, curclk, currst, dramclk);
-    SyncFIFOIfc#(Bit#(512)) chainReadQ <- mkSyncFIFO(16, dramclk, dramrst, curclk);
+	Reg#(Bit#(32)) chainReadWordsLeft <- mkReg(0);
+	Reg#(Bit#(32)) chainWriteWordsLeft <- mkReg(0);
+    FIFO#(Tuple3#(Bool, Bit#(64), Bit#(32))) chainIoCmdQ <- mkSizedFIFO(16);
+	FIFO#(Bit#(512)) chainWriteQ <- mkSizedFIFO(16);
+    FIFO#(Bit#(512)) chainReadQ <- mkSizedFIFO(16);
 	(* descending_urgency = "relayChainCmd, dramStartBurst" *)
 	rule relayChainCmd( chainReadWordsLeft == 0 && chainWriteWordsLeft == 0 );
 		let c = chainIoCmdQ.first;
@@ -397,10 +394,10 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 		let words = tpl_3(c);
 
 		if ( write ) begin
-			dram.writeReq(addr, words); 
+			dramw.writeReq(addr, words); 
 			chainWriteWordsLeft <= words;
 		end else begin
-			dram.readReq(addr, words); 
+			dramr.readReq(addr, words); 
 			chainReadWordsLeft <= words;
 		end
 	endrule
@@ -408,11 +405,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstControllerIfc dram) (DRAMHostDM
 	rule relayChainWrite ( chainWriteWordsLeft > 0 && dramWriteBurstLeft == 0 ) ;
 		chainWriteWordsLeft <= chainWriteWordsLeft - 1;
 		chainWriteQ.deq;
-		dram.write(chainWriteQ.first);
+		dramw.write(chainWriteQ.first);
 	endrule
 	rule relayChainRead ( chainReadWordsLeft > 0 && dramBurstReadLeft == 0) ;
 		chainReadWordsLeft <= chainReadWordsLeft - 1;
-		let d <- dram.read;
+		let d <- dramr.read;
 		chainReadQ.enq(d);
 	endrule
 

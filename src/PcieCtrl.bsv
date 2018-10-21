@@ -211,7 +211,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 	FIFOF#(IOWrite) userWriteQ <- mkSizedBRAMFIFOF(512);
 	FIFO#(IOWrite) userWrite1Q <- mkFIFO;
-	FIFOF#(IOReadReq) userReadQ <- mkSizedBRAMFIFOF(512);
+	
+	FIFO#(IOReadReq) userReadQ0 <- mkFIFO;
+	FIFO#(IOReadReq) userReadQ1 <- mkSizedBRAMFIFO(512);
+	FIFO#(IOReadReq) userReadQ2 <- mkFIFO;
 
 	Reg#(Bit#(16)) userWriteBudget <- mkReg(0);
 	Reg#(Bit#(32)) userWriteEmit <- mkReg(0);
@@ -382,18 +385,25 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 					tc:tc,td:td,ep:ep,attr:attr});
 			end
 			else begin
-				//if ( userReadQ.notFull() ) begin
-					userReadQ.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
+					userReadQ0.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
 						tc:tc,td:td,ep:ep,attr:attr});
-				//end else begin
-					// IoRead is dropped!
-				//end
+					//userReadQ.enq(IOReadReq{requesterID:rid,tag:tag,addr:truncate(addr)-fromInteger(io_userspace_offset),
+						//tc:tc,td:td,ep:ep,attr:attr});
 			end
 		end
 		else if ( ptype == type_wr32_io 
 		 || ptype == type_wr32_mem ) begin
 		 	tlp3Q.enq(tlp);
 		end 
+	endrule
+
+	rule relayUserReadQ0;
+		userReadQ0.deq;
+		userReadQ1.enq(userReadQ0.first);
+	endrule
+	rule relayUserReadQ1;
+		userReadQ1.deq;
+		userReadQ2.enq(userReadQ1.first);
 	endrule
 
 	rule completeIORead;
@@ -764,11 +774,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			return userWrite2Q.first;
 		endmethod
 		method ActionValue#(IOReadReq) dataReq;
-			userReadQ.deq;
+			userReadQ2.deq;
 
 			//required for flow control
 			userReadEmit <= userReadEmit + 1;
-			return userReadQ.first;
+			return userReadQ2.first;
 		endmethod
 		method Action dataSend(IOReadReq ioreq, Bit#(32) data );
 			Bit#(32) cdw0 = {

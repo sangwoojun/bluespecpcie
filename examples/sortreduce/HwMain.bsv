@@ -18,40 +18,24 @@ import MergeSorter::*;
 interface HwMainIfc;
 endinterface
 
-/*
-function Tuple2#(Bit#(64),Bit#(32)) decodeTuple2_2_1(Bit#(96) in)
-	;
 
-	Bit#(64) keybits = truncate(in);
-	Bit#(32) valbits = truncate(in>>64);
-
-	return tuple2(keybits, valbits);
-endfunction
-*/
 function Tuple2#(Bit#(ksz),Bit#(vsz)) decodeTuple2(Bit#(w) in)
 	provisos(Add#(ksz,vsz,w)
 	);
 
-	Bit#(ksz) keybits = truncate(in>>valueOf(vsz));
-	Bit#(vsz) valbits = truncate(in);
+	Bit#(ksz) keybits = truncate(in);
+	Bit#(vsz) valbits = truncate(in>>valueOf(ksz));
 
 	return tuple2(keybits, valbits);
 endfunction
-/*
-function Bit#(96) encodeTuple2_2_1(Tuple2#(Bit#(64),Bit#(32)) kvp);
-	Bit#(64) keybits = tpl_1(kvp);
-	Bit#(32) valbits = tpl_2(kvp);
 
-	return {valbits,keybits};
-endfunction
-*/
 function Bit#(w) encodeTuple2(Tuple2#(Bit#(ksz),Bit#(vsz)) kvp)
 	provisos(Add#(ksz,vsz,w)
 	);
 	Bit#(ksz) keybits = tpl_1(kvp);
 	Bit#(vsz) valbits = tpl_2(kvp);
 
-	return {keybits,valbits};
+	return {valbits,keybits};
 endfunction
 
 
@@ -66,12 +50,19 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 
 
 	DRAMBurstControllerIfc dramBurst <- mkDRAMBurstController(dram);
-	DRAMHostDMAIfc dramHostDma <- mkDRAMHostDMA(pcie, dramBurst);
-	Vector#(8, DRAMVectorUnpacker#(3,Bit#(96))) dramReaders <- replicateM(mkDRAMVectorUnpacker(dramHostDma.dram, 128));
-	DRAMVectorPacker#(3,Bit#(96)) dramWriter <- mkDRAMVectorPacker(dramHostDma.dram, 128);
+	DRAMBurstSplitterIfc#(9,2) dramSplitter <- mkDRAMBurstSplitter(dramBurst);
+
+	DRAMHostDMAIfc dramHostDma <- mkDRAMHostDMA(pcie, dramSplitter.readers[0], dramSplitter.writers[0]);
+	Vector#(8, DRAMVectorUnpacker#(3,Bit#(96))) dramReaders;
+	for ( Integer i = 0; i < 8; i=i+1 ) begin
+		dramReaders[i] <- mkDRAMVectorUnpacker(dramSplitter.readers[i+1], 128);
+	end
+	
+	DRAMVectorPacker#(3,Bit#(96)) dramWriter <- mkDRAMVectorPacker(dramSplitter.writers[1], 128);
 	StreamVectorMergeSorterIfc#(8, 3, Bit#(64), Bit#(32)) sorter8 <- mkMergeSorter8(False);
 
-	FIFOF#(Bit#(32)) sampleQ <- mkSizedFIFOF(32);
+	FIFOF#(Bit#(32)) sampleQ0 <- mkSizedFIFOF(32);
+	FIFOF#(Bit#(32)) sampleQ1 <- mkSizedFIFOF(32);
 	FIFOF#(Bit#(32)) sampleQ2 <- mkSizedFIFOF(32);
 
 	//MergeNIfc#(8,Vector#(3,Tuple2#(Bit#(64),Bit#(32)))) tmerge <- mkMergeN;
@@ -85,17 +76,21 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 				dramReadCnt[i] <= dramReadCnt[i] | (1<<31);
 				sorter8.enq[i].enq(tagged Invalid);
 			end else begin
-				Vector#(3,Bit#(96)) v = fromMaybe(?,d);
-				Vector#(3,Tuple2#(Bit#(64),Bit#(32))) vv = map(decodeTuple2,v);
+				Vector#(3,Bit#(96)) v_ = fromMaybe(?,d);
+				Vector#(3,Tuple2#(Bit#(64),Bit#(32))) v = map(decodeTuple2,v_);
 			
-				sorter8.enq[i].enq(tagged Valid vv);
+				sorter8.enq[i].enq(tagged Valid v);
 				dramReadCnt[i] <= dramReadCnt[i] + 1;
 
+
 /*
-			
 				if ( i == 0 ) begin
-					if ( sampleQ.notFull ) sampleQ.enq(truncate(tpl_1(vv[0])));
-					if ( sampleQ2.notFull ) sampleQ2.enq(tpl_2(vv[0]));
+					Bit#(32) v0t = truncateLSB(tpl_1(v[0]));
+					Bit#(32) v1t = truncateLSB(tpl_1(v[1]));
+					Bit#(32) v2t = truncateLSB(tpl_1(v[2]));
+					if ( v0t > 0 && sampleQ0.notFull ) sampleQ0.enq((v_[0])[63:32]);
+					if ( v1t > 0 && sampleQ1.notFull ) sampleQ1.enq((v_[1])[63:32]);
+					if ( v2t > 0 && sampleQ2.notFull ) sampleQ2.enq((v_[2])[63:32]);
 				end
 */
 			end
@@ -120,10 +115,12 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 			let v = fromMaybe(?,r);
 			let vv = v[0];
 
-			if ( sampleQ.notFull ) sampleQ.enq(truncate(tpl_1(vv)));
-			if ( sampleQ2.notFull ) sampleQ2.enq(tpl_2(vv));
-			//Bit#(32) rr = {0,tpl_1(vv)[39:32],tpl_1(vv)[15:0],tpl_2(vv)[7:0]};
-			//if ( sampleQ.notFull ) sampleQ.enq(rr);
+			Bit#(32) v0t = truncateLSB(tpl_1(v[0]));
+			Bit#(32) v1t = truncateLSB(tpl_1(v[1]));
+			Bit#(32) v2t = truncateLSB(tpl_1(v[2]));
+			if ( v0t > 0 && sampleQ0.notFull ) sampleQ0.enq(v0t);
+			if ( v1t > 0 && sampleQ1.notFull ) sampleQ1.enq(v2t);
+			if ( v2t > 0 && sampleQ2.notFull ) sampleQ2.enq(v2t);
 		end
 	endrule
 
@@ -175,13 +172,20 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		end else if ( off < 10 ) begin
 			dramHostDma.dataSend(r, dramReadCnt[off-2]);
 		end else if ( off == 10 ) begin
-			if ( sampleQ.notEmpty ) begin
-				sampleQ.deq;
-				dramHostDma.dataSend(r, sampleQ.first);
+			if ( sampleQ0.notEmpty ) begin
+				sampleQ0.deq;
+				dramHostDma.dataSend(r, sampleQ0.first);
 			end else begin
 				dramHostDma.dataSend(r, 32'hffffffff);
 			end
 		end else if ( off == 11 ) begin
+			if ( sampleQ1.notEmpty ) begin
+				sampleQ1.deq;
+				dramHostDma.dataSend(r, sampleQ1.first);
+			end else begin
+				dramHostDma.dataSend(r, 32'hffffffff);
+			end
+		end else if ( off == 12 ) begin
 			if ( sampleQ2.notEmpty ) begin
 				sampleQ2.deq;
 				dramHostDma.dataSend(r, sampleQ2.first);

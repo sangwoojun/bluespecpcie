@@ -176,34 +176,89 @@ function Tuple2#(Tuple2#(keyType,valType),Tuple2#(keyType,valType)) compareAndSw
 	end
 endfunction
 
+function Tuple2#(keyType,valType) maxKV(Tuple2#(keyType,valType) a, Tuple2#(keyType,valType) b, Bool descending)
+	provisos(
+		Ord#(keyType), Eq#(keyType), Ord#(valType) 
+	);
+
+	keyType ak = tpl_1(a);
+	keyType bk = tpl_1(b);
+
+	if ( descending ) begin
+		if ( ak > bk ) begin
+			return b;
+		end else begin
+			return a;
+		end
+	end else begin
+		if ( ak > bk ) begin
+			return a;
+		end else begin
+			return b;
+		end
+	end
+endfunction
+function Tuple2#(keyType,valType) minKV(Tuple2#(keyType,valType) a, Tuple2#(keyType,valType) b, Bool descending)
+	provisos(
+		Ord#(keyType), Eq#(keyType), Ord#(valType) 
+	);
+
+	keyType ak = tpl_1(a);
+	keyType bk = tpl_1(b);
+
+	if ( descending ) begin
+		if ( ak < bk ) begin
+			return b;
+		end else begin
+			return a;
+		end
+	end else begin
+		if ( ak < bk ) begin
+			return a;
+		end else begin
+			return b;
+		end
+	end
+endfunction
+
 function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV_3(Vector#(vcnt, Tuple2#(keyType,valType)) in, Bool descending)
 	provisos(
 		Ord#(keyType), Eq#(keyType), Ord#(valType) 
 	);
 
 	Vector#(3, Tuple2#(keyType,valType)) rvec;
+	/*
 	let r01 = compareAndSwapKV(in[0], in[1], descending);
 	rvec[0] = tpl_1(r01);
 	rvec[1] = tpl_2(r01);
+	*/
+	rvec[0] = minKV(in[0],in[1], descending);
+	rvec[1] = maxKV(in[0],in[1], descending);
 	rvec[2] = in[2];
 	
 	Vector#(3, Tuple2#(keyType,valType)) rvec2;
-	let r12 = compareAndSwapKV(rvec[1], rvec[2], descending);
+	//let r12 = compareAndSwapKV(rvec[1], rvec[2], descending);
 	rvec2[0] = rvec[0];
-	rvec2[1] = tpl_1(r12);
-	rvec2[2] = tpl_2(r12);
+	//rvec2[1] = tpl_1(r12);
+	//rvec2[2] = tpl_2(r12);
+	rvec2[1] = minKV(rvec[1], rvec[2], descending);
+	rvec2[2] = maxKV(rvec[1], rvec[2], descending);
 	
-	Vector#(vcnt, Tuple2#(keyType,valType)) rvec3;
-	let r21 = compareAndSwapKV(rvec2[0], rvec2[1], descending);
-	rvec3[0] = tpl_1(r21);
-	rvec3[1] = tpl_2(r21);
+	Vector#(3, Tuple2#(keyType,valType)) rvec3;
+	//let r21 = compareAndSwapKV(rvec2[0], rvec2[1], descending);
+	//rvec3[0] = tpl_1(r21);
+	//rvec3[1] = tpl_2(r21);
+	rvec3[0] = minKV(rvec2[0],rvec2[1], descending);
+	rvec3[1] = maxKV(rvec2[0],rvec2[1], descending);
 	rvec3[2] = rvec2[2];
 
-	for ( Integer i = 3; i < valueOf(vcnt); i = i + 1 ) begin
-		rvec3[i] = in[i];
+	Vector#(vcnt, Tuple2#(keyType,valType)) rv;
+	for ( Integer i = 0; i < valueOf(vcnt); i=i+1) begin
+		if ( i < valueOf(vcnt) ) rv[i] = rvec3[i];
+		else rv[i] = in[i];
 	end
 
-	return rvec3;
+	return rv;
 endfunction
 
 function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV_2(Vector#(vcnt, Tuple2#(keyType,valType)) in, Bool descending)
@@ -224,17 +279,15 @@ endfunction
 
 function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV(Vector#(vcnt, Tuple2#(keyType,valType)) in, Bool descending)
 	provisos(
-		Ord#(keyType), Eq#(keyType), Ord#(valType) 
+		Bits#(valType, valTypeSz), Bits#(keyType, keyTypeSz),
+		Ord#(keyType), Eq#(keyType), Ord#(valType)
 	);
-	if ( valueOf(vcnt) == 3 ) begin
-		return sortBitonicKV_3(in, descending);
-	end else
-	if ( valueOf(vcnt) == 2 ) begin
-		return sortBitonicKV_2(in, descending);
-	end else begin
-		// UNCAUGHT!!
-		return in;
-	end
+
+	if ( valueOf(vcnt) == 3 ) return sortBitonicKV_3(in, descending);
+	else if ( valueOf(vcnt) == 2 ) return sortBitonicKV_2(in, descending);
+	else return in;
+
+
 endfunction
 
 function Tuple2#(Vector#(vcnt, Tuple2#(keyType,valType)), Vector#(vcnt, Tuple2#(keyType,valType))) halfCleanKV(Vector#(vcnt, Tuple2#(keyType,valType)) in1, Vector#(vcnt, Tuple2#(keyType,valType)) in2, Bool descending)
