@@ -94,8 +94,8 @@ module mkCombinationalLeftShifter(ByteShiftIfc#(element_type, size))
 endmodule
 
 module mkPipelineRightShifter(ByteShiftIfc#(element_type, size))
-   provisos(Bits#(element_type, a__),
-            Bitwise#(element_type));
+   provisos(Bits#(element_type, a__)
+            ,Bitwise#(element_type));
    
    Integer numStages =  valueOf(size);
    
@@ -132,10 +132,47 @@ module mkPipelineRightShifter(ByteShiftIfc#(element_type, size))
    endmethod
 endmodule
 
+module mkPipelineRightShifterBits(ByteShiftIfc#(Bit#(inSz), size));
+   
+   Integer numStages =  valueOf(size);
+   
+   Vector#(size, FIFO#(Tuple2#(Bit#(inSz), Bit#(size)))) stageFifos <- replicateM(mkFIFO);
+   
+   FIFO#(Bit#(inSz)) outputFifo <- mkBypassFIFO;
+   
+   for (Integer i = numStages - 1; i >= 0; i = i - 1) begin
+      rule doStage;
+         let args <- toGet(stageFifos[i]).get();
+         let val = tpl_1(args);
+         let shift = tpl_2(args);
+         
+         if ( shift[i] == 1 ) begin
+            val = val >> ((1<<i)*8);
+         end
+         
+         if ( i > 0 ) begin
+            stageFifos[i-1].enq(tuple2(val,shift));
+         end
+         else begin
+            outputFifo.enq(val);
+         end
+      endrule
+   end
+      
+   method Action rotateByteBy(Bit#(inSz) v, Bit#(size) shift);
+      //$display("inputVal = %h, shift = %d", v, shift);
+      stageFifos[numStages-1].enq(tuple2(v,shift));
+   endmethod
+   method ActionValue#(Bit#(inSz)) getVal;
+      let v <- toGet(outputFifo).get();
+      return v;
+   endmethod
+endmodule
+
 
 module mkPipelineLeftShifter(ByteShiftIfc#(element_type, size))
-   provisos(Bits#(element_type, a__),
-            Bitwise#(element_type));
+   provisos(Bits#(element_type, a__)
+            ,Bitwise#(element_type));
    
    Integer numStages =  valueOf(size);
    

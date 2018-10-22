@@ -38,6 +38,50 @@ function Bit#(w) encodeTuple2(Tuple2#(Bit#(ksz),Bit#(vsz)) kvp)
 	return {valbits,keybits};
 endfunction
 
+module mkHwMainBoiler#(PcieUserIfc pcie, DRAMUserIfc dram) 
+	(HwMainIfc);
+
+	Clock curClk <- exposeCurrentClock;
+	Reset curRst <- exposeCurrentReset;
+	
+	StreamVectorMergeSorterIfc#(8, 3, Bit#(64), Bit#(32)) sorter8 <- mkMergeSorter8(False);
+
+	for ( Integer i = 0; i < 8; i=i+1 ) begin
+		Reg#(Bit#(32)) cnt <- mkReg(0);
+		rule ins ( cnt < 20000 );
+			Vector#(3, Tuple2#(Bit#(64), Bit#(32))) inv;
+			inv[0] = tuple2(zeroExtend(cnt)*fromInteger(i+3), 1);
+			if ( cnt == 736 || cnt == 737 ) begin
+				inv[1] = tuple2(zeroExtend(cnt)*fromInteger(i+3)+64'h1000000000, 99);
+			end else begin
+				inv[1] = tuple2(zeroExtend(cnt)*fromInteger(i+3)+1, 99);
+			end
+			inv[2] = tuple2(zeroExtend(cnt)*fromInteger(i+3)+2, 4);
+			sorter8.enq[i].enq(tagged Valid inv);
+			cnt <= cnt + 1;
+		endrule
+		rule insr ( cnt == 20000 );
+			sorter8.enq[i].enq(tagged Invalid);
+			cnt <= cnt + 1;
+		endrule
+	end
+
+	Reg#(Bit#(32)) outCnt <- mkReg(0);
+	rule getr;
+		outCnt <= outCnt + 1;
+		let r <- sorter8.get;
+		if ( isValid(r) ) begin
+			let rr = fromMaybe(?, r);
+			if ( tpl_1(rr[0]) > 64'hffffffff ||  tpl_1(rr[1]) > 64'hffffffff || tpl_1(rr[2]) > 64'hffffffff ) begin
+				$display(">> %d %x %x %x\n", outCnt, tpl_1(rr[0]), tpl_1(rr[1]), tpl_1(rr[2]));
+			end
+		end else begin
+			$display("Done!");
+		end
+	endrule
+endmodule
+
+
 
 module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram) 
 	(HwMainIfc);
@@ -61,11 +105,11 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 	DRAMVectorPacker#(3,Bit#(96)) dramWriter <- mkDRAMVectorPacker(dramSplitter.writers[1], 128);
 	StreamVectorMergeSorterIfc#(8, 3, Bit#(64), Bit#(32)) sorter8 <- mkMergeSorter8(False);
 
-	FIFOF#(Bit#(32)) sampleQ0 <- mkSizedFIFOF(32);
-	FIFOF#(Bit#(32)) sampleQ1 <- mkSizedFIFOF(32);
-	FIFOF#(Bit#(32)) sampleQ2 <- mkSizedFIFOF(32);
+	//Vector#(3, FIFOF#(Bit#(32))) sampleQs <- replicateM(mkSizedFIFOF(32));
+	//FIFOF#(Bit#(32)) sampleQo <- mkSizedFIFOF(32);
 
-	//MergeNIfc#(8,Vector#(3,Tuple2#(Bit#(64),Bit#(32)))) tmerge <- mkMergeN;
+	//Vector#(3, FIFO#(Vector#(3,Tuple2#(Bit#(64),Bit#(32))))) allQs <- replicateM(mkFIFO);
+	//Vector#(3, FIFO#(Tuple2#(Bit#(64),Bit#(32)))) allEQs <- replicateM(mkFIFO);
 
 	Vector#(8, Reg#(Bit#(32))) dramReadCnt <- replicateM(mkReg(0));
 	for ( Integer i = 0; i < 8; i=i+1 ) begin
@@ -82,49 +126,110 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 				sorter8.enq[i].enq(tagged Valid v);
 				dramReadCnt[i] <= dramReadCnt[i] + 1;
 
+				//if ( i < 3 ) allQs[i].enq(v);
 
 /*
-				if ( i == 0 ) begin
-					Bit#(32) v0t = truncateLSB(tpl_1(v[0]));
-					Bit#(32) v1t = truncateLSB(tpl_1(v[1]));
-					Bit#(32) v2t = truncateLSB(tpl_1(v[2]));
-					if ( v0t > 0 && sampleQ0.notFull ) sampleQ0.enq((v_[0])[63:32]);
-					if ( v1t > 0 && sampleQ1.notFull ) sampleQ1.enq((v_[1])[63:32]);
-					if ( v2t > 0 && sampleQ2.notFull ) sampleQ2.enq((v_[2])[63:32]);
+				Bit#(32) v0t = truncateLSB(tpl_1(v[0]));
+				Bit#(32) v1t = truncateLSB(tpl_1(v[1]));
+				Bit#(32) v2t = truncateLSB(tpl_1(v[2]));
+				if ( i < 3 &&  sampleQs[i].notFull ) begin
+					if ( v0t > 0 ) begin
+						sampleQs[i].enq(v0t);
+					end else if ( v1t > 0 ) begin
+						sampleQs[i].enq(v1t | (1<<30));
+					end else if ( v2t > 0 ) begin
+						sampleQs[i].enq(v2t | (2<<30));
+					end
 				end
 */
+
 			end
 		endrule
+/*
+		if ( i < 3 ) begin
+			Reg#(Bit#(3)) serallIdx <- mkReg(0);
+			Reg#(Vector#(3,Tuple2#(Bit#(64),Bit#(32)))) serallBuf <- mkReg(?);
+			rule serializeAll;
+				if ( serallIdx == 0 ) begin
+					allQs[i].deq;
+					let v = allQs[i].first;
+					serallBuf <= v;
+					allEQs[i].enq(v[0]);
+					serallIdx <= 1;
+				end
+				else if ( serallIdx == 1 ) begin
+					allEQs[i].enq(serallBuf[1]);
+					serallIdx <= 2;
+				end
+				else if ( serallIdx == 2 ) begin
+					allEQs[i].enq(serallBuf[2]);
+					serallIdx <= 0;
+				end
+			endrule
+
+			Reg#(Bit#(3)) serallEIdx <- mkReg(0);
+			Reg#(Tuple2#(Bit#(64),Bit#(32))) serallEBuf <- mkReg(?);
+			rule serialize32;
+				if ( serallEIdx == 0 ) begin
+					allEQs[i].deq;
+					let v = allEQs[i].first;
+					serallEBuf <= v;
+					sampleQs[i].enq(truncateLSB(tpl_1(v)));
+					serallEIdx <= 1;
+				end
+				else if ( serallEIdx == 1 ) begin
+					serallEIdx <= 2;
+					sampleQs[i].enq(truncate(tpl_1(serallEBuf)));
+				end
+				else if ( serallEIdx == 2 ) begin
+					serallEIdx <= 0;
+					sampleQs[i].enq(tpl_2(serallEBuf));
+				end
+				
+			endrule
+		end
+		*/
 	end
 	
 
-	Reg#(Bool) doneReached <- mkReg(False);
+	FIFOF#(Bit#(64)) doneReachedQ <- mkSizedFIFOF(8);
 	Reg#(Bit#(64)) sortedCnt <- mkReg(0);
 
 	rule getMerged;
 		let r <- sorter8.get;
 
 		if ( !isValid(r) ) begin
-			doneReached <= True;
 			dramWriter.put(tagged Invalid);
+			doneReachedQ.enq(sortedCnt);
+			sortedCnt <= 0;
 		end else begin
 			sortedCnt <= sortedCnt + 1;
-			doneReached <= False;
 			dramWriter.put(tagged Valid map(encodeTuple2, fromMaybe(?,r)));
 
+/*
 			let v = fromMaybe(?,r);
-			let vv = v[0];
-
+			if ( sampleQo.notFull ) begin
+				sampleQo.enq(truncate(tpl_1(v[0])));
+			end
+*/
+			/*
 			Bit#(32) v0t = truncateLSB(tpl_1(v[0]));
 			Bit#(32) v1t = truncateLSB(tpl_1(v[1]));
 			Bit#(32) v2t = truncateLSB(tpl_1(v[2]));
-			if ( v0t > 0 && sampleQ0.notFull ) sampleQ0.enq(v0t);
-			if ( v1t > 0 && sampleQ1.notFull ) sampleQ1.enq(v2t);
-			if ( v2t > 0 && sampleQ2.notFull ) sampleQ2.enq(v2t);
+			if (  sampleQo.notFull ) begin
+				if ( v0t > 0 ) begin
+					sampleQo.enq(v0t);
+				end else if ( v1t > 0 ) begin
+					sampleQo.enq(v1t);
+				end else if ( v2t > 0 ) begin
+					sampleQo.enq(v2t);
+				end
+			end
+			*/
 		end
 	endrule
 
-	FIFO#(Bit#(64)) writeBufferDoneBytesQ <- mkSizedFIFO(16);
+	FIFO#(Bit#(64)) writeBufferDoneBytesQ <- mkSizedFIFO(8);
 	MergeNIfc#(9, Bit#(8)) mBufferDone <- mkMergeN;
 	for (Integer i = 0; i < 8; i=i+1 ) begin
 		rule relayReadDone;
@@ -132,11 +237,13 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 			mBufferDone.enq[i].enq(fromInteger(i));
 		endrule
 	end
+	
 	rule relayWriteDone;
 		let bytes <- dramWriter.bufferDone;
 		mBufferDone.enq[8].enq(8);
 		writeBufferDoneBytesQ.enq(bytes);
 	endrule
+	
 	FIFOF#(Bit#(8)) mergedQ <- mkFIFOF;
 	rule relayMergedQ;
 		mBufferDone.deq;
@@ -157,7 +264,6 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 			dramWriter.addBuffer({cmdArgs[0], cmdArgs[1]}, cmdArgs[2]);
 		end else if ( off == 9 ) begin
 			dramReaders[d].addBuffer({cmdArgs[0], cmdArgs[1]}, cmdArgs[2], False);
-			//doneReached <= False;
 		end
 	endrule
 
@@ -168,30 +274,44 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		if ( off == 0 ) begin
 			dramHostDma.dataSend(r, truncate(sortedCnt));
 		end else if ( off == 1 ) begin
-			dramHostDma.dataSend(r, doneReached?1:0);
+			if ( doneReachedQ.notEmpty ) begin
+				doneReachedQ.deq;
+				dramHostDma.dataSend(r, truncate(doneReachedQ.first));
+			end else begin
+				dramHostDma.dataSend(r, 32'hffffffff);
+			end
 		end else if ( off < 10 ) begin
 			dramHostDma.dataSend(r, dramReadCnt[off-2]);
+			/*
 		end else if ( off == 10 ) begin
-			if ( sampleQ0.notEmpty ) begin
-				sampleQ0.deq;
-				dramHostDma.dataSend(r, sampleQ0.first);
+			if ( sampleQs[0].notEmpty ) begin
+				sampleQs[0].deq;
+				dramHostDma.dataSend(r, sampleQs[0].first);
 			end else begin
 				dramHostDma.dataSend(r, 32'hffffffff);
 			end
 		end else if ( off == 11 ) begin
-			if ( sampleQ1.notEmpty ) begin
-				sampleQ1.deq;
-				dramHostDma.dataSend(r, sampleQ1.first);
+			if ( sampleQs[1].notEmpty ) begin
+				sampleQs[1].deq;
+				dramHostDma.dataSend(r, sampleQs[1].first);
 			end else begin
 				dramHostDma.dataSend(r, 32'hffffffff);
 			end
 		end else if ( off == 12 ) begin
-			if ( sampleQ2.notEmpty ) begin
-				sampleQ2.deq;
-				dramHostDma.dataSend(r, sampleQ2.first);
+			if ( sampleQs[2].notEmpty ) begin
+				sampleQs[2].deq;
+				dramHostDma.dataSend(r, sampleQs[2].first);
 			end else begin
 				dramHostDma.dataSend(r, 32'hffffffff);
 			end
+		end else if ( off == 13 ) begin
+			if ( sampleQo.notEmpty ) begin
+				sampleQo.deq;
+				dramHostDma.dataSend(r, sampleQo.first);
+			end else begin
+				dramHostDma.dataSend(r, 32'hffffffff);
+			end
+		*/
 		end else if ( off == 16 ) begin
 			if ( mergedQ.notEmpty ) begin
 				mergedQ.deq;

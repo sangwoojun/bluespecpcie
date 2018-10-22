@@ -119,5 +119,5 @@ module mkProjectTop_bsim (Empty);
 	let ddr3_ctrl_user <- mkDDR3Simulator;
 	mkConnection(dramController.ddr3_cli, ddr3_ctrl_user);
 
-	HwMainIfc hwmain <- mkHwMain(pcieCtrl.user, dramController.user);
+	HwMainIfc hwmain <- mkHwMainBoiler(pcieCtrl.user, dramController.user);
 endmodule

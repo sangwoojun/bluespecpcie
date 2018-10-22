@@ -46,9 +46,9 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 	Clock curclk <- exposeCurrentClock;
 	Reset currst <- exposeCurrentReset;
 	
-    SyncFIFOIfc#(IOWrite) pcieOutQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
-    SyncFIFOIfc#(IOReadReq) pcieReadReqQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
-    SyncFIFOIfc#(Tuple2#(IOReadReq, Bit#(32))) pcieResponseQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
+    SyncFIFOIfc#(IOWrite) pcieOutQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
+    SyncFIFOIfc#(IOReadReq) pcieReadReqQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
+    SyncFIFOIfc#(Tuple2#(IOReadReq, Bit#(32))) pcieResponseQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
 
 	Reg#(Bit#(32)) hostMemOff<- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	
@@ -66,6 +66,9 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 	Integer dmaReadTagCount  = 16;
 	FIFO#(Bit#(8)) dmaReadFreeTagQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
 	Vector#(16, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
+	Vector#(16, FIFO#(Bit#(128))) vDmaReadWords <- replicateM(mkSizedFIFO(8, clocked_by pcieclk, reset_by pcierst));
+	FIFO#(Tuple2#(Bit#(8),Bit#(8))) dmaReadTagOrderQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
+
 	Reg#(Bit#(8)) dmaReadTagInit <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bool) dmaReadTagInitDone <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
 	rule initDmaTagR(dmaReadTagInit < fromInteger(dmaReadTagCount));
@@ -87,6 +90,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 			memReadLeft <= memReadLeft - 128;
 			hostMemOff <= hostMemOff + 128;
 			vDmaReadTagWordsLeft[freeTag] <= words;
+			dmaReadTagOrderQ.enq(tuple2(freeTag,words));
 		end else begin
 			// +15 to take ceiling, but should not happen because 4KB units
 			Bit#(8) words = truncate((memReadLeft+15)>>4);
@@ -94,10 +98,11 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 
 			memReadLeft <= 0;
 			vDmaReadTagWordsLeft[freeTag] <= words;
+			dmaReadTagOrderQ.enq(tuple2(freeTag,words));
 		end
 	endrule
-    SyncFIFOIfc#(Bit#(128)) dmaReadWordsQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
-	Reg#(Maybe#(Bit#(128))) dmaFirstWord <- mkReg(tagged Invalid, clocked_by pcieclk, reset_by pcierst);
+    FIFO#(Tuple2#(Bit#(8), Bit#(128))) dmaReadWordsQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+    SyncFIFOIfc#(Bit#(128)) dmaReadWordsQ2 <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
 	rule getDMARead ( dmaReadTagInitDone );
 		let d_ <- pcie.dmaReadWord;
 
@@ -106,21 +111,46 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 		let dt = d_.tag;
 
 
-		if ( !isValid(dmaFirstWord) || ( isValid(dmaFirstWord) && fromMaybe(?,dmaFirstWord) == 0) ) begin
-			dmaFirstWord <= tagged Valid dw;
-		end
 		let word = dw;
 		let tag = dt;
 		if ( vDmaReadTagWordsLeft[tag] == 1 ) begin
 			vDmaReadTagWordsLeft[tag] <= 0;
 			dmaReadFreeTagQ.enq(tag);
-			dmaReadWordsQ.enq(word);
+			dmaReadWordsQ.enq(tuple2(tag, word));
 		end else if ( vDmaReadTagWordsLeft[tag] == 0 ) begin
 		end else begin
 			vDmaReadTagWordsLeft[tag] <= vDmaReadTagWordsLeft[tag] - 1;
-			dmaReadWordsQ.enq(word);
+			dmaReadWordsQ.enq(tuple2(tag, word));
 		end
 	endrule
+	rule relayDmaReadWords;
+		dmaReadWordsQ.deq;
+		let d = dmaReadWordsQ.first;
+		let tag = tpl_1(d);
+		let word = tpl_2(d);
+		vDmaReadWords[tag].enq(word);
+	endrule
+
+	Reg#(Bit#(8)) curReadTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(8)) curReadTagCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	rule startReorderRead ( curReadTagCnt == 0 );
+		dmaReadTagOrderQ.deq;
+		let d = dmaReadTagOrderQ.first;
+		let tag = tpl_1(d);
+		let cnt = tpl_2(d);
+		curReadTag <= tag;
+		curReadTagCnt <= cnt-1;
+		dmaReadWordsQ2.enq(vDmaReadWords[tag].first);
+		vDmaReadWords[tag].deq;
+	endrule
+	rule reorderRead( curReadTagCnt > 0 );
+		curReadTagCnt <= curReadTagCnt - 1;
+		dmaReadWordsQ2.enq(vDmaReadWords[curReadTag].first);
+		vDmaReadWords[curReadTag].deq;
+	endrule
+
+
+
 	// units are DMA WORDS! not DRAM WORDS!
 	Reg#(Bit#(32)) dramWriteBurstLeft <- mkReg(0);
 	rule dramStartBurst ( dramWriteBurstLeft == 0 );
@@ -135,10 +165,10 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 	Reg#(Bit#(512)) dramWriteBuffer <- mkReg(0);
 	Reg#(Bit#(2)) dramWriteBufferOffset <- mkReg(0);
 	
-	SyncFIFOIfc#(Bool) dramWriteBurstDoneQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
+	SyncFIFOIfc#(Bool) dramWriteBurstDoneQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
 	rule relayDRAMWriteBurst(dramWriteBurstLeft > 0);
-		let d = dmaReadWordsQ.first;
-		dmaReadWordsQ.deq;
+		let d = dmaReadWordsQ2.first;
+		dmaReadWordsQ2.deq;
 		//let d = {32'h11223344, 32'hcccccccc, 32'h99887766, 32'hdeadbeef};
 		dramWriteBurstLeft <= dramWriteBurstLeft - 1;
 		if ( dramWriteBurstLeft == 1 ) begin
@@ -148,6 +178,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 		if ( dramWriteBufferOffset == 3 || dramWriteBurstLeft == 1 ) begin
 			dramw.write({d,truncateLSB(dramWriteBuffer)});
 			dramWriteBufferOffset <= 0;
+			dramWriteBuffer <= 0;
 		end else begin
 			dramWriteBuffer <= {d,truncateLSB(dramWriteBuffer)};
 			dramWriteBufferOffset <= dramWriteBufferOffset + 1;
@@ -177,7 +208,7 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 	endrule
 
 
-    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dramReadWordCntQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
+    SyncFIFOIfc#(Tuple2#(Bit#(64), Bit#(32))) dramReadWordCntQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
 	SyncFIFOIfc#(Bit#(512)) dramReadWordQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
 	Reg#(Bit#(32)) dramBurstReadLeft <- mkReg(0);
 
@@ -354,13 +385,6 @@ module mkDRAMHostDMA#(PcieUserIfc pcie, DRAMBurstReaderIfc dramr, DRAMBurstWrite
 		end else if ( off == 257 ) begin
 			//pcie.dataSend(r, dramReadBurstDoneCount);
 			mergeRead.enq[0].enq(tuple2(r, dramReadBurstDoneCount));
-		end else if ( off == 258 ) begin
-			if ( isValid(dmaFirstWord) ) begin
-				mergeRead.enq[0].enq(tuple2(r, truncate(fromMaybe(?,dmaFirstWord))));
-				dmaFirstWord <= tagged Valid (fromMaybe(?,dmaFirstWord)>>32);
-			end else begin
-				mergeRead.enq[0].enq(tuple2(r, 32'hffffffff));
-			end
 		end else begin
 			pcieReadReqQ.enq(r);
 		end

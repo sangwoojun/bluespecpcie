@@ -13,8 +13,8 @@ endinterface
 
 module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyType, valType))
 	provisos(
-		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType), Add#(1,a__,keyTypeSz),
-		Bits#(valType,valTypeSz), Ord#(valType), Add#(1,b__,valTypeSz)
+		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType), //Add#(1,a__,keyTypeSz),
+		Bits#(valType,valTypeSz), Ord#(valType)//, Add#(1,b__,valTypeSz)
 	);
 	
 	FIFO#(Maybe#(Vector#(vcnt,Tuple2#(keyType,valType)))) inQ1 <- mkFIFO;
@@ -28,37 +28,108 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 	Reg#(keyType) atail <- mkReg(?);
 
 	rule lastInvalid (!isValid(inQ1.first) && !isValid(inQ2.first));
-		inQ1.deq;
-		inQ2.deq;
-		outQ.enq(tagged Invalid);
-	endrule
-	
-	rule ff1 (isValid(inQ1.first) && !isValid(inQ2.first));
-		
 		if ( isValid(append1) ) begin
 			append1 <= tagged Invalid;
 			outQ.enq(tagged Valid abuf);
 		end else begin
 			inQ1.deq;
-			outQ.enq(inQ1.first);
+			inQ2.deq;
+			outQ.enq(tagged Invalid);
 		end
 	endrule
-	rule ff2 (!isValid(inQ1.first) && isValid(inQ2.first));
-		
-		if ( isValid(append1) ) begin
-			append1 <= tagged Invalid;
-			outQ.enq(tagged Valid abuf);
-		end else begin
+	rule doMerge ( isValid(inQ1.first) || isValid(inQ2.first) );
+		Integer count = valueOf(vcnt);
+
+		let d1_ = inQ1.first;
+		let d1 = fromMaybe(?,d1_);
+		Bool valid1 = isValid(d1_);
+		let d2_ = inQ2.first;
+		let d2 = fromMaybe(?,d2_);
+		Bool valid2 = isValid(d2_);
+
+		if ( !valid1 ) begin
+			d1 = abuf;
 			inQ2.deq;
-			outQ.enq(inQ2.first);
+		end else if (!valid2) begin
+			d2 = abuf;
+			inQ1.deq;
+		end else begin
+			keyType tail1 = tpl_1(d1[count-1]);
+			keyType tail2 = tpl_1(d2[count-1]);
+
+			if ( isValid(append1) ) begin
+				let is1 = fromMaybe(?, append1);
+				if ( is1 ) begin
+					d1 = abuf;
+					tail1 = atail;
+					inQ2.deq;
+				end else begin
+					d2 = abuf;
+					tail2 = atail;
+					inQ1.deq;
+				end
+			end else begin
+				inQ1.deq;
+				inQ2.deq;
+			end
+			if ( descending ) begin
+				if ( tail1 > tail2 ) begin
+					append1 <= tagged Valid False;
+					atail <= tail2;
+				end else begin
+					append1 <= tagged Valid True;
+					atail <= tail1;
+				end
+			end else begin
+				if ( tail2 > tail1 ) begin
+					append1 <= tagged Valid False;
+					atail <= tail2;
+				end else begin
+					append1 <= tagged Valid True;
+					atail <= tail1;
+				end
+			end
 		end
+
+		let cleaned = halfCleanKV(d1,d2,descending);
+		let top = tpl_1(cleaned);
+		let bot = tpl_2(cleaned);
+		Vector#(vcnt,Tuple2#(keyType,valType)) bots = sortBitonicKV(bot, descending);
+		abuf <= bots;
+
+
+		//$display( "doMerge" );
+		outQ.enq(tagged Valid top);
 	endrule
 
-	//Reg#(Vector#(vcnt,inType)) topReg <- mkReg(?);
-	//Reg#(Vector#(vcnt,inType)) botReg <- mkReg(?);
-	Reg#(Tuple2#(keyType,valType)) tailReg1 <- mkReg(?);
-	Reg#(Tuple2#(keyType,valType)) tailReg2 <- mkReg(?);
-	Reg#(Bit#(1)) mergestate <- mkReg(0);
+/*
+	rule ff1 (isValid(inQ1.first) && !isValid(inQ2.first));
+		let d1_ = inQ1.first;
+		let d1 = fromMaybe(?,d1_);
+		inQ1.deq;
+		
+		let cleaned = halfCleanKV(abuf,d1,descending);
+		let top = tpl_1(cleaned);
+		let bot = tpl_2(cleaned);
+		Vector#(vcnt,Tuple2#(keyType,valType)) bots = sortBitonicKV(bot, descending);
+		abuf <= bots;
+
+		outQ.enq(tagged Valid top);
+
+	endrule
+	rule ff2 (!isValid(inQ1.first) && isValid(inQ2.first));
+		let d2_ = inQ2.first;
+		let d2 = fromMaybe(?,d2_);
+		inQ2.deq;
+		
+		let cleaned = halfCleanKV(abuf,d2,descending);
+		let top = tpl_1(cleaned);
+		let bot = tpl_2(cleaned);
+		Vector#(vcnt,Tuple2#(keyType,valType)) bots = sortBitonicKV(bot, descending);
+		abuf <= bots;
+
+		outQ.enq(tagged Valid top);
+	endrule
 
 	rule doMerge ( isValid(inQ1.first) && isValid(inQ2.first) );
 		Integer count = valueOf(vcnt);
@@ -93,7 +164,7 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		let cleaned = halfCleanKV(d1,d2,descending);
 		let top = tpl_1(cleaned);
 		let bot = tpl_2(cleaned);
-		let bots = sortBitonicKV(bot, descending);
+		Vector#(vcnt,Tuple2#(keyType,valType)) bots = sortBitonicKV(bot, descending);
 		abuf <= bots;
 
 		if ( descending ) begin
@@ -117,6 +188,7 @@ module mkStreamVectorMerger#(Bool descending) (StreamVectorMergerIfc#(vcnt, keyT
 		//$display( "doMerge" );
 		outQ.enq(tagged Valid top);
 	endrule
+	*/
 
 	rule sortOut;
 		outQ.deq;
@@ -156,8 +228,9 @@ endinterface
 
 module mkMergeSorter16#(Bool descending) (StreamVectorMergeSorterIfc#(16, vcnt, keyType, valType))
 	provisos(
-		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType), Add#(1,a__,keyTypeSz),
-		Bits#(valType,valTypeSz), Ord#(valType), Add#(1,b__,valTypeSz)
+		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType),// Add#(1,a__,keyTypeSz),
+		Bits#(valType,valTypeSz), Ord#(valType)//, Add#(1,b__,valTypeSz)
+		//Ord#(keyType), Eq#(keyType), Ord#(valType) 
 	);
 
 
@@ -220,8 +293,8 @@ endmodule
 
 module mkMergeSorter8#(Bool descending) (StreamVectorMergeSorterIfc#(8, vcnt, keyType, valType))
 	provisos(
-		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType), Add#(1,a__,keyTypeSz),
-		Bits#(valType,valTypeSz), Ord#(valType), Add#(1,b__,valTypeSz)
+		Bits#(keyType,keyTypeSz), Eq#(keyType), Ord#(keyType), //Add#(1,a__,keyTypeSz),
+		Bits#(valType,valTypeSz), Ord#(valType)//, Add#(1,b__,valTypeSz)
 	);
 
 
@@ -253,10 +326,17 @@ module mkMergeSorter8#(Bool descending) (StreamVectorMergeSorterIfc#(8, vcnt, ke
 	for ( Integer i = 0; i < 8; i=i+1 ) begin
 		enq_[i] = interface StreamVectorMergeSorterEpIfc;
 			method Action enq(Maybe#(Vector#(vcnt,Tuple2#(keyType,valType))) data);
-				if ( i%2 == 0 ) begin
-					merge1[i/2].enq1(data);
+				Maybe#(Vector#(vcnt,Tuple2#(keyType,valType))) ind;
+				if ( isValid(data) ) begin
+					let dd = fromMaybe(?,data);
+					ind = tagged Valid sortBitonicKV(dd, descending);
 				end else begin
-					merge1[i/2].enq2(data);
+					ind = tagged Invalid;
+				end
+				if ( i%2 == 0 ) begin
+					merge1[i/2].enq1(ind);
+				end else begin
+					merge1[i/2].enq2(ind);
 				end
 			endmethod
 		endinterface: StreamVectorMergeSorterEpIfc;

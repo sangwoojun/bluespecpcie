@@ -227,11 +227,9 @@ function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV_3(Vector#(vcnt, T
 	);
 
 	Vector#(3, Tuple2#(keyType,valType)) rvec;
-	/*
-	let r01 = compareAndSwapKV(in[0], in[1], descending);
-	rvec[0] = tpl_1(r01);
-	rvec[1] = tpl_2(r01);
-	*/
+	//let r01 = compareAndSwapKV(in[0], in[1], descending);
+	//rvec[0] = tpl_1(r01);
+	//rvec[1] = tpl_2(r01);
 	rvec[0] = minKV(in[0],in[1], descending);
 	rvec[1] = maxKV(in[0],in[1], descending);
 	rvec[2] = in[2];
@@ -241,8 +239,10 @@ function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV_3(Vector#(vcnt, T
 	rvec2[0] = rvec[0];
 	//rvec2[1] = tpl_1(r12);
 	//rvec2[2] = tpl_2(r12);
+	
 	rvec2[1] = minKV(rvec[1], rvec[2], descending);
 	rvec2[2] = maxKV(rvec[1], rvec[2], descending);
+	
 	
 	Vector#(3, Tuple2#(keyType,valType)) rvec3;
 	//let r21 = compareAndSwapKV(rvec2[0], rvec2[1], descending);
@@ -279,7 +279,7 @@ endfunction
 
 function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV(Vector#(vcnt, Tuple2#(keyType,valType)) in, Bool descending)
 	provisos(
-		Bits#(valType, valTypeSz), Bits#(keyType, keyTypeSz),
+		//Bits#(valType, valTypeSz), Bits#(keyType, keyTypeSz),
 		Ord#(keyType), Eq#(keyType), Ord#(valType)
 	);
 
@@ -415,8 +415,8 @@ endinterface
 
 module mkCompareAndSwap#(Bool descending) (CompareAndSwapIfc#(inType))
 	provisos(
-	Bits#(inType, inTypeSz)
-	, Ord#(inType)
+	Bits#(inType, inTypeSz),
+	 Ord#(inType)
 	);
 	
 
