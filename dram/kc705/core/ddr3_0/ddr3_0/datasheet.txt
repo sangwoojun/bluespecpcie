@@ -55,7 +55,7 @@ Memory Options:
    CAS Latency (MR0[6:4])           : 11
    Output Drive Strength (MR1[5,1]) : RZQ/7
    Controller CS option             : Enable
-   Rtt_NOM - ODT (MR1[9,6,2])       : RZQ/6
+   Rtt_NOM - ODT (MR1[9,6,2])       : RZQ/4
    Rtt_WR - Dynamic ODT (MR2[10:9]) : Dynamic ODT off
    Memory Address Mapping           : BANK_ROW_COLUMN
 

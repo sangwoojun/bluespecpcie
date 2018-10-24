@@ -22,6 +22,8 @@ interface DRAMVectorUnpacker#(numeric type vcnt, type valType);
 	method Action addBuffer(Bit#(64) addr, Bit#(32) words, Bool last);
 	method ActionValue#(Maybe#(Vector#(vcnt,valType))) get;
 	method Action bufferDone;
+
+	method Bit#(32) debug;
 endinterface
 
 // qsize: max dram words in flight
@@ -111,8 +113,15 @@ module mkDRAMVectorUnpacker#(DRAMBurstReaderIfc dram, Integer qsize) (DRAMVector
 		dramReadCurLeft <= dramReadCurLeft - 1;
 	endrule
 
+	Reg#(Bit#(32)) upperKeyCnt <- mkReg(0);
 	rule relayDRAM;
 		let d = dramReadQ.first;
+
+		Bit#(32) uka = 0;
+		if ( d[31:0] > 0 && d[63:32] > 0 && d[95:64] > 0 ) uka = uka + 1;
+		upperKeyCnt <= upperKeyCnt + uka;
+
+
 		dramReadQ.deq;
 		dramReadQ2.enq(d);
 		dramReadCntDn <= dramReadCntDn + 1;
@@ -185,10 +194,13 @@ module mkDRAMVectorUnpacker#(DRAMBurstReaderIfc dram, Integer qsize) (DRAMVector
 		Vector#(vcnt,valType) rv;
 		//We want to take the bottom (vectorSz) bits
 		Bit#(vectorSz) ds = truncate(d);
+		Bit#(32) ukadd = 0;
 		for ( Integer i = 0; i < valueOf(vcnt); i=i+1 ) begin
 			Integer loweroff = valueOf(valTypeSz)*i;
 
-			rv[i] = unpack(truncate(ds>>loweroff));
+			Bit#(valTypeSz) c = truncate(ds>>loweroff);
+			if ( c[64:32]>0 ) ukadd=ukadd+1;
+			rv[i] = unpack(c);
 		end
 		if ( v ) begin
 			vectorQ.enq(tagged Valid rv);
@@ -228,6 +240,9 @@ module mkDRAMVectorUnpacker#(DRAMBurstReaderIfc dram, Integer qsize) (DRAMVector
 	endmethod
 	method Action bufferDone;
 		bufferDoneQ.deq;
+	endmethod
+	method Bit#(32) debug;
+		return upperKeyCnt;
 	endmethod
 endmodule
 

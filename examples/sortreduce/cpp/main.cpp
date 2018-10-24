@@ -81,8 +81,7 @@ int main(int argc, char** argv) {
 		uint32_t seed = time(NULL)+testidx;
 		srand(seed);
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
-			//buffer[i] = rand();
-			buffer[i] = i;
+			buffer[i] = rand();
 		}
 		
 		
@@ -105,19 +104,20 @@ int main(int argc, char** argv) {
 		int errorcount = 0;
 		
 		srand(seed);
-		bool wrongstreak = false;
+		//bool wrongstreak = false;
+		int wrongstreak = 0;
 		for ( int i = 0; i < buffer_bytes/sizeof(uint32_t); i++ ) {
-			//uint32_t val = rand();
-			uint32_t val = i;
+			uint32_t val = rand();
+
 			if ( buffer[i] != val ) {
 				
-				if ( wrongstreak == false ) {
+				if ( wrongstreak < 8) {
 					printf( "\tError! %d: %x != %x -- %x\n", i, buffer[i], val, buffer[i] - val);
-					wrongstreak = true;
+					wrongstreak++;
 				}
 				errorcount ++;
 			} else {
-				wrongstreak = false;
+				wrongstreak = 0;
 			}
 		}
 		printf( "\tTotal errors: 0x%x / 0x%lx\n", errorcount, buffer_bytes/sizeof(uint32_t) );

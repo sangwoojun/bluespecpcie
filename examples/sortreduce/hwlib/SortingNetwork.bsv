@@ -227,29 +227,29 @@ function Vector#(vcnt, Tuple2#(keyType,valType)) sortBitonicKV_3(Vector#(vcnt, T
 	);
 
 	Vector#(3, Tuple2#(keyType,valType)) rvec;
-	//let r01 = compareAndSwapKV(in[0], in[1], descending);
-	//rvec[0] = tpl_1(r01);
-	//rvec[1] = tpl_2(r01);
-	rvec[0] = minKV(in[0],in[1], descending);
-	rvec[1] = maxKV(in[0],in[1], descending);
+	let r01 = compareAndSwapKV(in[0], in[1], descending);
+	rvec[0] = tpl_1(r01);
+	rvec[1] = tpl_2(r01);
+	//rvec[0] = minKV(in[0],in[1], descending);
+	//rvec[1] = maxKV(in[0],in[1], descending);
 	rvec[2] = in[2];
 	
 	Vector#(3, Tuple2#(keyType,valType)) rvec2;
-	//let r12 = compareAndSwapKV(rvec[1], rvec[2], descending);
+	let r12 = compareAndSwapKV(rvec[1], rvec[2], descending);
 	rvec2[0] = rvec[0];
-	//rvec2[1] = tpl_1(r12);
-	//rvec2[2] = tpl_2(r12);
+	rvec2[1] = tpl_1(r12);
+	rvec2[2] = tpl_2(r12);
 	
-	rvec2[1] = minKV(rvec[1], rvec[2], descending);
-	rvec2[2] = maxKV(rvec[1], rvec[2], descending);
+	//rvec2[1] = minKV(rvec[1], rvec[2], descending);
+	//rvec2[2] = maxKV(rvec[1], rvec[2], descending);
 	
 	
 	Vector#(3, Tuple2#(keyType,valType)) rvec3;
-	//let r21 = compareAndSwapKV(rvec2[0], rvec2[1], descending);
-	//rvec3[0] = tpl_1(r21);
-	//rvec3[1] = tpl_2(r21);
-	rvec3[0] = minKV(rvec2[0],rvec2[1], descending);
-	rvec3[1] = maxKV(rvec2[0],rvec2[1], descending);
+	let r21 = compareAndSwapKV(rvec2[0], rvec2[1], descending);
+	rvec3[0] = tpl_1(r21);
+	rvec3[1] = tpl_2(r21);
+	//rvec3[0] = minKV(rvec2[0],rvec2[1], descending);
+	//rvec3[1] = maxKV(rvec2[0],rvec2[1], descending);
 	rvec3[2] = rvec2[2];
 
 	Vector#(vcnt, Tuple2#(keyType,valType)) rv;

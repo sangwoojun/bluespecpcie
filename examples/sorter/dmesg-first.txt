@@ -1,0 +1,3150 @@
+[    0.000000] microcode: microcode updated early to revision 0x96, date = 2018-05-02
+[    0.000000] Linux version 4.15.0-34-generic (buildd@lgw01-amd64-047) (gcc version 7.3.0 (Ubuntu 7.3.0-16ubuntu3)) #37-Ubuntu SMP Mon Aug 27 15:21:48 UTC 2018 (Ubuntu 4.15.0-34.37-generic 4.15.18)
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-4.15.0-34-generic root=UUID=92b5eaa8-fb40-4e19-b112-c004afb449a8 ro quiet splash vt.handoff=1
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Centaur CentaurHauls
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x002: 'SSE registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x004: 'AVX registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x008: 'MPX bounds registers'
+[    0.000000] x86/fpu: Supporting XSAVE feature 0x010: 'MPX CSR'
+[    0.000000] x86/fpu: xstate_offset[2]:  576, xstate_sizes[2]:  256
+[    0.000000] x86/fpu: xstate_offset[3]:  832, xstate_sizes[3]:   64
+[    0.000000] x86/fpu: xstate_offset[4]:  896, xstate_sizes[4]:   64
+[    0.000000] x86/fpu: Enabled xstate features 0x1f, context size is 960 bytes, using 'compacted' format.
+[    0.000000] e820: BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x0000000000000fff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000001000-0x0000000000057fff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000058000-0x0000000000058fff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000059000-0x000000000008ffff] usable
+[    0.000000] BIOS-e820: [mem 0x0000000000090000-0x0000000000090fff] type 20
+[    0.000000] BIOS-e820: [mem 0x0000000000091000-0x000000000009dfff] usable
+[    0.000000] BIOS-e820: [mem 0x000000000009e000-0x00000000000fffff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x00000000b3221fff] usable
+[    0.000000] BIOS-e820: [mem 0x00000000b3222000-0x00000000b3258fff] ACPI data
+[    0.000000] BIOS-e820: [mem 0x00000000b3259000-0x00000000b360efff] usable
+[    0.000000] BIOS-e820: [mem 0x00000000b360f000-0x00000000b360ffff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x00000000b3610000-0x00000000b3610fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000b3611000-0x00000000c0ffcfff] usable
+[    0.000000] BIOS-e820: [mem 0x00000000c0ffd000-0x00000000c28b8fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000c28b9000-0x00000000c28cdfff] ACPI data
+[    0.000000] BIOS-e820: [mem 0x00000000c28ce000-0x00000000c2914fff] usable
+[    0.000000] BIOS-e820: [mem 0x00000000c2915000-0x00000000c296cfff] ACPI NVS
+[    0.000000] BIOS-e820: [mem 0x00000000c296d000-0x00000000c2f32fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000c2f33000-0x00000000c2fa0fff] type 20
+[    0.000000] BIOS-e820: [mem 0x00000000c2fa1000-0x00000000c2ffefff] usable
+[    0.000000] BIOS-e820: [mem 0x00000000c2fff000-0x00000000c7ffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000f8000000-0x00000000fbffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fe000000-0x00000000fe010fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fec00000-0x00000000fec00fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fed00000-0x00000000fed00fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fee00000-0x00000000fee00fff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000ff000000-0x00000000ffffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000100000000-0x0000000436ffffff] usable
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] efi: EFI v2.60 by American Megatrends
+[    0.000000] efi:  ACPI 2.0=0xb3222000  ACPI=0xb3222000  SMBIOS=0xc2e91000  SMBIOS 3.0=0xc2e90000  ESRT=0xbee74918 
+[    0.000000] secureboot: Secure boot could not be determined (mode 0)
+[    0.000000] SMBIOS 3.0.0 present.
+[    0.000000] DMI: MicroElectronics B741/PRIME Z370-P, BIOS 9006 02/08/2018
+[    0.000000] e820: update [mem 0x00000000-0x00000fff] usable ==> reserved
+[    0.000000] e820: remove [mem 0x000a0000-0x000fffff] usable
+[    0.000000] e820: last_pfn = 0x437000 max_arch_pfn = 0x400000000
+[    0.000000] MTRR default type: write-back
+[    0.000000] MTRR fixed ranges enabled:
+[    0.000000]   00000-9FFFF write-back
+[    0.000000]   A0000-BFFFF uncachable
+[    0.000000]   C0000-FFFFF write-protect
+[    0.000000] MTRR variable ranges enabled:
+[    0.000000]   0 base 00E0000000 mask 7FE0000000 uncachable
+[    0.000000]   1 base 00D0000000 mask 7FF0000000 uncachable
+[    0.000000]   2 base 00C8000000 mask 7FF8000000 uncachable
+[    0.000000]   3 base 00C4000000 mask 7FFC000000 uncachable
+[    0.000000]   4 base 00C3800000 mask 7FFF800000 uncachable
+[    0.000000]   5 disabled
+[    0.000000]   6 disabled
+[    0.000000]   7 disabled
+[    0.000000]   8 disabled
+[    0.000000]   9 disabled
+[    0.000000] x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WP  UC- WT  
+[    0.000000] e820: last_pfn = 0xc2fff max_arch_pfn = 0x400000000
+[    0.000000] esrt: Reserving ESRT space from 0x00000000bee74918 to 0x00000000bee74950.
+[    0.000000] Scanning 1 areas for low memory corruption
+[    0.000000] Base memory trampoline at [        (ptrval)] 97000 size 24576
+[    0.000000] Using GB pages for direct mapping
+[    0.000000] BRK [0x17b53f000, 0x17b53ffff] PGTABLE
+[    0.000000] BRK [0x17b540000, 0x17b540fff] PGTABLE
+[    0.000000] BRK [0x17b541000, 0x17b541fff] PGTABLE
+[    0.000000] BRK [0x17b542000, 0x17b542fff] PGTABLE
+[    0.000000] BRK [0x17b543000, 0x17b543fff] PGTABLE
+[    0.000000] BRK [0x17b544000, 0x17b544fff] PGTABLE
+[    0.000000] BRK [0x17b545000, 0x17b545fff] PGTABLE
+[    0.000000] BRK [0x17b546000, 0x17b546fff] PGTABLE
+[    0.000000] BRK [0x17b547000, 0x17b547fff] PGTABLE
+[    0.000000] BRK [0x17b548000, 0x17b548fff] PGTABLE
+[    0.000000] BRK [0x17b549000, 0x17b549fff] PGTABLE
+[    0.000000] BRK [0x17b54a000, 0x17b54afff] PGTABLE
+[    0.000000] RAMDISK: [mem 0x314e3000-0x34a68fff]
+[    0.000000] ACPI: Early table checksum verification disabled
+[    0.000000] ACPI: RSDP 0x00000000B3222000 000024 (v02 ALASKA)
+[    0.000000] ACPI: XSDT 0x00000000B32220B8 0000EC (v01 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: FACP 0x00000000B324D610 000114 (v06 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: DSDT 0x00000000B3222230 02B3DF (v02 ALASKA A M I    01072009 INTL 20160422)
+[    0.000000] ACPI: FACS 0x00000000C293CF00 000040
+[    0.000000] ACPI: APIC 0x00000000B324D728 0000F4 (v03 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: FPDT 0x00000000B324D820 000044 (v01 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: FIDT 0x00000000B324D868 00009C (v01 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: MSDM 0x00000000B324D908 000055 (v01 ALASKA A M I    01072009      00000000)
+[    0.000000] ACPI: MCFG 0x00000000B324D960 00003C (v01 ALASKA A M I    01072009 MSFT 00000097)
+[    0.000000] ACPI: SSDT 0x00000000B324D9A0 0003A3 (v01 SataRe SataTabl 00001000 INTL 20160422)
+[    0.000000] ACPI: SSDT 0x00000000B324DD48 003043 (v02 SaSsdt SaSsdt   00003000 INTL 20160422)
+[    0.000000] ACPI: HPET 0x00000000B3250D90 000038 (v01 INTEL  KBL      00000001 MSFT 0000005F)
+[    0.000000] ACPI: SSDT 0x00000000B3250DC8 0011A2 (v02 INTEL  Ther_Rvp 00001000 INTL 20160422)
+[    0.000000] ACPI: SSDT 0x00000000B3251F70 000B1B (v02 INTEL  xh_rvp08 00000000 INTL 20160422)
+[    0.000000] ACPI: UEFI 0x00000000B3252A90 000042 (v01 ALASKA A M I    00000002      01000013)
+[    0.000000] ACPI: SSDT 0x00000000B3252AD8 0017AE (v02 CpuRef CpuSsdt  00003000 INTL 20160422)
+[    0.000000] ACPI: LPIT 0x00000000B3254288 000094 (v01 INTEL  KBL      00000000 MSFT 0000005F)
+[    0.000000] ACPI: SSDT 0x00000000B3254320 000141 (v02 INTEL  HdaDsp   00000000 INTL 20160422)
+[    0.000000] ACPI: SSDT 0x00000000B3254468 00029F (v02 INTEL  sensrhub 00000000 INTL 20160422)
+[    0.000000] ACPI: SSDT 0x00000000B3254708 003002 (v02 INTEL  PtidDevc 00001000 INTL 20160422)
+[    0.000000] ACPI: SSDT 0x00000000B3257710 000517 (v02 INTEL  TbtTypeC 00000000 INTL 20160422)
+[    0.000000] ACPI: DBGP 0x00000000B3257C28 000034 (v01 INTEL           00000002 MSFT 0000005F)
+[    0.000000] ACPI: DBG2 0x00000000B3257C60 000054 (v00 INTEL           00000002 MSFT 0000005F)
+[    0.000000] ACPI: BGRT 0x00000000B3257CB8 000038 (v01 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: UEFI 0x00000000B3257CF0 00063A (v01 INTEL  RstSataE 00000000 ??   00000000)
+[    0.000000] ACPI: UEFI 0x00000000B3258330 00005C (v01 INTEL  RstSataV 00000000 ??   00000000)
+[    0.000000] ACPI: TPM2 0x00000000B3258390 000034 (v03        Tpm2Tabl 00000001 AMI  00000000)
+[    0.000000] ACPI: WSMT 0x00000000B32583C8 000028 (v01 ALASKA A M I    01072009 AMI  00010013)
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] No NUMA configuration found
+[    0.000000] Faking a node at [mem 0x0000000000000000-0x0000000436ffffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x436fd5000-0x436ffffff]
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
+[    0.000000]   Normal   [mem 0x0000000100000000-0x0000000436ffffff]
+[    0.000000]   Device   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x0000000000057fff]
+[    0.000000]   node   0: [mem 0x0000000000059000-0x000000000008ffff]
+[    0.000000]   node   0: [mem 0x0000000000091000-0x000000000009dfff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x00000000b3221fff]
+[    0.000000]   node   0: [mem 0x00000000b3259000-0x00000000b360efff]
+[    0.000000]   node   0: [mem 0x00000000b3611000-0x00000000c0ffcfff]
+[    0.000000]   node   0: [mem 0x00000000c28ce000-0x00000000c2914fff]
+[    0.000000]   node   0: [mem 0x00000000c2fa1000-0x00000000c2ffefff]
+[    0.000000]   node   0: [mem 0x0000000100000000-0x0000000436ffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x0000000436ffffff]
+[    0.000000] On node 0 totalpages: 4161540
+[    0.000000]   DMA zone: 64 pages used for memmap
+[    0.000000]   DMA zone: 23 pages reserved
+[    0.000000]   DMA zone: 3995 pages, LIFO batch:0
+[    0.000000]   DMA32 zone: 12290 pages used for memmap
+[    0.000000]   DMA32 zone: 786537 pages, LIFO batch:31
+[    0.000000]   Normal zone: 52672 pages used for memmap
+[    0.000000]   Normal zone: 3371008 pages, LIFO batch:31
+[    0.000000] Reserved but unavailable: 98 pages
+[    0.000000] Reserving Intel graphics memory at 0x00000000c4000000-0x00000000c7ffffff
+[    0.000000] ACPI: PM-Timer IO Port: 0x1808
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x02] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x03] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x04] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x05] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x06] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x07] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x08] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x09] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x0a] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x0b] high edge lint[0x1])
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x0c] high edge lint[0x1])
+[    0.000000] IOAPIC[0]: apic_id 2, version 32, address 0xfec00000, GSI 0-119
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: IRQ0 used by override.
+[    0.000000] ACPI: IRQ9 used by override.
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] smpboot: Allowing 12 CPUs, 0 hotplug CPUs
+[    0.000000] PM: Registered nosave memory: [mem 0x00000000-0x00000fff]
+[    0.000000] PM: Registered nosave memory: [mem 0x00058000-0x00058fff]
+[    0.000000] PM: Registered nosave memory: [mem 0x00090000-0x00090fff]
+[    0.000000] PM: Registered nosave memory: [mem 0x0009e000-0x000fffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xb3222000-0xb3258fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xb360f000-0xb360ffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xb3610000-0xb3610fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc0ffd000-0xc28b8fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc28b9000-0xc28cdfff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc2915000-0xc296cfff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc296d000-0xc2f32fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc2f33000-0xc2fa0fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc2fff000-0xc7ffffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xc8000000-0xf7ffffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xf8000000-0xfbffffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfc000000-0xfdffffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfe000000-0xfe010fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfe011000-0xfebfffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfec00000-0xfec00fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfec01000-0xfecfffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfed00000-0xfed00fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfed01000-0xfedfffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfee00000-0xfee00fff]
+[    0.000000] PM: Registered nosave memory: [mem 0xfee01000-0xfeffffff]
+[    0.000000] PM: Registered nosave memory: [mem 0xff000000-0xffffffff]
+[    0.000000] e820: [mem 0xc8000000-0xf7ffffff] available for PCI devices
+[    0.000000] Booting paravirtualized kernel on bare hardware
+[    0.000000] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645519600211568 ns
+[    0.000000] random: get_random_bytes called from start_kernel+0x99/0x4fd with crng_init=0
+[    0.000000] setup_percpu: NR_CPUS:8192 nr_cpumask_bits:12 nr_cpu_ids:12 nr_node_ids:1
+[    0.000000] percpu: Embedded 46 pages/cpu @        (ptrval) s151552 r8192 d28672 u262144
+[    0.000000] pcpu-alloc: s151552 r8192 d28672 u262144 alloc=1*2097152
+[    0.000000] pcpu-alloc: [0] 00 01 02 03 04 05 06 07 [0] 08 09 10 11 -- -- -- -- 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 4096491
+[    0.000000] Policy zone: Normal
+[    0.000000] Kernel command line: BOOT_IMAGE=/boot/vmlinuz-4.15.0-34-generic root=UUID=92b5eaa8-fb40-4e19-b112-c004afb449a8 ro quiet splash vt.handoff=1
+[    0.000000] Calgary: detecting Calgary via BIOS EBDA area
+[    0.000000] Calgary: Unable to locate Rio Grande table in EBDA - bailing!
+[    0.000000] Memory: 16007812K/16646160K available (12300K kernel code, 2471K rwdata, 4244K rodata, 2408K init, 2416K bss, 638348K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=12, Nodes=1
+[    0.000000] Kernel/User page tables isolation: enabled
+[    0.000000] ftrace: allocating 39147 entries in 153 pages
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000] 	RCU restricting CPUs from NR_CPUS=8192 to nr_cpu_ids=12.
+[    0.000000] 	Tasks RCU enabled.
+[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=12
+[    0.000000] NR_IRQS: 524544, nr_irqs: 2152, preallocated irqs: 16
+[    0.000000] vt handoff: transparent VT on vt#1
+[    0.000000] Console: colour dummy device 80x25
+[    0.000000] console [tty0] enabled
+[    0.000000] ACPI: Core revision 20170831
+[    0.000000] ACPI: 10 ACPI AML tables successfully acquired and loaded
+[    0.000000] clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 79635855245 ns
+[    0.000000] hpet clockevent registered
+[    0.004000] APIC: Switch to symmetric I/O mode setup
+[    0.004000] x2apic: IRQ remapping doesn't support X2APIC mode
+[    0.004000] Switched APIC routing to physical flat.
+[    0.008000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.028000] tsc: Detected 3700.000 MHz processor
+[    0.028000] tsc: Detected 3696.000 MHz TSC
+[    0.028000] Calibrating delay loop (skipped), value calculated using timer frequency.. 7392.00 BogoMIPS (lpj=14784000)
+[    0.028000] pid_max: default: 32768 minimum: 301
+[    0.028000] Security Framework initialized
+[    0.028000] Yama: becoming mindful.
+[    0.028000] AppArmor: AppArmor initialized
+[    0.028000] Dentry cache hash table entries: 2097152 (order: 12, 16777216 bytes)
+[    0.028000] Inode-cache hash table entries: 1048576 (order: 11, 8388608 bytes)
+[    0.028000] Mount-cache hash table entries: 32768 (order: 6, 262144 bytes)
+[    0.028000] Mountpoint-cache hash table entries: 32768 (order: 6, 262144 bytes)
+[    0.028000] ENERGY_PERF_BIAS: Set to 'normal', was 'performance'
+[    0.028000] ENERGY_PERF_BIAS: View and update with x86_energy_perf_policy(8)
+[    0.028000] mce: CPU supports 12 MCE banks
+[    0.028000] CPU0: Thermal monitoring enabled (TM1)
+[    0.028000] process: using mwait in idle threads
+[    0.028000] Last level iTLB entries: 4KB 64, 2MB 8, 4MB 8
+[    0.028000] Last level dTLB entries: 4KB 64, 2MB 0, 4MB 0, 1GB 4
+[    0.028000] Spectre V2 : Mitigation: Full generic retpoline
+[    0.028000] Spectre V2 : Spectre v2 mitigation: Filling RSB on context switch
+[    0.028000] Spectre V2 : Spectre v2 mitigation: Enabling Indirect Branch Prediction Barrier
+[    0.028000] Spectre V2 : Enabling Restricted Speculation for firmware calls
+[    0.028000] Speculative Store Bypass: Mitigation: Speculative Store Bypass disabled via prctl and seccomp
+[    0.037440] Freeing SMP alternatives memory: 36K
+[    0.042035] TSC deadline timer enabled
+[    0.042040] smpboot: CPU0: Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz (family: 0x6, model: 0x9e, stepping: 0xa)
+[    0.042081] Performance Events: PEBS fmt3+, Skylake events, 32-deep LBR, full-width counters, Intel PMU driver.
+[    0.042102] ... version:                4
+[    0.042102] ... bit width:              48
+[    0.042103] ... generic registers:      4
+[    0.042103] ... value mask:             0000ffffffffffff
+[    0.042104] ... max period:             00007fffffffffff
+[    0.042104] ... fixed-purpose events:   3
+[    0.042104] ... event mask:             000000070000000f
+[    0.042128] Hierarchical SRCU implementation.
+[    0.043094] NMI watchdog: Enabled. Permanently consumes one hw-PMU counter.
+[    0.043103] smp: Bringing up secondary CPUs ...
+[    0.043142] x86: Booting SMP configuration:
+[    0.043143] .... node  #0, CPUs:        #1  #2  #3  #4  #5  #6  #7  #8  #9 #10 #11
+[    0.049133] smp: Brought up 1 node, 12 CPUs
+[    0.049133] smpboot: Max logical packages: 1
+[    0.049133] smpboot: Total of 12 processors activated (88704.00 BogoMIPS)
+[    0.052330] devtmpfs: initialized
+[    0.052330] x86/mm: Memory block size: 128MB
+[    0.052747] evm: security.selinux
+[    0.052747] evm: security.SMACK64
+[    0.052748] evm: security.SMACK64EXEC
+[    0.052748] evm: security.SMACK64TRANSMUTE
+[    0.052748] evm: security.SMACK64MMAP
+[    0.052749] evm: security.apparmor
+[    0.052749] evm: security.ima
+[    0.052749] evm: security.capability
+[    0.052759] PM: Registering ACPI NVS region [mem 0xb360f000-0xb360ffff] (4096 bytes)
+[    0.052759] PM: Registering ACPI NVS region [mem 0xc2915000-0xc296cfff] (360448 bytes)
+[    0.052759] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+[    0.052759] futex hash table entries: 4096 (order: 6, 262144 bytes)
+[    0.052759] pinctrl core: initialized pinctrl subsystem
+[    0.052759] RTC time:  1:26:52, date: 09/20/18
+[    0.052759] NET: Registered protocol family 16
+[    0.052759] audit: initializing netlink subsys (disabled)
+[    0.052759] audit: type=2000 audit(1537406812.052:1): state=initialized audit_enabled=0 res=1
+[    0.052759] cpuidle: using governor ladder
+[    0.052759] cpuidle: using governor menu
+[    0.052759] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+[    0.052759] ACPI: bus type PCI registered
+[    0.052759] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+[    0.052759] PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem 0xf8000000-0xfbffffff] (base 0xf8000000)
+[    0.052759] PCI: MMCONFIG at [mem 0xf8000000-0xfbffffff] reserved in E820
+[    0.052759] PCI: Using configuration type 1 for base access
+[    0.052931] HugeTLB registered 1.00 GiB page size, pre-allocated 0 pages
+[    0.052931] HugeTLB registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.052932] ACPI: Added _OSI(Module Device)
+[    0.052932] ACPI: Added _OSI(Processor Device)
+[    0.052932] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.052932] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.052932] ACPI: Added _OSI(Linux-Dell-Video)
+[    0.052932] ACPI: Added _OSI(Linux-Lenovo-NV-HDMI-Audio)
+[    0.057069] ACPI Error: [_SB_.PCI0.RP05.PXSX] Namespace lookup failure, AE_NOT_FOUND (20170831/dswload2-191)
+[    0.057075] No Local Variables are initialized for Method [PXSX]
+[    0.057076] No Arguments are initialized for method [PXSX]
+[    0.057077] ACPI Exception: AE_NOT_FOUND, During name lookup/catalog (20170831/psobject-252)
+[    0.057079] ACPI Error: Method parse/execution failed \_SB.PCI0.RP04.PXSX, AE_NOT_FOUND (20170831/psparse-550)
+[    0.057384] ACPI Error: [_SB_.PCI0.RP09.PXSX] Namespace lookup failure, AE_NOT_FOUND (20170831/dswload2-191)
+[    0.057387] No Local Variables are initialized for Method [PXSX]
+[    0.057388] No Arguments are initialized for method [PXSX]
+[    0.057388] ACPI Exception: AE_NOT_FOUND, During name lookup/catalog (20170831/psobject-252)
+[    0.057390] ACPI Error: Method parse/execution failed \_SB.PCI0.RP08.PXSX, AE_NOT_FOUND (20170831/psparse-550)
+[    0.058617] ACPI: Executed 49 blocks of module-level executable AML code
+[    0.068216] ACPI: Dynamic OEM Table Load:
+[    0.068221] ACPI: SSDT 0xFFFF9EA3E38C2800 00077A (v02 PmRef  Cpu0Ist  00003000 INTL 20160422)
+[    0.068423] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.068488] ACPI: \_PR_.PR00: _OSC native thermal LVT Acked
+[    0.069252] ACPI: Dynamic OEM Table Load:
+[    0.069256] ACPI: SSDT 0xFFFF9EA3E3499800 0003FF (v02 PmRef  Cpu0Cst  00003001 INTL 20160422)
+[    0.069256] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.069256] ACPI: Dynamic OEM Table Load:
+[    0.069256] ACPI: SSDT 0xFFFF9EA3E3915A80 0000BA (v02 PmRef  Cpu0Hwp  00003000 INTL 20160422)
+[    0.069256] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.069256] ACPI: Dynamic OEM Table Load:
+[    0.069256] ACPI: SSDT 0xFFFF9EA3E3918000 000628 (v02 PmRef  HwpLvt   00003000 INTL 20160422)
+[    0.069256] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.072391] ACPI: Dynamic OEM Table Load:
+[    0.072397] ACPI: SSDT 0xFFFF9EA3E397D000 000D14 (v02 PmRef  ApIst    00003000 INTL 20160422)
+[    0.073106] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.073116] ACPI: Dynamic OEM Table Load:
+[    0.073116] ACPI: SSDT 0xFFFF9EA3E3B5C400 000317 (v02 PmRef  ApHwp    00003000 INTL 20160422)
+[    0.073116] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.073116] ACPI: Dynamic OEM Table Load:
+[    0.073116] ACPI: SSDT 0xFFFF9EA3E3B7C800 00030A (v02 PmRef  ApCst    00003000 INTL 20160422)
+[    0.073116] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.075027] ACPI: Interpreter enabled
+[    0.075056] ACPI: (supports S0 S3 S4 S5)
+[    0.075057] ACPI: Using IOAPIC for interrupt routing
+[    0.075092] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.075983] ACPI: Enabled 7 GPEs in block 00 to 7F
+[    0.103795] ACPI: Power Resource [FN00] (off)
+[    0.103871] ACPI: Power Resource [FN01] (off)
+[    0.103947] ACPI: Power Resource [FN02] (off)
+[    0.104024] ACPI: Power Resource [FN03] (off)
+[    0.104098] ACPI: Power Resource [FN04] (off)
+[    0.105398] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])
+[    0.105402] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+[    0.105569] acpi PNP0A08:00: _OSC: platform does not support [PCIeHotplug PME]
+[    0.105728] acpi PNP0A08:00: _OSC: OS now controls [AER PCIeCapability]
+[    0.105729] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
+[    0.106497] PCI host bridge to bus 0000:00
+[    0.106498] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.106499] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    0.106500] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    0.106501] pci_bus 0000:00: root bus resource [mem 0x000c0000-0x000c3fff window]
+[    0.106502] pci_bus 0000:00: root bus resource [mem 0x000c4000-0x000c7fff window]
+[    0.106502] pci_bus 0000:00: root bus resource [mem 0x000c8000-0x000cbfff window]
+[    0.106503] pci_bus 0000:00: root bus resource [mem 0x000cc000-0x000cffff window]
+[    0.106504] pci_bus 0000:00: root bus resource [mem 0x000d0000-0x000d3fff window]
+[    0.106505] pci_bus 0000:00: root bus resource [mem 0x000d4000-0x000d7fff window]
+[    0.106506] pci_bus 0000:00: root bus resource [mem 0x000d8000-0x000dbfff window]
+[    0.106506] pci_bus 0000:00: root bus resource [mem 0x000dc000-0x000dffff window]
+[    0.106507] pci_bus 0000:00: root bus resource [mem 0xc8000000-0xf7ffffff window]
+[    0.106508] pci_bus 0000:00: root bus resource [mem 0xfd000000-0xfe7fffff window]
+[    0.106509] pci_bus 0000:00: root bus resource [bus 00-3e]
+[    0.106515] pci 0000:00:00.0: [8086:3ec2] type 00 class 0x060000
+[    0.106783] pci 0000:00:02.0: [8086:3e92] type 00 class 0x030000
+[    0.106791] pci 0000:00:02.0: reg 0x10: [mem 0xf6000000-0xf6ffffff 64bit]
+[    0.106795] pci 0000:00:02.0: reg 0x18: [mem 0xe0000000-0xefffffff 64bit pref]
+[    0.106798] pci 0000:00:02.0: reg 0x20: [io  0xf000-0xf03f]
+[    0.106808] pci 0000:00:02.0: BAR 2: assigned to efifb
+[    0.106970] pci 0000:00:14.0: [8086:a2af] type 00 class 0x0c0330
+[    0.106988] pci 0000:00:14.0: reg 0x10: [mem 0xf7410000-0xf741ffff 64bit]
+[    0.107042] pci 0000:00:14.0: PME# supported from D3hot D3cold
+[    0.107235] pci 0000:00:16.0: [8086:a2ba] type 00 class 0x078000
+[    0.107257] pci 0000:00:16.0: reg 0x10: [mem 0xf742d000-0xf742dfff 64bit]
+[    0.107320] pci 0000:00:16.0: PME# supported from D3hot
+[    0.107483] pci 0000:00:17.0: [8086:2822] type 00 class 0x010400
+[    0.107497] pci 0000:00:17.0: reg 0x10: [mem 0xf7428000-0xf7429fff]
+[    0.107503] pci 0000:00:17.0: reg 0x14: [mem 0xf742c000-0xf742c0ff]
+[    0.107508] pci 0000:00:17.0: reg 0x18: [io  0xf090-0xf097]
+[    0.107514] pci 0000:00:17.0: reg 0x1c: [io  0xf080-0xf083]
+[    0.107520] pci 0000:00:17.0: reg 0x20: [io  0xf060-0xf07f]
+[    0.107526] pci 0000:00:17.0: reg 0x24: [mem 0xf742b000-0xf742b7ff]
+[    0.107558] pci 0000:00:17.0: PME# supported from D3hot
+[    0.107680] pci 0000:00:1b.0: [8086:a2e7] type 01 class 0x060400
+[    0.107738] pci 0000:00:1b.0: PME# supported from D0 D3hot D3cold
+[    0.107888] pci 0000:00:1b.4: [8086:a2eb] type 01 class 0x060400
+[    0.107941] pci 0000:00:1b.4: PME# supported from D0 D3hot D3cold
+[    0.108096] pci 0000:00:1c.0: [8086:a290] type 01 class 0x060400
+[    0.108146] pci 0000:00:1c.0: PME# supported from D0 D3hot D3cold
+[    0.108290] pci 0000:00:1c.3: [8086:a293] type 01 class 0x060400
+[    0.108343] pci 0000:00:1c.3: PME# supported from D0 D3hot D3cold
+[    0.108488] pci 0000:00:1c.5: [8086:a295] type 01 class 0x060400
+[    0.108541] pci 0000:00:1c.5: PME# supported from D0 D3hot D3cold
+[    0.108684] pci 0000:00:1c.7: [8086:a297] type 01 class 0x060400
+[    0.108737] pci 0000:00:1c.7: PME# supported from D0 D3hot D3cold
+[    0.108881] pci 0000:00:1d.0: [8086:a298] type 01 class 0x060400
+[    0.108939] pci 0000:00:1d.0: PME# supported from D0 D3hot D3cold
+[    0.109101] pci 0000:00:1f.0: [8086:a2c9] type 00 class 0x060100
+[    0.109307] pci 0000:00:1f.2: [8086:a2a1] type 00 class 0x058000
+[    0.109318] pci 0000:00:1f.2: reg 0x10: [mem 0xf7424000-0xf7427fff]
+[    0.109464] pci 0000:00:1f.3: [8086:a2f0] type 00 class 0x040300
+[    0.109486] pci 0000:00:1f.3: reg 0x10: [mem 0xf7420000-0xf7423fff 64bit]
+[    0.109507] pci 0000:00:1f.3: reg 0x20: [mem 0xf7400000-0xf740ffff 64bit]
+[    0.109548] pci 0000:00:1f.3: PME# supported from D3hot D3cold
+[    0.109743] pci 0000:00:1f.4: [8086:a2a3] type 00 class 0x0c0500
+[    0.109802] pci 0000:00:1f.4: reg 0x10: [mem 0xf742a000-0xf742a0ff 64bit]
+[    0.109871] pci 0000:00:1f.4: reg 0x20: [io  0xf040-0xf05f]
+[    0.110092] pci 0000:00:1b.0: PCI bridge to [bus 01]
+[    0.110141] pci 0000:02:00.0: [10ee:7028] type 00 class 0x058000
+[    0.110157] pci 0000:02:00.0: reg 0x10: [mem 0xf7300000-0xf73fffff]
+[    0.110228] pci 0000:02:00.0: PME# supported from D0 D1 D2 D3hot
+[    0.110266] pci 0000:00:1b.4: PCI bridge to [bus 02]
+[    0.110270] pci 0000:00:1b.4:   bridge window [mem 0xf7300000-0xf73fffff]
+[    0.110306] pci 0000:00:1c.0: PCI bridge to [bus 03]
+[    0.110356] pci 0000:04:00.0: [10ec:8168] type 00 class 0x020000
+[    0.110382] pci 0000:04:00.0: reg 0x10: [io  0xe000-0xe0ff]
+[    0.110405] pci 0000:04:00.0: reg 0x18: [mem 0xf7204000-0xf7204fff 64bit]
+[    0.110419] pci 0000:04:00.0: reg 0x20: [mem 0xf7200000-0xf7203fff 64bit]
+[    0.110502] pci 0000:04:00.0: supports D1 D2
+[    0.110503] pci 0000:04:00.0: PME# supported from D0 D1 D2 D3hot D3cold
+[    0.110575] pci 0000:00:1c.3: PCI bridge to [bus 04]
+[    0.110577] pci 0000:00:1c.3:   bridge window [io  0xe000-0xefff]
+[    0.110579] pci 0000:00:1c.3:   bridge window [mem 0xf7200000-0xf72fffff]
+[    0.110625] pci 0000:05:00.0: [1b4b:9215] type 00 class 0x010601
+[    0.110640] pci 0000:05:00.0: reg 0x10: [io  0xd050-0xd057]
+[    0.110646] pci 0000:05:00.0: reg 0x14: [io  0xd040-0xd043]
+[    0.110651] pci 0000:05:00.0: reg 0x18: [io  0xd030-0xd037]
+[    0.110657] pci 0000:05:00.0: reg 0x1c: [io  0xd020-0xd023]
+[    0.110662] pci 0000:05:00.0: reg 0x20: [io  0xd000-0xd01f]
+[    0.110668] pci 0000:05:00.0: reg 0x24: [mem 0xf7110000-0xf71107ff]
+[    0.110674] pci 0000:05:00.0: reg 0x30: [mem 0xf7100000-0xf710ffff pref]
+[    0.110719] pci 0000:05:00.0: PME# supported from D3hot
+[    0.110760] pci 0000:00:1c.5: PCI bridge to [bus 05]
+[    0.110762] pci 0000:00:1c.5:   bridge window [io  0xd000-0xdfff]
+[    0.110764] pci 0000:00:1c.5:   bridge window [mem 0xf7100000-0xf71fffff]
+[    0.110814] pci 0000:06:00.0: [10ec:8812] type 00 class 0x028000
+[    0.110840] pci 0000:06:00.0: reg 0x10: [io  0xc000-0xc0ff]
+[    0.110861] pci 0000:06:00.0: reg 0x18: [mem 0xf7000000-0xf7003fff 64bit]
+[    0.110956] pci 0000:06:00.0: supports D1 D2
+[    0.110957] pci 0000:06:00.0: PME# supported from D0 D1 D2 D3hot D3cold
+[    0.111031] pci 0000:00:1c.7: PCI bridge to [bus 06]
+[    0.111033] pci 0000:00:1c.7:   bridge window [io  0xc000-0xcfff]
+[    0.111035] pci 0000:00:1c.7:   bridge window [mem 0xf7000000-0xf70fffff]
+[    0.111076] pci 0000:00:1d.0: PCI bridge to [bus 07]
+[    0.112318] ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112367] ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112415] ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112463] ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112511] ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112559] ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112607] ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.112656] ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 10 11 12 14 15) *0, disabled.
+[    0.113287] SCSI subsystem initialized
+[    0.113297] libata version 3.00 loaded.
+[    0.113297] pci 0000:00:02.0: vgaarb: setting as boot VGA device
+[    0.113297] pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+[    0.113297] pci 0000:00:02.0: vgaarb: bridge control possible
+[    0.113297] vgaarb: loaded
+[    0.113297] ACPI: bus type USB registered
+[    0.113297] usbcore: registered new interface driver usbfs
+[    0.113297] usbcore: registered new interface driver hub
+[    0.113297] usbcore: registered new device driver usb
+[    0.113297] EDAC MC: Ver: 3.0.0
+[    0.113297] Registered efivars operations
+[    0.145279] PCI: Using ACPI for IRQ routing
+[    0.151517] PCI: pci_cache_line_size set to 64 bytes
+[    0.151568] e820: reserve RAM buffer [mem 0x00058000-0x0005ffff]
+[    0.151568] e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]
+[    0.151569] e820: reserve RAM buffer [mem 0xb3222000-0xb3ffffff]
+[    0.151570] e820: reserve RAM buffer [mem 0xb360f000-0xb3ffffff]
+[    0.151570] e820: reserve RAM buffer [mem 0xc0ffd000-0xc3ffffff]
+[    0.151571] e820: reserve RAM buffer [mem 0xc2915000-0xc3ffffff]
+[    0.151572] e820: reserve RAM buffer [mem 0xc2fff000-0xc3ffffff]
+[    0.151572] e820: reserve RAM buffer [mem 0x437000000-0x437ffffff]
+[    0.151622] NetLabel: Initializing
+[    0.151622] NetLabel:  domain hash size = 128
+[    0.151622] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.151631] NetLabel:  unlabeled traffic allowed by default
+[    0.151639] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0, 0, 0, 0, 0, 0
+[    0.151639] hpet0: 8 comparators, 64-bit 24.000000 MHz counter
+[    0.153026] clocksource: Switched to clocksource hpet
+[    0.158379] VFS: Disk quotas dquot_6.6.0
+[    0.158388] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.158450] AppArmor: AppArmor Filesystem Enabled
+[    0.158460] pnp: PnP ACPI init
+[    0.158617] system 00:00: [io  0x0290-0x029f] has been reserved
+[    0.158620] system 00:00: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.158912] system 00:01: [io  0x0680-0x069f] has been reserved
+[    0.158913] system 00:01: [io  0xffff] has been reserved
+[    0.158914] system 00:01: [io  0xffff] has been reserved
+[    0.158915] system 00:01: [io  0xffff] has been reserved
+[    0.158915] system 00:01: [io  0x1800-0x18fe] has been reserved
+[    0.158916] system 00:01: [io  0x164e-0x164f] has been reserved
+[    0.158919] system 00:01: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.158985] system 00:02: [io  0x0800-0x087f] has been reserved
+[    0.158988] system 00:02: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.159001] pnp 00:03: Plug and Play ACPI device, IDs PNP0b00 (active)
+[    0.159026] system 00:04: [io  0x1854-0x1857] has been reserved
+[    0.159028] system 00:04: Plug and Play ACPI device, IDs INT3f0d PNP0c02 (active)
+[    0.159212] system 00:05: [mem 0xfed10000-0xfed17fff] has been reserved
+[    0.159213] system 00:05: [mem 0xfed18000-0xfed18fff] has been reserved
+[    0.159214] system 00:05: [mem 0xfed19000-0xfed19fff] has been reserved
+[    0.159215] system 00:05: [mem 0xf8000000-0xfbffffff] has been reserved
+[    0.159216] system 00:05: [mem 0xfed20000-0xfed3ffff] has been reserved
+[    0.159217] system 00:05: [mem 0xfed90000-0xfed93fff] has been reserved
+[    0.159218] system 00:05: [mem 0xfed45000-0xfed8ffff] has been reserved
+[    0.159219] system 00:05: [mem 0xff000000-0xffffffff] has been reserved
+[    0.159220] system 00:05: [mem 0xfee00000-0xfeefffff] could not be reserved
+[    0.159221] system 00:05: [mem 0xf7fe0000-0xf7ffffff] has been reserved
+[    0.159223] system 00:05: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.159254] system 00:06: [mem 0xfd000000-0xfdabffff] has been reserved
+[    0.159255] system 00:06: [mem 0xfdad0000-0xfdadffff] has been reserved
+[    0.159256] system 00:06: [mem 0xfdac0000-0xfdacffff] has been reserved
+[    0.159257] system 00:06: [mem 0xfdae0000-0xfdaeffff] has been reserved
+[    0.159258] system 00:06: [mem 0xfdaf0000-0xfdafffff] has been reserved
+[    0.159259] system 00:06: [mem 0xfdb00000-0xfdffffff] has been reserved
+[    0.159260] system 00:06: [mem 0xfe000000-0xfe01ffff] could not be reserved
+[    0.159261] system 00:06: [mem 0xfe036000-0xfe03bfff] has been reserved
+[    0.159262] system 00:06: [mem 0xfe03d000-0xfe3fffff] has been reserved
+[    0.159263] system 00:06: [mem 0xfe410000-0xfe7fffff] has been reserved
+[    0.159265] system 00:06: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.159495] system 00:07: [io  0xfe00-0xfefe] has been reserved
+[    0.159497] system 00:07: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.160493] system 00:08: [mem 0xfdaf0000-0xfdafffff] has been reserved
+[    0.160494] system 00:08: [mem 0xfdae0000-0xfdaeffff] has been reserved
+[    0.160495] system 00:08: [mem 0xfdac0000-0xfdacffff] has been reserved
+[    0.160497] system 00:08: Plug and Play ACPI device, IDs PNP0c02 (active)
+[    0.161222] pnp: PnP ACPI: found 9 devices
+[    0.168304] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    0.168314] pci 0000:00:1b.0: bridge window [io  0x1000-0x0fff] to [bus 01] add_size 1000
+[    0.168316] pci 0000:00:1b.0: bridge window [mem 0x00100000-0x000fffff 64bit pref] to [bus 01] add_size 200000 add_align 100000
+[    0.168317] pci 0000:00:1b.0: bridge window [mem 0x00100000-0x000fffff] to [bus 01] add_size 200000 add_align 100000
+[    0.168341] pci 0000:00:1d.0: bridge window [io  0x1000-0x0fff] to [bus 07] add_size 1000
+[    0.168343] pci 0000:00:1d.0: bridge window [mem 0x00100000-0x000fffff 64bit pref] to [bus 07] add_size 200000 add_align 100000
+[    0.168344] pci 0000:00:1d.0: bridge window [mem 0x00100000-0x000fffff] to [bus 07] add_size 200000 add_align 100000
+[    0.168349] pci 0000:00:1b.0: BAR 14: assigned [mem 0xc8000000-0xc81fffff]
+[    0.168354] pci 0000:00:1b.0: BAR 15: assigned [mem 0xc8200000-0xc83fffff 64bit pref]
+[    0.168355] pci 0000:00:1d.0: BAR 14: assigned [mem 0xc8400000-0xc85fffff]
+[    0.168359] pci 0000:00:1d.0: BAR 15: assigned [mem 0xc8600000-0xc87fffff 64bit pref]
+[    0.168361] pci 0000:00:1b.0: BAR 13: assigned [io  0x2000-0x2fff]
+[    0.168362] pci 0000:00:1d.0: BAR 13: assigned [io  0x3000-0x3fff]
+[    0.168364] pci 0000:00:1b.0: PCI bridge to [bus 01]
+[    0.168367] pci 0000:00:1b.0:   bridge window [io  0x2000-0x2fff]
+[    0.168370] pci 0000:00:1b.0:   bridge window [mem 0xc8000000-0xc81fffff]
+[    0.168372] pci 0000:00:1b.0:   bridge window [mem 0xc8200000-0xc83fffff 64bit pref]
+[    0.168376] pci 0000:00:1b.4: PCI bridge to [bus 02]
+[    0.168378] pci 0000:00:1b.4:   bridge window [mem 0xf7300000-0xf73fffff]
+[    0.168382] pci 0000:00:1c.0: PCI bridge to [bus 03]
+[    0.168388] pci 0000:00:1c.3: PCI bridge to [bus 04]
+[    0.168390] pci 0000:00:1c.3:   bridge window [io  0xe000-0xefff]
+[    0.168392] pci 0000:00:1c.3:   bridge window [mem 0xf7200000-0xf72fffff]
+[    0.168397] pci 0000:00:1c.5: PCI bridge to [bus 05]
+[    0.168398] pci 0000:00:1c.5:   bridge window [io  0xd000-0xdfff]
+[    0.168400] pci 0000:00:1c.5:   bridge window [mem 0xf7100000-0xf71fffff]
+[    0.168405] pci 0000:00:1c.7: PCI bridge to [bus 06]
+[    0.168406] pci 0000:00:1c.7:   bridge window [io  0xc000-0xcfff]
+[    0.168408] pci 0000:00:1c.7:   bridge window [mem 0xf7000000-0xf70fffff]
+[    0.168413] pci 0000:00:1d.0: PCI bridge to [bus 07]
+[    0.168415] pci 0000:00:1d.0:   bridge window [io  0x3000-0x3fff]
+[    0.168418] pci 0000:00:1d.0:   bridge window [mem 0xc8400000-0xc85fffff]
+[    0.168420] pci 0000:00:1d.0:   bridge window [mem 0xc8600000-0xc87fffff 64bit pref]
+[    0.168424] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[    0.168425] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[    0.168426] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[    0.168427] pci_bus 0000:00: resource 7 [mem 0x000c0000-0x000c3fff window]
+[    0.168428] pci_bus 0000:00: resource 8 [mem 0x000c4000-0x000c7fff window]
+[    0.168428] pci_bus 0000:00: resource 9 [mem 0x000c8000-0x000cbfff window]
+[    0.168429] pci_bus 0000:00: resource 10 [mem 0x000cc000-0x000cffff window]
+[    0.168430] pci_bus 0000:00: resource 11 [mem 0x000d0000-0x000d3fff window]
+[    0.168431] pci_bus 0000:00: resource 12 [mem 0x000d4000-0x000d7fff window]
+[    0.168432] pci_bus 0000:00: resource 13 [mem 0x000d8000-0x000dbfff window]
+[    0.168433] pci_bus 0000:00: resource 14 [mem 0x000dc000-0x000dffff window]
+[    0.168433] pci_bus 0000:00: resource 15 [mem 0xc8000000-0xf7ffffff window]
+[    0.168434] pci_bus 0000:00: resource 16 [mem 0xfd000000-0xfe7fffff window]
+[    0.168435] pci_bus 0000:01: resource 0 [io  0x2000-0x2fff]
+[    0.168436] pci_bus 0000:01: resource 1 [mem 0xc8000000-0xc81fffff]
+[    0.168437] pci_bus 0000:01: resource 2 [mem 0xc8200000-0xc83fffff 64bit pref]
+[    0.168438] pci_bus 0000:02: resource 1 [mem 0xf7300000-0xf73fffff]
+[    0.168439] pci_bus 0000:04: resource 0 [io  0xe000-0xefff]
+[    0.168439] pci_bus 0000:04: resource 1 [mem 0xf7200000-0xf72fffff]
+[    0.168440] pci_bus 0000:05: resource 0 [io  0xd000-0xdfff]
+[    0.168441] pci_bus 0000:05: resource 1 [mem 0xf7100000-0xf71fffff]
+[    0.168442] pci_bus 0000:06: resource 0 [io  0xc000-0xcfff]
+[    0.168443] pci_bus 0000:06: resource 1 [mem 0xf7000000-0xf70fffff]
+[    0.168443] pci_bus 0000:07: resource 0 [io  0x3000-0x3fff]
+[    0.168444] pci_bus 0000:07: resource 1 [mem 0xc8400000-0xc85fffff]
+[    0.168445] pci_bus 0000:07: resource 2 [mem 0xc8600000-0xc87fffff 64bit pref]
+[    0.168563] NET: Registered protocol family 2
+[    0.168673] TCP established hash table entries: 131072 (order: 8, 1048576 bytes)
+[    0.168779] TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
+[    0.168855] TCP: Hash tables configured (established 131072 bind 65536)
+[    0.168880] UDP hash table entries: 8192 (order: 6, 262144 bytes)
+[    0.168906] UDP-Lite hash table entries: 8192 (order: 6, 262144 bytes)
+[    0.168952] NET: Registered protocol family 1
+[    0.168959] pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+[    0.169124] PCI: CLS 64 bytes, default 64
+[    0.169142] Unpacking initramfs...
+[    0.707774] Freeing initrd memory: 54808K
+[    0.707780] PCI-DMA: Using software bounce buffering for IO (SWIOTLB)
+[    0.707782] software IO TLB [mem 0xaf222000-0xb3222000] (64MB) mapped at [        (ptrval)-        (ptrval)]
+[    0.708191] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x6a8d280fdb9, max_idle_ns: 881591151302 ns
+[    0.708487] Scanning for low memory corruption every 60 seconds
+[    0.709010] Initialise system trusted keyrings
+[    0.709015] Key type blacklist registered
+[    0.709073] workingset: timestamp_bits=36 max_order=22 bucket_order=0
+[    0.709702] zbud: loaded
+[    0.710025] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[    0.710151] fuse init (API version 7.26)
+[    0.712453] Key type asymmetric registered
+[    0.712454] Asymmetric key parser 'x509' registered
+[    0.712469] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 246)
+[    0.712524] io scheduler noop registered
+[    0.712524] io scheduler deadline registered
+[    0.712547] io scheduler cfq registered (default)
+[    0.713558] pcieport 0000:00:1b.4: AER enabled with IRQ 120
+[    0.713572] pcieport 0000:00:1c.3: AER enabled with IRQ 121
+[    0.713587] pcieport 0000:00:1c.5: AER enabled with IRQ 122
+[    0.713600] pcieport 0000:00:1c.7: AER enabled with IRQ 123
+[    0.713641] efifb: probing for efifb
+[    0.713650] efifb: framebuffer at 0xe0000000, using 3072k, total 3072k
+[    0.713650] efifb: mode is 1024x768x32, linelength=4096, pages=1
+[    0.713650] efifb: scrolling: redraw
+[    0.713652] efifb: Truecolor: size=8:8:8:8, shift=24:16:8:0
+[    0.713720] Console: switching to colour frame buffer device 128x48
+[    0.713728] fb0: EFI VGA frame buffer device
+[    0.713733] intel_idle: MWAIT substates: 0x11142120
+[    0.713734] intel_idle: v0.4.1 model 0x9E
+[    0.714240] intel_idle: lapic_timer_reliable_states 0xffffffff
+[    0.714323] input: Sleep Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0E:00/input/input0
+[    0.714331] ACPI: Sleep Button [SLPB]
+[    0.714349] input: Power Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0C:00/input/input1
+[    0.714356] ACPI: Power Button [PWRB]
+[    0.714373] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input2
+[    0.714419] ACPI: Power Button [PWRF]
+[    0.773803] (NULL device *): hwmon_device_register() is deprecated. Please convert the driver to use hwmon_device_register_with_info().
+[    0.832200] thermal LNXTHERM:00: registered as thermal_zone0
+[    0.832200] ACPI: Thermal Zone [TZ00] (28 C)
+[    0.832326] thermal LNXTHERM:01: registered as thermal_zone1
+[    0.832327] ACPI: Thermal Zone [TZ01] (30 C)
+[    0.832422] Serial: 8250/16550 driver, 32 ports, IRQ sharing enabled
+[    0.834394] Linux agpgart interface v0.103
+[    0.834666] tpm_crb MSFT0101:00: [Firmware Bug]: ACPI region does not cover the entire command/response buffer. [mem 0xfed40000-0xfed4087f flags 0x201] vs fed40080 f80
+[    0.834670] tpm_crb MSFT0101:00: [Firmware Bug]: ACPI region does not cover the entire command/response buffer. [mem 0xfed40000-0xfed4087f flags 0x201] vs fed40080 f80
+[    0.863366] loop: module loaded
+[    0.863455] libphy: Fixed MDIO Bus: probed
+[    0.863455] tun: Universal TUN/TAP device driver, 1.6
+[    0.863499] PPP generic driver version 2.4.2
+[    0.863546] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    0.863547] ehci-pci: EHCI PCI platform driver
+[    0.863552] ehci-platform: EHCI generic platform driver
+[    0.863557] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+[    0.863557] ohci-pci: OHCI PCI platform driver
+[    0.863561] ohci-platform: OHCI generic platform driver
+[    0.863565] uhci_hcd: USB Universal Host Controller Interface driver
+[    0.863648] xhci_hcd 0000:00:14.0: xHCI Host Controller
+[    0.863652] xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+[    0.864721] xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x100 quirks 0x00009810
+[    0.864725] xhci_hcd 0000:00:14.0: cache line size of 64 is not supported
+[    0.864827] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[    0.864828] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.864829] usb usb1: Product: xHCI Host Controller
+[    0.864830] usb usb1: Manufacturer: Linux 4.15.0-34-generic xhci-hcd
+[    0.864831] usb usb1: SerialNumber: 0000:00:14.0
+[    0.864953] hub 1-0:1.0: USB hub found
+[    0.864967] hub 1-0:1.0: 16 ports detected
+[    0.866369] xhci_hcd 0000:00:14.0: xHCI Host Controller
+[    0.866371] xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+[    0.866372] xhci_hcd 0000:00:14.0: Host supports USB 3.0  SuperSpeed
+[    0.866391] usb usb2: New USB device found, idVendor=1d6b, idProduct=0003
+[    0.866392] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.866393] usb usb2: Product: xHCI Host Controller
+[    0.866394] usb usb2: Manufacturer: Linux 4.15.0-34-generic xhci-hcd
+[    0.866395] usb usb2: SerialNumber: 0000:00:14.0
+[    0.866504] hub 2-0:1.0: USB hub found
+[    0.866514] hub 2-0:1.0: 10 ports detected
+[    0.867475] i8042: PNP: No PS/2 controller found.
+[    0.867624] mousedev: PS/2 mouse device common for all mice
+[    0.867901] rtc_cmos 00:03: RTC can wake from S4
+[    0.868356] rtc_cmos 00:03: rtc core: registered rtc_cmos as rtc0
+[    0.868435] rtc_cmos 00:03: alarms up to one month, y3k, 242 bytes nvram, hpet irqs
+[    0.868439] i2c /dev entries driver
+[    0.868461] device-mapper: uevent: version 1.0.3
+[    0.868550] device-mapper: ioctl: 4.37.0-ioctl (2017-09-20) initialised: dm-devel@redhat.com
+[    0.868552] intel_pstate: Intel P-state driver initializing
+[    0.870253] intel_pstate: HWP enabled
+[    0.871122] ledtrig-cpu: registered to indicate activity on CPUs
+[    0.871123] EFI Variables Facility v0.08 2004-May-17
+[    0.910551] resource sanity check: requesting [mem 0xfdffe800-0xfe0007ff], which spans more than pnp 00:06 [mem 0xfdb00000-0xfdffffff]
+[    0.910553] caller pmc_core_probe+0x99/0x224 mapping multiple BARs
+[    0.910556] intel_pmc_core:  initialized
+[    0.910698] NET: Registered protocol family 10
+[    0.913962] Segment Routing with IPv6
+[    0.913971] NET: Registered protocol family 17
+[    0.914121] Key type dns_resolver registered
+[    0.915207] RAS: Correctable Errors collector initialized.
+[    0.915257] microcode: sig=0x906ea, pf=0x2, revision=0x96
+[    0.915678] microcode: Microcode Update Driver: v2.2.
+[    0.915682] sched_clock: Marking stable (915667448, 0)->(901894844, 13772604)
+[    0.916077] registered taskstats version 1
+[    0.916081] Loading compiled-in X.509 certificates
+[    0.917589] Loaded X.509 cert 'Build time autogenerated kernel key: 197c80222fd2638086c51a9b9e4961ca73d6ea07'
+[    0.920057] Loaded UEFI:db cert 'ASUSTeK MotherBoard SW Key Certificate: da83b990422ebc8c441f8d8b039a65a2' linked to secondary sys keyring
+[    0.920173] Loaded UEFI:db cert 'ASUSTeK Notebook SW Key Certificate: b8e581e4df77a5bb4282d5ccfc00c071' linked to secondary sys keyring
+[    0.920187] Loaded UEFI:db cert 'Microsoft Corporation UEFI CA 2011: 13adbf4309bd82709c8cd54f316ed522988a1bd4' linked to secondary sys keyring
+[    0.920198] Loaded UEFI:db cert 'Microsoft Windows Production PCA 2011: a92902398e16c49778cd90f99e4f9ae17c55af53' linked to secondary sys keyring
+[    0.920314] Loaded UEFI:db cert 'Canonical Ltd. Master Certificate Authority: ad91990bc22ab1f517048c23b6655a268e345a63' linked to secondary sys keyring
+[    0.921176] Loaded UEFI:MokListRT cert 'Canonical Ltd. Master Certificate Authority: ad91990bc22ab1f517048c23b6655a268e345a63' linked to secondary sys keyring
+[    0.922041] zswap: loaded using pool lzo/zbud
+[    0.924560] Key type big_key registered
+[    0.924562] Key type trusted registered
+[    0.925594] Key type encrypted registered
+[    0.925595] AppArmor: AppArmor sha1 policy hashing enabled
+[    0.932407] ima: Allocated hash algorithm: sha1
+[    0.995823] evm: HMAC attrs: 0x1
+[    0.996741]   Magic number: 2:0:408
+[    0.996943] rtc_cmos 00:03: setting system clock to 2018-09-20 01:26:53 UTC (1537406813)
+[    0.997106] BIOS EDD facility v0.16 2004-Jun-25, 0 devices found
+[    0.997106] EDD information not available.
+[    1.204056] usb 1-5: new high-speed USB device number 2 using xhci_hcd
+[    1.303366] Freeing unused kernel memory: 2408K
+[    1.308141] Write protecting the kernel read-only data: 20480k
+[    1.309232] Freeing unused kernel memory: 2008K
+[    1.311149] Freeing unused kernel memory: 1900K
+[    1.314279] x86/mm: Checked W+X mappings: passed, no W+X pages found.
+[    1.314279] x86/mm: Checking user space page tables
+[    1.317304] x86/mm: Checked W+X mappings: passed, no W+X pages found.
+[    1.357413] usb 1-5: New USB device found, idVendor=0403, idProduct=6010
+[    1.357414] usb 1-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    1.357415] usb 1-5: Product: Digilent Adept USB Device
+[    1.357415] usb 1-5: Manufacturer: Digilent
+[    1.357416] usb 1-5: SerialNumber: 210203355889
+[    1.370742] ahci 0000:00:17.0: version 3.0
+[    1.370864] ahci 0000:00:17.0: controller can't do SNTF, turning off CAP_SNTF
+[    1.370950] ahci 0000:00:17.0: AHCI 0001.0301 32 slots 4 ports 6 Gbps 0xf impl RAID mode
+[    1.370952] ahci 0000:00:17.0: flags: 64bit ncq led clo only pio slum part ems deso sadm sds apst 
+[    1.372397] r8169 Gigabit Ethernet driver 2.3LK-NAPI loaded
+[    1.372402] r8169 0000:04:00.0: can't disable ASPM; OS doesn't have ASPM control
+[    1.385221] r8169 0000:04:00.0 eth0: RTL8168h/8111h at 0x        (ptrval), 18:31:bf:b8:1c:55, XID 14100800 IRQ 126
+[    1.385223] r8169 0000:04:00.0 eth0: jumbo features [frames: 9200 bytes, tx checksumming: ko]
+[    1.396384] r8169 0000:04:00.0 enp4s0: renamed from eth0
+[    1.404566] scsi host0: ahci
+[    1.404827] scsi host1: ahci
+[    1.405068] scsi host2: ahci
+[    1.405266] scsi host3: ahci
+[    1.405305] ata1: SATA max UDMA/133 abar m2048@0xf742b000 port 0xf742b100 irq 125
+[    1.405306] ata2: SATA max UDMA/133 abar m2048@0xf742b000 port 0xf742b180 irq 125
+[    1.405310] ata3: SATA max UDMA/133 abar m2048@0xf742b000 port 0xf742b200 irq 125
+[    1.405314] ata4: SATA max UDMA/133 abar m2048@0xf742b000 port 0xf742b280 irq 125
+[    1.405335] ahci 0000:05:00.0: enabling device (0000 -> 0003)
+[    1.408073] [drm] Memory usable by graphics device = 4096M
+[    1.408074] checking generic (e0000000 300000) vs hw (e0000000 10000000)
+[    1.408074] fb: switching to inteldrmfb from EFI VGA
+[    1.408084] Console: switching to colour dummy device 80x25
+[    1.408188] [drm] Replacing VGA console driver
+[    1.414298] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+[    1.414299] [drm] Driver supports precise vblank timestamp query.
+[    1.415872] ahci 0000:05:00.0: AHCI 0001.0000 32 slots 4 ports 6 Gbps 0xf impl SATA mode
+[    1.415874] ahci 0000:05:00.0: flags: 64bit ncq sntf led only pmp fbs pio slum part sxs 
+[    1.416153] i915 0000:00:02.0: vgaarb: changed VGA decodes: olddecodes=io+mem,decodes=io+mem:owns=io+mem
+[    1.416289] scsi host4: ahci
+[    1.416442] scsi host5: ahci
+[    1.416595] scsi host6: ahci
+[    1.416690] scsi host7: ahci
+[    1.416707] ata5: SATA max UDMA/133 abar m2048@0xf7110000 port 0xf7110100 irq 127
+[    1.416709] ata6: SATA max UDMA/133 abar m2048@0xf7110000 port 0xf7110180 irq 127
+[    1.416710] ata7: SATA max UDMA/133 abar m2048@0xf7110000 port 0xf7110200 irq 127
+[    1.416711] ata8: SATA max UDMA/133 abar m2048@0xf7110000 port 0xf7110280 irq 127
+[    1.417408] [drm] Finished loading DMC firmware i915/kbl_dmc_ver1_01.bin (v1.1)
+[    1.488026] usb 1-7: new low-speed USB device number 3 using xhci_hcd
+[    1.641711] usb 1-7: New USB device found, idVendor=1c4f, idProduct=0026
+[    1.641712] usb 1-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.641713] usb 1-7: Product: USB Keyboard
+[    1.641713] usb 1-7: Manufacturer: SIGMACHIP
+[    1.688826] [drm] failed to retrieve link info, disabling eDP
+[    1.690791] [drm] Initialized i915 1.6.0 20171023 for 0000:00:02.0 on minor 0
+[    1.691917] ACPI: Video Device [GFX0] (multi-head: yes  rom: no  post: no)
+[    1.692167] input: Video Bus as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:00/input/input3
+[    1.719062] ata4: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+[    1.719079] ata3: SATA link down (SStatus 4 SControl 300)
+[    1.719120] ata1: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+[    1.719138] ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+[    1.720228] ata1.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.720229] ata1.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.720230] ata1.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.720672] ata1.00: ATA-10: INTEL SSDSC2KW512G8,  LHF002C, max UDMA/133
+[    1.720674] ata1.00: 1000215216 sectors, multi 16: LBA48 NCQ (depth 31/32), AA
+[    1.721138] ata2.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.721139] ata2.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.721140] ata2.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.721209] ata4.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.721210] ata4.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.721211] ata4.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.721524] ata1.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.721526] ata1.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.721527] ata1.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.721532] ata4.00: supports DRM functions and may not be fully accessible
+[    1.721898] ata1.00: configured for UDMA/133
+[    1.722226] ata2.00: ATAPI: DRW-24F1ST   d, 1.00, max UDMA/133
+[    1.722242] scsi 0:0:0:0: Direct-Access     ATA      INTEL SSDSC2KW51 002C PQ: 0 ANSI: 5
+[    1.722528] ata4.00: ATA-11: Samsung SSD 860 EVO 1TB, RVT01B6Q, max UDMA/133
+[    1.722529] ata4.00: 1953525168 sectors, multi 1: LBA48 NCQ (depth 31/32), AA
+[    1.722618] sd 0:0:0:0: Attached scsi generic sg0 type 0
+[    1.722707] ata1.00: Enabling discard_zeroes_data
+[    1.722722] sd 0:0:0:0: [sda] 1000215216 512-byte logical blocks: (512 GB/477 GiB)
+[    1.722725] sd 0:0:0:0: [sda] Write Protect is off
+[    1.722726] sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+[    1.722731] sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[    1.722856] ata1.00: Enabling discard_zeroes_data
+[    1.724164] ata2.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.724166] ata2.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.724167] ata2.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.724357]  sda: sda1 sda2
+[    1.724671] ata1.00: Enabling discard_zeroes_data
+[    1.724824] sd 0:0:0:0: [sda] Attached SCSI disk
+[    1.725256] ata2.00: configured for UDMA/133
+[    1.725284] ata4.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[    1.725285] ata4.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[    1.725299] ata4.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[    1.725597] ata4.00: supports DRM functions and may not be fully accessible
+[    1.728327] clocksource: Switched to clocksource tsc
+[    1.728473] ata4.00: configured for UDMA/133
+[    1.728547] scsi 1:0:0:0: CD-ROM            ASUS     DRW-24F1ST   d   1.00 PQ: 0 ANSI: 5
+[    1.730909] ata6: SATA link down (SStatus 0 SControl 300)
+[    1.730999] ata8: SATA link down (SStatus 0 SControl 300)
+[    1.731050] ata5: SATA link down (SStatus 0 SControl 300)
+[    1.735787] random: fast init done
+[    1.768668] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    1.768676] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    1.768677] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    1.772061] usb 1-8: new low-speed USB device number 4 using xhci_hcd
+[    1.803118] sr 1:0:0:0: [sr0] scsi3-mmc drive: 48x/12x writer dvd-ram cd/rw xa/form2 cdda tray
+[    1.803119] cdrom: Uniform CD-ROM driver Revision: 3.20
+[    1.803265] sr 1:0:0:0: Attached scsi CD-ROM sr0
+[    1.803384] sr 1:0:0:0: Attached scsi generic sg1 type 5
+[    1.803680] scsi 3:0:0:0: Direct-Access     ATA      Samsung SSD 860  1B6Q PQ: 0 ANSI: 5
+[    1.803906] ata4.00: Enabling discard_zeroes_data
+[    1.803922] sd 3:0:0:0: [sdb] 1953525168 512-byte logical blocks: (1.00 TB/932 GiB)
+[    1.803925] sd 3:0:0:0: [sdb] Write Protect is off
+[    1.803925] sd 3:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+[    1.803930] sd 3:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[    1.803975] sd 3:0:0:0: Attached scsi generic sg2 type 0
+[    1.804065] ata4.00: Enabling discard_zeroes_data
+[    1.804496] ata4.00: Enabling discard_zeroes_data
+[    1.805538] sd 3:0:0:0: [sdb] supports TCG Opal
+[    1.805539] sd 3:0:0:0: [sdb] Attached SCSI disk
+[    1.869508] fbcon: inteldrmfb (fb0) is primary device
+[    1.869550] Console: switching to colour frame buffer device 240x67
+[    1.869563] i915 0000:00:02.0: fb0: inteldrmfb frame buffer device
+[    1.892104] ata7: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+[    1.892440] ata7.00: supports DRM functions and may not be fully accessible
+[    1.893363] ata7.00: ATA-11: Samsung SSD 860 EVO 1TB, RVT01B6Q, max UDMA/133
+[    1.893364] ata7.00: 1953525168 sectors, multi 1: LBA48 NCQ (depth 31/32), AA
+[    1.895924] ata7.00: supports DRM functions and may not be fully accessible
+[    1.899305] ata7.00: configured for UDMA/133
+[    1.899383] scsi 6:0:0:0: Direct-Access     ATA      Samsung SSD 860  1B6Q PQ: 0 ANSI: 5
+[    1.899468] ata7.00: Enabling discard_zeroes_data
+[    1.899487] sd 6:0:0:0: [sdc] 1953525168 512-byte logical blocks: (1.00 TB/932 GiB)
+[    1.899490] sd 6:0:0:0: [sdc] Write Protect is off
+[    1.899490] sd 6:0:0:0: [sdc] Mode Sense: 00 3a 00 00
+[    1.899508] sd 6:0:0:0: [sdc] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[    1.899538] sd 6:0:0:0: Attached scsi generic sg3 type 0
+[    1.899565] ata7.00: Enabling discard_zeroes_data
+[    1.899905] ata7.00: Enabling discard_zeroes_data
+[    1.901064] sd 6:0:0:0: [sdc] supports TCG Opal
+[    1.901065] sd 6:0:0:0: [sdc] Attached SCSI removable disk
+[    1.908146] md127: detected capacity change from 0 to 2000138797056
+[    1.927472] usb 1-8: New USB device found, idVendor=04f3, idProduct=0235
+[    1.927473] usb 1-8: New USB device strings: Mfr=0, Product=2, SerialNumber=0
+[    1.927474] usb 1-8: Product: OM
+[    1.930456] hidraw: raw HID events driver (C) Jiri Kosina
+[    1.937261] usbcore: registered new interface driver usbhid
+[    1.937261] usbhid: USB HID core driver
+[    1.938533] input: SIGMACHIP USB Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-7/1-7:1.0/0003:1C4F:0026.0001/input/input4
+[    1.996158] hid-generic 0003:1C4F:0026.0001: input,hidraw0: USB HID v1.10 Keyboard [SIGMACHIP USB Keyboard] on usb-0000:00:14.0-7/input0
+[    1.996225] input: SIGMACHIP USB Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-7/1-7:1.1/0003:1C4F:0026.0002/input/input5
+[    2.056064] hid-generic 0003:1C4F:0026.0002: input,hidraw1: USB HID v1.10 Device [SIGMACHIP USB Keyboard] on usb-0000:00:14.0-7/input1
+[    2.056107] input: OM as /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8:1.0/0003:04F3:0235.0003/input/input6
+[    2.056146] hid-generic 0003:04F3:0235.0003: input,hidraw2: USB HID v1.11 Mouse [OM] on usb-0000:00:14.0-8/input0
+[    2.116035] raid6: sse2x1   gen() 16217 MB/s
+[    2.164034] raid6: sse2x1   xor() 11955 MB/s
+[    2.212038] raid6: sse2x2   gen() 20366 MB/s
+[    2.260035] raid6: sse2x2   xor() 13740 MB/s
+[    2.308035] raid6: sse2x4   gen() 23641 MB/s
+[    2.356034] raid6: sse2x4   xor() 14931 MB/s
+[    2.404035] raid6: avx2x1   gen() 32838 MB/s
+[    2.452035] raid6: avx2x1   xor() 22753 MB/s
+[    2.500033] raid6: avx2x2   gen() 40066 MB/s
+[    2.548035] raid6: avx2x2   xor() 24862 MB/s
+[    2.596034] raid6: avx2x4   gen() 45876 MB/s
+[    2.644034] raid6: avx2x4   xor() 27229 MB/s
+[    2.644035] raid6: using algorithm avx2x4 gen() 45876 MB/s
+[    2.644035] raid6: .... xor() 27229 MB/s, rmw enabled
+[    2.644035] raid6: using avx2x2 recovery algorithm
+[    2.644826] xor: automatically using best checksumming function   avx       
+[    2.645318] async_tx: api initialized (async)
+[    2.673108] EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)
+[    2.765339] ip_tables: (C) 2000-2006 Netfilter Core Team
+[    2.845541] systemd[1]: systemd 237 running in system mode. (+PAM +AUDIT +SELINUX +IMA +APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4 +SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 +IDN -PCRE2 default-hierarchy=hybrid)
+[    2.864569] systemd[1]: Detected architecture x86-64.
+[    2.866504] systemd[1]: Set hostname to <rivendell>.
+[    2.926035] systemd[1]: Reached target Remote File Systems.
+[    2.926136] systemd[1]: Created slice User and Session Slice.
+[    2.926238] systemd[1]: Set up automount Arbitrary Executable File Formats File System Automount Point.
+[    2.926246] systemd[1]: Reached target User and Group Name Lookups.
+[    2.926265] systemd[1]: Started Forward Password Requests to Wall Directory Watch.
+[    2.926321] systemd[1]: Created slice System Slice.
+[    2.926355] systemd[1]: Listening on Syslog Socket.
+[    2.937913] lp: driver loaded but no devices found
+[    2.938269] EXT4-fs (sda2): re-mounted. Opts: errors=remount-ro
+[    2.940222] ppdev: user-space parallel port driver
+[    2.963665] systemd-journald[378]: Received request to flush runtime journal from PID 1
+[    2.978436] Adding 2097148k swap on /swapfile.  Priority:-2 extents:6 across:2260988k SSFS
+[    3.052802] mei_me 0000:00:16.0: enabling device (0000 -> 0002)
+[    3.084516] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+[    3.085436] asus_wmi: ASUS WMI generic driver loaded
+[    3.086457] asus_wmi: Initialization: 0x0
+[    3.086489] asus_wmi: BIOS WMI version: 0.9
+[    3.086648] asus_wmi: SFUN value: 0x0
+[    3.087131] input: Eee PC WMI hotkeys as /devices/platform/eeepc-wmi/input/input7
+[    3.087339] asus_wmi: Number of fans: 1
+[    3.087419] bdbmpcie: loading out-of-tree module taints kernel.
+[    3.087437] bdbmpcie: module verification failed: signature and/or required key missing - tainting kernel
+[    3.087543] BlueDBM PCIe driver enabling device cmd 0
+[    3.087550] bdbmpcie 0000:02:00.0: enabling device (0000 -> 0002)
+[    3.087556] BlueDBM PCIe driver detected device 10ee 7028
+[    3.087557] BAR0: f7300000 @ f7300000
+[    3.087574] PCIe read: c001d00d (0)
+[    3.087576] PCIe read: 0 (1)
+[    3.087577] PCIe read: 0 (2)
+[    3.087595] BdbmPcie register driver success
+[    3.087596] BdbmPcie chrdev_init
+[    3.087597] IOCTL command - alloc: 40080000
+[    3.087622] BlueDBM DMA buffer alloc request: 2048 pages
+[    3.087624] Creating BlueDBM DMA buffer 0 
+[    3.087625] Creating BlueDBM DMA buffer 1 
+[    3.087627] Creating BlueDBM DMA buffer 2 
+[    3.087628] Creating BlueDBM DMA buffer 3 
+[    3.087629] Creating BlueDBM DMA buffer 4 
+[    3.087630] Creating BlueDBM DMA buffer 5 
+[    3.087631] Creating BlueDBM DMA buffer 6 
+[    3.087633] Creating BlueDBM DMA buffer 7 
+[    3.087634] Creating BlueDBM DMA buffer 8 
+[    3.087635] Creating BlueDBM DMA buffer 9 
+[    3.087636] Creating BlueDBM DMA buffer 10 
+[    3.087637] Creating BlueDBM DMA buffer 11 
+[    3.087638] Creating BlueDBM DMA buffer 12 
+[    3.087640] Creating BlueDBM DMA buffer 13 
+[    3.087641] Creating BlueDBM DMA buffer 14 
+[    3.087642] Creating BlueDBM DMA buffer 15 
+[    3.087643] Creating BlueDBM DMA buffer 16 
+[    3.087645] Creating BlueDBM DMA buffer 17 
+[    3.087646] Creating BlueDBM DMA buffer 18 
+[    3.087647] Creating BlueDBM DMA buffer 19 
+[    3.087648] Creating BlueDBM DMA buffer 20 
+[    3.087649] Creating BlueDBM DMA buffer 21 
+[    3.087650] Creating BlueDBM DMA buffer 22 
+[    3.087652] Creating BlueDBM DMA buffer 23 
+[    3.087653] Creating BlueDBM DMA buffer 24 
+[    3.087654] Creating BlueDBM DMA buffer 25 
+[    3.087655] Creating BlueDBM DMA buffer 26 
+[    3.087657] Creating BlueDBM DMA buffer 27 
+[    3.087658] Creating BlueDBM DMA buffer 28 
+[    3.087659] Creating BlueDBM DMA buffer 29 
+[    3.087660] Creating BlueDBM DMA buffer 30 
+[    3.087661] Creating BlueDBM DMA buffer 31 
+[    3.087663] Creating BlueDBM DMA buffer 32 
+[    3.087664] Creating BlueDBM DMA buffer 33 
+[    3.087665] Creating BlueDBM DMA buffer 34 
+[    3.087666] Creating BlueDBM DMA buffer 35 
+[    3.087667] Creating BlueDBM DMA buffer 36 
+[    3.087669] Creating BlueDBM DMA buffer 37 
+[    3.087670] Creating BlueDBM DMA buffer 38 
+[    3.087671] Creating BlueDBM DMA buffer 39 
+[    3.087672] Creating BlueDBM DMA buffer 40 
+[    3.087674] Creating BlueDBM DMA buffer 41 
+[    3.087675] Creating BlueDBM DMA buffer 42 
+[    3.087677] Creating BlueDBM DMA buffer 43 
+[    3.087678] Creating BlueDBM DMA buffer 44 
+[    3.087679] Creating BlueDBM DMA buffer 45 
+[    3.087681] Creating BlueDBM DMA buffer 46 
+[    3.087682] Creating BlueDBM DMA buffer 47 
+[    3.087683] Creating BlueDBM DMA buffer 48 
+[    3.087684] Creating BlueDBM DMA buffer 49 
+[    3.087686] Creating BlueDBM DMA buffer 50 
+[    3.087687] Creating BlueDBM DMA buffer 51 
+[    3.087689] Creating BlueDBM DMA buffer 52 
+[    3.087690] Creating BlueDBM DMA buffer 53 
+[    3.087691] Creating BlueDBM DMA buffer 54 
+[    3.087692] Creating BlueDBM DMA buffer 55 
+[    3.087694] Creating BlueDBM DMA buffer 56 
+[    3.087695] Creating BlueDBM DMA buffer 57 
+[    3.087697] Creating BlueDBM DMA buffer 58 
+[    3.087698] Creating BlueDBM DMA buffer 59 
+[    3.087699] Creating BlueDBM DMA buffer 60 
+[    3.087700] Creating BlueDBM DMA buffer 61 
+[    3.087701] Creating BlueDBM DMA buffer 62 
+[    3.087703] Creating BlueDBM DMA buffer 63 
+[    3.087704] Creating BlueDBM DMA buffer 64 
+[    3.087706] Creating BlueDBM DMA buffer 65 
+[    3.087707] Creating BlueDBM DMA buffer 66 
+[    3.087708] Creating BlueDBM DMA buffer 67 
+[    3.087709] Creating BlueDBM DMA buffer 68 
+[    3.087710] Creating BlueDBM DMA buffer 69 
+[    3.087712] Creating BlueDBM DMA buffer 70 
+[    3.087713] Creating BlueDBM DMA buffer 71 
+[    3.087715] Creating BlueDBM DMA buffer 72 
+[    3.087716] Creating BlueDBM DMA buffer 73 
+[    3.087717] Creating BlueDBM DMA buffer 74 
+[    3.087718] Creating BlueDBM DMA buffer 75 
+[    3.087719] Creating BlueDBM DMA buffer 76 
+[    3.087720] Creating BlueDBM DMA buffer 77 
+[    3.087721] Creating BlueDBM DMA buffer 78 
+[    3.087723] Creating BlueDBM DMA buffer 79 
+[    3.087724] Creating BlueDBM DMA buffer 80 
+[    3.087725] Creating BlueDBM DMA buffer 81 
+[    3.087726] Creating BlueDBM DMA buffer 82 
+[    3.087728] Creating BlueDBM DMA buffer 83 
+[    3.087729] Creating BlueDBM DMA buffer 84 
+[    3.087730] Creating BlueDBM DMA buffer 85 
+[    3.087732] Creating BlueDBM DMA buffer 86 
+[    3.087733] Creating BlueDBM DMA buffer 87 
+[    3.087734] Creating BlueDBM DMA buffer 88 
+[    3.087735] Creating BlueDBM DMA buffer 89 
+[    3.087737] Creating BlueDBM DMA buffer 90 
+[    3.087738] Creating BlueDBM DMA buffer 91 
+[    3.087739] Creating BlueDBM DMA buffer 92 
+[    3.087740] Creating BlueDBM DMA buffer 93 
+[    3.087742] Creating BlueDBM DMA buffer 94 
+[    3.087743] Creating BlueDBM DMA buffer 95 
+[    3.087745] Creating BlueDBM DMA buffer 96 
+[    3.087746] Creating BlueDBM DMA buffer 97 
+[    3.087747] Creating BlueDBM DMA buffer 98 
+[    3.087749] Creating BlueDBM DMA buffer 99 
+[    3.087750] Creating BlueDBM DMA buffer 100 
+[    3.087751] Creating BlueDBM DMA buffer 101 
+[    3.087752] Creating BlueDBM DMA buffer 102 
+[    3.087753] Creating BlueDBM DMA buffer 103 
+[    3.087755] Creating BlueDBM DMA buffer 104 
+[    3.087756] Creating BlueDBM DMA buffer 105 
+[    3.087757] Creating BlueDBM DMA buffer 106 
+[    3.087758] Creating BlueDBM DMA buffer 107 
+[    3.087759] Creating BlueDBM DMA buffer 108 
+[    3.087760] Creating BlueDBM DMA buffer 109 
+[    3.087762] Creating BlueDBM DMA buffer 110 
+[    3.087763] Creating BlueDBM DMA buffer 111 
+[    3.087764] Creating BlueDBM DMA buffer 112 
+[    3.087765] Creating BlueDBM DMA buffer 113 
+[    3.087767] Creating BlueDBM DMA buffer 114 
+[    3.087768] Creating BlueDBM DMA buffer 115 
+[    3.087769] Creating BlueDBM DMA buffer 116 
+[    3.087770] Creating BlueDBM DMA buffer 117 
+[    3.087771] Creating BlueDBM DMA buffer 118 
+[    3.087773] Creating BlueDBM DMA buffer 119 
+[    3.087774] Creating BlueDBM DMA buffer 120 
+[    3.087775] Creating BlueDBM DMA buffer 121 
+[    3.087776] Creating BlueDBM DMA buffer 122 
+[    3.087777] Creating BlueDBM DMA buffer 123 
+[    3.087779] Creating BlueDBM DMA buffer 124 
+[    3.087780] Creating BlueDBM DMA buffer 125 
+[    3.087781] Creating BlueDBM DMA buffer 126 
+[    3.087782] Creating BlueDBM DMA buffer 127 
+[    3.087784] Creating BlueDBM DMA buffer 128 
+[    3.087785] Creating BlueDBM DMA buffer 129 
+[    3.087786] Creating BlueDBM DMA buffer 130 
+[    3.087788] Creating BlueDBM DMA buffer 131 
+[    3.087789] Creating BlueDBM DMA buffer 132 
+[    3.087790] Creating BlueDBM DMA buffer 133 
+[    3.087792] Creating BlueDBM DMA buffer 134 
+[    3.087793] Creating BlueDBM DMA buffer 135 
+[    3.087794] Creating BlueDBM DMA buffer 136 
+[    3.087796] Creating BlueDBM DMA buffer 137 
+[    3.087797] Creating BlueDBM DMA buffer 138 
+[    3.087798] Creating BlueDBM DMA buffer 139 
+[    3.087799] Creating BlueDBM DMA buffer 140 
+[    3.087801] Creating BlueDBM DMA buffer 141 
+[    3.087802] Creating BlueDBM DMA buffer 142 
+[    3.087803] Creating BlueDBM DMA buffer 143 
+[    3.087804] Creating BlueDBM DMA buffer 144 
+[    3.087805] Creating BlueDBM DMA buffer 145 
+[    3.087807] Creating BlueDBM DMA buffer 146 
+[    3.087808] Creating BlueDBM DMA buffer 147 
+[    3.087809] Creating BlueDBM DMA buffer 148 
+[    3.087810] Creating BlueDBM DMA buffer 149 
+[    3.087812] Creating BlueDBM DMA buffer 150 
+[    3.087813] Creating BlueDBM DMA buffer 151 
+[    3.087814] Creating BlueDBM DMA buffer 152 
+[    3.087815] Creating BlueDBM DMA buffer 153 
+[    3.087816] Creating BlueDBM DMA buffer 154 
+[    3.087818] Creating BlueDBM DMA buffer 155 
+[    3.087819] Creating BlueDBM DMA buffer 156 
+[    3.087820] Creating BlueDBM DMA buffer 157 
+[    3.087821] Creating BlueDBM DMA buffer 158 
+[    3.087822] Creating BlueDBM DMA buffer 159 
+[    3.087824] Creating BlueDBM DMA buffer 160 
+[    3.087825] Creating BlueDBM DMA buffer 161 
+[    3.087826] Creating BlueDBM DMA buffer 162 
+[    3.087827] Creating BlueDBM DMA buffer 163 
+[    3.087828] Creating BlueDBM DMA buffer 164 
+[    3.087829] Creating BlueDBM DMA buffer 165 
+[    3.087831] Creating BlueDBM DMA buffer 166 
+[    3.087832] Creating BlueDBM DMA buffer 167 
+[    3.087833] Creating BlueDBM DMA buffer 168 
+[    3.087834] Creating BlueDBM DMA buffer 169 
+[    3.087836] Creating BlueDBM DMA buffer 170 
+[    3.087837] Creating BlueDBM DMA buffer 171 
+[    3.087838] Creating BlueDBM DMA buffer 172 
+[    3.087839] Creating BlueDBM DMA buffer 173 
+[    3.087840] Creating BlueDBM DMA buffer 174 
+[    3.087841] Creating BlueDBM DMA buffer 175 
+[    3.087842] Creating BlueDBM DMA buffer 176 
+[    3.087844] Creating BlueDBM DMA buffer 177 
+[    3.087845] Creating BlueDBM DMA buffer 178 
+[    3.087846] Creating BlueDBM DMA buffer 179 
+[    3.087847] Creating BlueDBM DMA buffer 180 
+[    3.087849] Creating BlueDBM DMA buffer 181 
+[    3.087850] Creating BlueDBM DMA buffer 182 
+[    3.087851] Creating BlueDBM DMA buffer 183 
+[    3.087852] Creating BlueDBM DMA buffer 184 
+[    3.087853] Creating BlueDBM DMA buffer 185 
+[    3.087854] Creating BlueDBM DMA buffer 186 
+[    3.087856] Creating BlueDBM DMA buffer 187 
+[    3.087857] Creating BlueDBM DMA buffer 188 
+[    3.087858] Creating BlueDBM DMA buffer 189 
+[    3.087859] Creating BlueDBM DMA buffer 190 
+[    3.087860] Creating BlueDBM DMA buffer 191 
+[    3.087862] Creating BlueDBM DMA buffer 192 
+[    3.087863] Creating BlueDBM DMA buffer 193 
+[    3.087864] Creating BlueDBM DMA buffer 194 
+[    3.087865] Creating BlueDBM DMA buffer 195 
+[    3.087866] Creating BlueDBM DMA buffer 196 
+[    3.087867] Creating BlueDBM DMA buffer 197 
+[    3.087868] Creating BlueDBM DMA buffer 198 
+[    3.087870] Creating BlueDBM DMA buffer 199 
+[    3.087871] Creating BlueDBM DMA buffer 200 
+[    3.087872] Creating BlueDBM DMA buffer 201 
+[    3.087873] Creating BlueDBM DMA buffer 202 
+[    3.087874] Creating BlueDBM DMA buffer 203 
+[    3.087875] Creating BlueDBM DMA buffer 204 
+[    3.087876] Creating BlueDBM DMA buffer 205 
+[    3.087878] Creating BlueDBM DMA buffer 206 
+[    3.087879] Creating BlueDBM DMA buffer 207 
+[    3.087880] Creating BlueDBM DMA buffer 208 
+[    3.087881] Creating BlueDBM DMA buffer 209 
+[    3.087882] Creating BlueDBM DMA buffer 210 
+[    3.087883] Creating BlueDBM DMA buffer 211 
+[    3.087885] Creating BlueDBM DMA buffer 212 
+[    3.087886] Creating BlueDBM DMA buffer 213 
+[    3.087887] Creating BlueDBM DMA buffer 214 
+[    3.087888] Creating BlueDBM DMA buffer 215 
+[    3.087889] Creating BlueDBM DMA buffer 216 
+[    3.087890] Creating BlueDBM DMA buffer 217 
+[    3.087892] Creating BlueDBM DMA buffer 218 
+[    3.087893] Creating BlueDBM DMA buffer 219 
+[    3.087894] Creating BlueDBM DMA buffer 220 
+[    3.087895] Creating BlueDBM DMA buffer 221 
+[    3.087896] Creating BlueDBM DMA buffer 222 
+[    3.087897] Creating BlueDBM DMA buffer 223 
+[    3.087899] Creating BlueDBM DMA buffer 224 
+[    3.087900] Creating BlueDBM DMA buffer 225 
+[    3.087901] Creating BlueDBM DMA buffer 226 
+[    3.087902] Creating BlueDBM DMA buffer 227 
+[    3.087903] Creating BlueDBM DMA buffer 228 
+[    3.087904] Creating BlueDBM DMA buffer 229 
+[    3.087906] Creating BlueDBM DMA buffer 230 
+[    3.087907] Creating BlueDBM DMA buffer 231 
+[    3.087908] Creating BlueDBM DMA buffer 232 
+[    3.087909] Creating BlueDBM DMA buffer 233 
+[    3.087910] Creating BlueDBM DMA buffer 234 
+[    3.087911] Creating BlueDBM DMA buffer 235 
+[    3.087912] Creating BlueDBM DMA buffer 236 
+[    3.087913] Creating BlueDBM DMA buffer 237 
+[    3.087915] Creating BlueDBM DMA buffer 238 
+[    3.087916] Creating BlueDBM DMA buffer 239 
+[    3.087917] Creating BlueDBM DMA buffer 240 
+[    3.087918] Creating BlueDBM DMA buffer 241 
+[    3.087919] Creating BlueDBM DMA buffer 242 
+[    3.087920] Creating BlueDBM DMA buffer 243 
+[    3.087921] Creating BlueDBM DMA buffer 244 
+[    3.087922] Creating BlueDBM DMA buffer 245 
+[    3.087924] Creating BlueDBM DMA buffer 246 
+[    3.087925] Creating BlueDBM DMA buffer 247 
+[    3.087926] Creating BlueDBM DMA buffer 248 
+[    3.087927] Creating BlueDBM DMA buffer 249 
+[    3.087929] Creating BlueDBM DMA buffer 250 
+[    3.087930] Creating BlueDBM DMA buffer 251 
+[    3.087931] Creating BlueDBM DMA buffer 252 
+[    3.087932] Creating BlueDBM DMA buffer 253 
+[    3.087933] Creating BlueDBM DMA buffer 254 
+[    3.087935] Creating BlueDBM DMA buffer 255 
+[    3.087936] Creating BlueDBM DMA buffer 256 
+[    3.087937] Creating BlueDBM DMA buffer 257 
+[    3.087938] Creating BlueDBM DMA buffer 258 
+[    3.087940] Creating BlueDBM DMA buffer 259 
+[    3.087941] Creating BlueDBM DMA buffer 260 
+[    3.087942] Creating BlueDBM DMA buffer 261 
+[    3.087943] Creating BlueDBM DMA buffer 262 
+[    3.087944] Creating BlueDBM DMA buffer 263 
+[    3.087946] Creating BlueDBM DMA buffer 264 
+[    3.087947] Creating BlueDBM DMA buffer 265 
+[    3.087948] Creating BlueDBM DMA buffer 266 
+[    3.087949] Creating BlueDBM DMA buffer 267 
+[    3.087950] Creating BlueDBM DMA buffer 268 
+[    3.087951] Creating BlueDBM DMA buffer 269 
+[    3.087952] Creating BlueDBM DMA buffer 270 
+[    3.087953] Creating BlueDBM DMA buffer 271 
+[    3.087955] Creating BlueDBM DMA buffer 272 
+[    3.087956] Creating BlueDBM DMA buffer 273 
+[    3.087957] Creating BlueDBM DMA buffer 274 
+[    3.087958] Creating BlueDBM DMA buffer 275 
+[    3.087959] Creating BlueDBM DMA buffer 276 
+[    3.087960] Creating BlueDBM DMA buffer 277 
+[    3.087961] Creating BlueDBM DMA buffer 278 
+[    3.087963] Creating BlueDBM DMA buffer 279 
+[    3.087964] Creating BlueDBM DMA buffer 280 
+[    3.087965] Creating BlueDBM DMA buffer 281 
+[    3.087966] Creating BlueDBM DMA buffer 282 
+[    3.087967] Creating BlueDBM DMA buffer 283 
+[    3.087968] Creating BlueDBM DMA buffer 284 
+[    3.087970] Creating BlueDBM DMA buffer 285 
+[    3.087971] Creating BlueDBM DMA buffer 286 
+[    3.087972] Creating BlueDBM DMA buffer 287 
+[    3.087973] Creating BlueDBM DMA buffer 288 
+[    3.087974] Creating BlueDBM DMA buffer 289 
+[    3.087975] Creating BlueDBM DMA buffer 290 
+[    3.087977] Creating BlueDBM DMA buffer 291 
+[    3.087978] Creating BlueDBM DMA buffer 292 
+[    3.087979] Creating BlueDBM DMA buffer 293 
+[    3.087980] Creating BlueDBM DMA buffer 294 
+[    3.087981] Creating BlueDBM DMA buffer 295 
+[    3.087983] Creating BlueDBM DMA buffer 296 
+[    3.087984] Creating BlueDBM DMA buffer 297 
+[    3.087985] Creating BlueDBM DMA buffer 298 
+[    3.087986] Creating BlueDBM DMA buffer 299 
+[    3.087987] Creating BlueDBM DMA buffer 300 
+[    3.087988] Creating BlueDBM DMA buffer 301 
+[    3.087989] Creating BlueDBM DMA buffer 302 
+[    3.087991] Creating BlueDBM DMA buffer 303 
+[    3.087992] Creating BlueDBM DMA buffer 304 
+[    3.087993] Creating BlueDBM DMA buffer 305 
+[    3.087994] Creating BlueDBM DMA buffer 306 
+[    3.087995] Creating BlueDBM DMA buffer 307 
+[    3.087996] Creating BlueDBM DMA buffer 308 
+[    3.087998] Creating BlueDBM DMA buffer 309 
+[    3.087999] Creating BlueDBM DMA buffer 310 
+[    3.088007] Creating BlueDBM DMA buffer 311 
+[    3.088008] Creating BlueDBM DMA buffer 312 
+[    3.088010] Creating BlueDBM DMA buffer 313 
+[    3.088011] Creating BlueDBM DMA buffer 314 
+[    3.088012] Creating BlueDBM DMA buffer 315 
+[    3.088013] Creating BlueDBM DMA buffer 316 
+[    3.088014] Creating BlueDBM DMA buffer 317 
+[    3.088015] Creating BlueDBM DMA buffer 318 
+[    3.088017] Creating BlueDBM DMA buffer 319 
+[    3.088018] Creating BlueDBM DMA buffer 320 
+[    3.088019] Creating BlueDBM DMA buffer 321 
+[    3.088020] Creating BlueDBM DMA buffer 322 
+[    3.088022] Creating BlueDBM DMA buffer 323 
+[    3.088023] Creating BlueDBM DMA buffer 324 
+[    3.088025] Creating BlueDBM DMA buffer 325 
+[    3.088026] Creating BlueDBM DMA buffer 326 
+[    3.088027] Creating BlueDBM DMA buffer 327 
+[    3.088028] Creating BlueDBM DMA buffer 328 
+[    3.088030] Creating BlueDBM DMA buffer 329 
+[    3.088031] Creating BlueDBM DMA buffer 330 
+[    3.088032] Creating BlueDBM DMA buffer 331 
+[    3.088033] Creating BlueDBM DMA buffer 332 
+[    3.088034] Creating BlueDBM DMA buffer 333 
+[    3.088036] Creating BlueDBM DMA buffer 334 
+[    3.088037] Creating BlueDBM DMA buffer 335 
+[    3.088038] Creating BlueDBM DMA buffer 336 
+[    3.088039] Creating BlueDBM DMA buffer 337 
+[    3.088040] Creating BlueDBM DMA buffer 338 
+[    3.088042] Creating BlueDBM DMA buffer 339 
+[    3.088043] Creating BlueDBM DMA buffer 340 
+[    3.088044] Creating BlueDBM DMA buffer 341 
+[    3.088045] Creating BlueDBM DMA buffer 342 
+[    3.088046] Creating BlueDBM DMA buffer 343 
+[    3.088047] Creating BlueDBM DMA buffer 344 
+[    3.088049] Creating BlueDBM DMA buffer 345 
+[    3.088050] Creating BlueDBM DMA buffer 346 
+[    3.088051] Creating BlueDBM DMA buffer 347 
+[    3.088052] Creating BlueDBM DMA buffer 348 
+[    3.088053] Creating BlueDBM DMA buffer 349 
+[    3.088054] Creating BlueDBM DMA buffer 350 
+[    3.088056] Creating BlueDBM DMA buffer 351 
+[    3.088057] Creating BlueDBM DMA buffer 352 
+[    3.088058] Creating BlueDBM DMA buffer 353 
+[    3.088059] Creating BlueDBM DMA buffer 354 
+[    3.088060] Creating BlueDBM DMA buffer 355 
+[    3.088062] Creating BlueDBM DMA buffer 356 
+[    3.088063] Creating BlueDBM DMA buffer 357 
+[    3.088064] Creating BlueDBM DMA buffer 358 
+[    3.088065] Creating BlueDBM DMA buffer 359 
+[    3.088066] Creating BlueDBM DMA buffer 360 
+[    3.088068] Creating BlueDBM DMA buffer 361 
+[    3.088069] Creating BlueDBM DMA buffer 362 
+[    3.088070] Creating BlueDBM DMA buffer 363 
+[    3.088071] Creating BlueDBM DMA buffer 364 
+[    3.088072] Creating BlueDBM DMA buffer 365 
+[    3.088074] Creating BlueDBM DMA buffer 366 
+[    3.088075] Creating BlueDBM DMA buffer 367 
+[    3.088076] Creating BlueDBM DMA buffer 368 
+[    3.088077] Creating BlueDBM DMA buffer 369 
+[    3.088078] Creating BlueDBM DMA buffer 370 
+[    3.088080] Creating BlueDBM DMA buffer 371 
+[    3.088081] Creating BlueDBM DMA buffer 372 
+[    3.088082] Creating BlueDBM DMA buffer 373 
+[    3.088083] Creating BlueDBM DMA buffer 374 
+[    3.088084] Creating BlueDBM DMA buffer 375 
+[    3.088085] Creating BlueDBM DMA buffer 376 
+[    3.088087] Creating BlueDBM DMA buffer 377 
+[    3.088088] Creating BlueDBM DMA buffer 378 
+[    3.088089] Creating BlueDBM DMA buffer 379 
+[    3.088090] Creating BlueDBM DMA buffer 380 
+[    3.088091] Creating BlueDBM DMA buffer 381 
+[    3.088093] Creating BlueDBM DMA buffer 382 
+[    3.088094] Creating BlueDBM DMA buffer 383 
+[    3.088096] Creating BlueDBM DMA buffer 384 
+[    3.088097] Creating BlueDBM DMA buffer 385 
+[    3.088098] Creating BlueDBM DMA buffer 386 
+[    3.088099] Creating BlueDBM DMA buffer 387 
+[    3.088100] Creating BlueDBM DMA buffer 388 
+[    3.088101] Creating BlueDBM DMA buffer 389 
+[    3.088102] Creating BlueDBM DMA buffer 390 
+[    3.088103] Creating BlueDBM DMA buffer 391 
+[    3.088105] Creating BlueDBM DMA buffer 392 
+[    3.088106] Creating BlueDBM DMA buffer 393 
+[    3.088107] Creating BlueDBM DMA buffer 394 
+[    3.088108] Creating BlueDBM DMA buffer 395 
+[    3.088109] Creating BlueDBM DMA buffer 396 
+[    3.088110] Creating BlueDBM DMA buffer 397 
+[    3.088111] Creating BlueDBM DMA buffer 398 
+[    3.088112] Creating BlueDBM DMA buffer 399 
+[    3.088114] Creating BlueDBM DMA buffer 400 
+[    3.088115] Creating BlueDBM DMA buffer 401 
+[    3.088116] Creating BlueDBM DMA buffer 402 
+[    3.088117] Creating BlueDBM DMA buffer 403 
+[    3.088118] Creating BlueDBM DMA buffer 404 
+[    3.088119] Creating BlueDBM DMA buffer 405 
+[    3.088121] Creating BlueDBM DMA buffer 406 
+[    3.088122] Creating BlueDBM DMA buffer 407 
+[    3.088123] Creating BlueDBM DMA buffer 408 
+[    3.088124] Creating BlueDBM DMA buffer 409 
+[    3.088125] Creating BlueDBM DMA buffer 410 
+[    3.088126] Creating BlueDBM DMA buffer 411 
+[    3.088127] Creating BlueDBM DMA buffer 412 
+[    3.088129] Creating BlueDBM DMA buffer 413 
+[    3.088130] Creating BlueDBM DMA buffer 414 
+[    3.088131] Creating BlueDBM DMA buffer 415 
+[    3.088132] Creating BlueDBM DMA buffer 416 
+[    3.088133] Creating BlueDBM DMA buffer 417 
+[    3.088134] Creating BlueDBM DMA buffer 418 
+[    3.088136] Creating BlueDBM DMA buffer 419 
+[    3.088137] Creating BlueDBM DMA buffer 420 
+[    3.088138] Creating BlueDBM DMA buffer 421 
+[    3.088139] Creating BlueDBM DMA buffer 422 
+[    3.088140] Creating BlueDBM DMA buffer 423 
+[    3.088142] Creating BlueDBM DMA buffer 424 
+[    3.088143] Creating BlueDBM DMA buffer 425 
+[    3.088144] Creating BlueDBM DMA buffer 426 
+[    3.088145] Creating BlueDBM DMA buffer 427 
+[    3.088146] Creating BlueDBM DMA buffer 428 
+[    3.088148] Creating BlueDBM DMA buffer 429 
+[    3.088149] Creating BlueDBM DMA buffer 430 
+[    3.088150] Creating BlueDBM DMA buffer 431 
+[    3.088151] Creating BlueDBM DMA buffer 432 
+[    3.088152] Creating BlueDBM DMA buffer 433 
+[    3.088153] Creating BlueDBM DMA buffer 434 
+[    3.088154] Creating BlueDBM DMA buffer 435 
+[    3.088156] Creating BlueDBM DMA buffer 436 
+[    3.088157] Creating BlueDBM DMA buffer 437 
+[    3.088158] Creating BlueDBM DMA buffer 438 
+[    3.088159] Creating BlueDBM DMA buffer 439 
+[    3.088160] Creating BlueDBM DMA buffer 440 
+[    3.088161] Creating BlueDBM DMA buffer 441 
+[    3.088163] Creating BlueDBM DMA buffer 442 
+[    3.088164] Creating BlueDBM DMA buffer 443 
+[    3.088165] Creating BlueDBM DMA buffer 444 
+[    3.088166] Creating BlueDBM DMA buffer 445 
+[    3.088167] Creating BlueDBM DMA buffer 446 
+[    3.088169] Creating BlueDBM DMA buffer 447 
+[    3.088922] Creating BlueDBM DMA buffer 448 
+[    3.088924] Creating BlueDBM DMA buffer 449 
+[    3.088926] Creating BlueDBM DMA buffer 450 
+[    3.088927] Creating BlueDBM DMA buffer 451 
+[    3.088928] Creating BlueDBM DMA buffer 452 
+[    3.088929] Creating BlueDBM DMA buffer 453 
+[    3.088930] Creating BlueDBM DMA buffer 454 
+[    3.088931] Creating BlueDBM DMA buffer 455 
+[    3.088932] Creating BlueDBM DMA buffer 456 
+[    3.088933] Creating BlueDBM DMA buffer 457 
+[    3.088935] Creating BlueDBM DMA buffer 458 
+[    3.088936] Creating BlueDBM DMA buffer 459 
+[    3.088937] Creating BlueDBM DMA buffer 460 
+[    3.088938] Creating BlueDBM DMA buffer 461 
+[    3.088939] Creating BlueDBM DMA buffer 462 
+[    3.088941] Creating BlueDBM DMA buffer 463 
+[    3.088942] Creating BlueDBM DMA buffer 464 
+[    3.088943] Creating BlueDBM DMA buffer 465 
+[    3.088944] Creating BlueDBM DMA buffer 466 
+[    3.088945] Creating BlueDBM DMA buffer 467 
+[    3.088946] Creating BlueDBM DMA buffer 468 
+[    3.088947] Creating BlueDBM DMA buffer 469 
+[    3.088949] Creating BlueDBM DMA buffer 470 
+[    3.088950] Creating BlueDBM DMA buffer 471 
+[    3.088951] Creating BlueDBM DMA buffer 472 
+[    3.088952] Creating BlueDBM DMA buffer 473 
+[    3.088953] Creating BlueDBM DMA buffer 474 
+[    3.088954] Creating BlueDBM DMA buffer 475 
+[    3.088956] Creating BlueDBM DMA buffer 476 
+[    3.088957] Creating BlueDBM DMA buffer 477 
+[    3.088958] Creating BlueDBM DMA buffer 478 
+[    3.088959] Creating BlueDBM DMA buffer 479 
+[    3.088960] Creating BlueDBM DMA buffer 480 
+[    3.088961] Creating BlueDBM DMA buffer 481 
+[    3.088963] Creating BlueDBM DMA buffer 482 
+[    3.088964] Creating BlueDBM DMA buffer 483 
+[    3.088965] Creating BlueDBM DMA buffer 484 
+[    3.088966] Creating BlueDBM DMA buffer 485 
+[    3.088967] Creating BlueDBM DMA buffer 486 
+[    3.088969] Creating BlueDBM DMA buffer 487 
+[    3.088970] Creating BlueDBM DMA buffer 488 
+[    3.088971] Creating BlueDBM DMA buffer 489 
+[    3.088972] Creating BlueDBM DMA buffer 490 
+[    3.088973] Creating BlueDBM DMA buffer 491 
+[    3.088974] Creating BlueDBM DMA buffer 492 
+[    3.088976] Creating BlueDBM DMA buffer 493 
+[    3.088977] Creating BlueDBM DMA buffer 494 
+[    3.088978] Creating BlueDBM DMA buffer 495 
+[    3.088979] Creating BlueDBM DMA buffer 496 
+[    3.088981] Creating BlueDBM DMA buffer 497 
+[    3.088982] Creating BlueDBM DMA buffer 498 
+[    3.088983] Creating BlueDBM DMA buffer 499 
+[    3.088984] Creating BlueDBM DMA buffer 500 
+[    3.088985] Creating BlueDBM DMA buffer 501 
+[    3.088986] Creating BlueDBM DMA buffer 502 
+[    3.088987] Creating BlueDBM DMA buffer 503 
+[    3.088989] Creating BlueDBM DMA buffer 504 
+[    3.088990] Creating BlueDBM DMA buffer 505 
+[    3.088991] Creating BlueDBM DMA buffer 506 
+[    3.088992] Creating BlueDBM DMA buffer 507 
+[    3.088993] Creating BlueDBM DMA buffer 508 
+[    3.088994] Creating BlueDBM DMA buffer 509 
+[    3.088995] Creating BlueDBM DMA buffer 510 
+[    3.088996] Creating BlueDBM DMA buffer 511 
+[    3.088998] Creating BlueDBM DMA buffer 512 
+[    3.088999] Creating BlueDBM DMA buffer 513 
+[    3.089000] Creating BlueDBM DMA buffer 514 
+[    3.089001] Creating BlueDBM DMA buffer 515 
+[    3.089002] Creating BlueDBM DMA buffer 516 
+[    3.089004] Creating BlueDBM DMA buffer 517 
+[    3.089005] Creating BlueDBM DMA buffer 518 
+[    3.089006] Creating BlueDBM DMA buffer 519 
+[    3.089007] Creating BlueDBM DMA buffer 520 
+[    3.089008] Creating BlueDBM DMA buffer 521 
+[    3.089010] Creating BlueDBM DMA buffer 522 
+[    3.089011] Creating BlueDBM DMA buffer 523 
+[    3.089012] Creating BlueDBM DMA buffer 524 
+[    3.089013] Creating BlueDBM DMA buffer 525 
+[    3.089014] Creating BlueDBM DMA buffer 526 
+[    3.089015] Creating BlueDBM DMA buffer 527 
+[    3.089017] Creating BlueDBM DMA buffer 528 
+[    3.089018] Creating BlueDBM DMA buffer 529 
+[    3.089019] Creating BlueDBM DMA buffer 530 
+[    3.089020] Creating BlueDBM DMA buffer 531 
+[    3.089021] Creating BlueDBM DMA buffer 532 
+[    3.089022] Creating BlueDBM DMA buffer 533 
+[    3.089024] Creating BlueDBM DMA buffer 534 
+[    3.089025] Creating BlueDBM DMA buffer 535 
+[    3.089026] Creating BlueDBM DMA buffer 536 
+[    3.089027] Creating BlueDBM DMA buffer 537 
+[    3.089028] Creating BlueDBM DMA buffer 538 
+[    3.089029] Creating BlueDBM DMA buffer 539 
+[    3.089030] Creating BlueDBM DMA buffer 540 
+[    3.089032] Creating BlueDBM DMA buffer 541 
+[    3.089033] Creating BlueDBM DMA buffer 542 
+[    3.089034] Creating BlueDBM DMA buffer 543 
+[    3.089035] Creating BlueDBM DMA buffer 544 
+[    3.089036] Creating BlueDBM DMA buffer 545 
+[    3.089037] Creating BlueDBM DMA buffer 546 
+[    3.089038] Creating BlueDBM DMA buffer 547 
+[    3.089040] Creating BlueDBM DMA buffer 548 
+[    3.089041] Creating BlueDBM DMA buffer 549 
+[    3.089042] Creating BlueDBM DMA buffer 550 
+[    3.089043] Creating BlueDBM DMA buffer 551 
+[    3.089044] Creating BlueDBM DMA buffer 552 
+[    3.089045] Creating BlueDBM DMA buffer 553 
+[    3.089047] Creating BlueDBM DMA buffer 554 
+[    3.089048] Creating BlueDBM DMA buffer 555 
+[    3.089049] Creating BlueDBM DMA buffer 556 
+[    3.089050] Creating BlueDBM DMA buffer 557 
+[    3.089051] Creating BlueDBM DMA buffer 558 
+[    3.089052] Creating BlueDBM DMA buffer 559 
+[    3.089053] Creating BlueDBM DMA buffer 560 
+[    3.089055] Creating BlueDBM DMA buffer 561 
+[    3.089056] Creating BlueDBM DMA buffer 562 
+[    3.089057] Creating BlueDBM DMA buffer 563 
+[    3.089058] Creating BlueDBM DMA buffer 564 
+[    3.089059] Creating BlueDBM DMA buffer 565 
+[    3.089061] Creating BlueDBM DMA buffer 566 
+[    3.089062] Creating BlueDBM DMA buffer 567 
+[    3.089063] Creating BlueDBM DMA buffer 568 
+[    3.089064] Creating BlueDBM DMA buffer 569 
+[    3.089065] Creating BlueDBM DMA buffer 570 
+[    3.089066] Creating BlueDBM DMA buffer 571 
+[    3.089068] Creating BlueDBM DMA buffer 572 
+[    3.089069] Creating BlueDBM DMA buffer 573 
+[    3.089070] Creating BlueDBM DMA buffer 574 
+[    3.089071] Creating BlueDBM DMA buffer 575 
+[    3.089073] Creating BlueDBM DMA buffer 576 
+[    3.089074] Creating BlueDBM DMA buffer 577 
+[    3.089075] Creating BlueDBM DMA buffer 578 
+[    3.089076] Creating BlueDBM DMA buffer 579 
+[    3.089077] Creating BlueDBM DMA buffer 580 
+[    3.089078] Creating BlueDBM DMA buffer 581 
+[    3.089080] Creating BlueDBM DMA buffer 582 
+[    3.089081] Creating BlueDBM DMA buffer 583 
+[    3.089082] Creating BlueDBM DMA buffer 584 
+[    3.089083] Creating BlueDBM DMA buffer 585 
+[    3.089084] Creating BlueDBM DMA buffer 586 
+[    3.089086] Creating BlueDBM DMA buffer 587 
+[    3.089087] Creating BlueDBM DMA buffer 588 
+[    3.089088] Creating BlueDBM DMA buffer 589 
+[    3.089089] Creating BlueDBM DMA buffer 590 
+[    3.089090] Creating BlueDBM DMA buffer 591 
+[    3.089092] Creating BlueDBM DMA buffer 592 
+[    3.089093] Creating BlueDBM DMA buffer 593 
+[    3.089094] Creating BlueDBM DMA buffer 594 
+[    3.089095] Creating BlueDBM DMA buffer 595 
+[    3.089096] Creating BlueDBM DMA buffer 596 
+[    3.089098] Creating BlueDBM DMA buffer 597 
+[    3.089099] Creating BlueDBM DMA buffer 598 
+[    3.089100] Creating BlueDBM DMA buffer 599 
+[    3.089101] Creating BlueDBM DMA buffer 600 
+[    3.089102] Creating BlueDBM DMA buffer 601 
+[    3.089103] Creating BlueDBM DMA buffer 602 
+[    3.089105] Creating BlueDBM DMA buffer 603 
+[    3.089106] Creating BlueDBM DMA buffer 604 
+[    3.089107] Creating BlueDBM DMA buffer 605 
+[    3.089108] Creating BlueDBM DMA buffer 606 
+[    3.089109] Creating BlueDBM DMA buffer 607 
+[    3.089110] Creating BlueDBM DMA buffer 608 
+[    3.089111] Creating BlueDBM DMA buffer 609 
+[    3.089113] Creating BlueDBM DMA buffer 610 
+[    3.089114] Creating BlueDBM DMA buffer 611 
+[    3.089115] Creating BlueDBM DMA buffer 612 
+[    3.089116] Creating BlueDBM DMA buffer 613 
+[    3.089117] Creating BlueDBM DMA buffer 614 
+[    3.089119] Creating BlueDBM DMA buffer 615 
+[    3.089120] Creating BlueDBM DMA buffer 616 
+[    3.089121] Creating BlueDBM DMA buffer 617 
+[    3.089122] Creating BlueDBM DMA buffer 618 
+[    3.089123] Creating BlueDBM DMA buffer 619 
+[    3.089124] Creating BlueDBM DMA buffer 620 
+[    3.089125] Creating BlueDBM DMA buffer 621 
+[    3.089126] Creating BlueDBM DMA buffer 622 
+[    3.089127] Creating BlueDBM DMA buffer 623 
+[    3.089129] Creating BlueDBM DMA buffer 624 
+[    3.089130] Creating BlueDBM DMA buffer 625 
+[    3.089131] Creating BlueDBM DMA buffer 626 
+[    3.089132] Creating BlueDBM DMA buffer 627 
+[    3.089133] Creating BlueDBM DMA buffer 628 
+[    3.089134] Creating BlueDBM DMA buffer 629 
+[    3.089136] Creating BlueDBM DMA buffer 630 
+[    3.089137] Creating BlueDBM DMA buffer 631 
+[    3.089138] Creating BlueDBM DMA buffer 632 
+[    3.089139] Creating BlueDBM DMA buffer 633 
+[    3.089140] Creating BlueDBM DMA buffer 634 
+[    3.089141] Creating BlueDBM DMA buffer 635 
+[    3.089142] Creating BlueDBM DMA buffer 636 
+[    3.089144] Creating BlueDBM DMA buffer 637 
+[    3.089145] Creating BlueDBM DMA buffer 638 
+[    3.089146] Creating BlueDBM DMA buffer 639 
+[    3.089147] Creating BlueDBM DMA buffer 640 
+[    3.089149] Creating BlueDBM DMA buffer 641 
+[    3.089150] Creating BlueDBM DMA buffer 642 
+[    3.089151] Creating BlueDBM DMA buffer 643 
+[    3.089152] Creating BlueDBM DMA buffer 644 
+[    3.089153] Creating BlueDBM DMA buffer 645 
+[    3.089154] Creating BlueDBM DMA buffer 646 
+[    3.089156] Creating BlueDBM DMA buffer 647 
+[    3.089157] Creating BlueDBM DMA buffer 648 
+[    3.089158] Creating BlueDBM DMA buffer 649 
+[    3.089159] Creating BlueDBM DMA buffer 650 
+[    3.089160] Creating BlueDBM DMA buffer 651 
+[    3.089161] Creating BlueDBM DMA buffer 652 
+[    3.089162] Creating BlueDBM DMA buffer 653 
+[    3.089164] Creating BlueDBM DMA buffer 654 
+[    3.089165] Creating BlueDBM DMA buffer 655 
+[    3.089166] Creating BlueDBM DMA buffer 656 
+[    3.089167] Creating BlueDBM DMA buffer 657 
+[    3.089168] Creating BlueDBM DMA buffer 658 
+[    3.089169] Creating BlueDBM DMA buffer 659 
+[    3.089171] Creating BlueDBM DMA buffer 660 
+[    3.089172] Creating BlueDBM DMA buffer 661 
+[    3.089173] Creating BlueDBM DMA buffer 662 
+[    3.089174] Creating BlueDBM DMA buffer 663 
+[    3.089175] Creating BlueDBM DMA buffer 664 
+[    3.089176] Creating BlueDBM DMA buffer 665 
+[    3.089178] Creating BlueDBM DMA buffer 666 
+[    3.089179] Creating BlueDBM DMA buffer 667 
+[    3.089180] Creating BlueDBM DMA buffer 668 
+[    3.089181] Creating BlueDBM DMA buffer 669 
+[    3.089182] Creating BlueDBM DMA buffer 670 
+[    3.089183] Creating BlueDBM DMA buffer 671 
+[    3.089185] Creating BlueDBM DMA buffer 672 
+[    3.089186] Creating BlueDBM DMA buffer 673 
+[    3.089187] Creating BlueDBM DMA buffer 674 
+[    3.089188] Creating BlueDBM DMA buffer 675 
+[    3.089189] Creating BlueDBM DMA buffer 676 
+[    3.089190] Creating BlueDBM DMA buffer 677 
+[    3.089191] Creating BlueDBM DMA buffer 678 
+[    3.089193] Creating BlueDBM DMA buffer 679 
+[    3.089194] Creating BlueDBM DMA buffer 680 
+[    3.089195] Creating BlueDBM DMA buffer 681 
+[    3.089196] Creating BlueDBM DMA buffer 682 
+[    3.089198] Creating BlueDBM DMA buffer 683 
+[    3.089199] Creating BlueDBM DMA buffer 684 
+[    3.089200] Creating BlueDBM DMA buffer 685 
+[    3.089201] Creating BlueDBM DMA buffer 686 
+[    3.089202] Creating BlueDBM DMA buffer 687 
+[    3.089204] Creating BlueDBM DMA buffer 688 
+[    3.089205] Creating BlueDBM DMA buffer 689 
+[    3.089206] Creating BlueDBM DMA buffer 690 
+[    3.089207] Creating BlueDBM DMA buffer 691 
+[    3.089208] Creating BlueDBM DMA buffer 692 
+[    3.089209] Creating BlueDBM DMA buffer 693 
+[    3.089211] Creating BlueDBM DMA buffer 694 
+[    3.089212] Creating BlueDBM DMA buffer 695 
+[    3.089213] Creating BlueDBM DMA buffer 696 
+[    3.089214] Creating BlueDBM DMA buffer 697 
+[    3.089215] Creating BlueDBM DMA buffer 698 
+[    3.089216] Creating BlueDBM DMA buffer 699 
+[    3.089217] Creating BlueDBM DMA buffer 700 
+[    3.089219] Creating BlueDBM DMA buffer 701 
+[    3.089220] Creating BlueDBM DMA buffer 702 
+[    3.089221] Creating BlueDBM DMA buffer 703 
+[    3.089222] Creating BlueDBM DMA buffer 704 
+[    3.089223] Creating BlueDBM DMA buffer 705 
+[    3.089224] Creating BlueDBM DMA buffer 706 
+[    3.089225] Creating BlueDBM DMA buffer 707 
+[    3.089227] Creating BlueDBM DMA buffer 708 
+[    3.089228] Creating BlueDBM DMA buffer 709 
+[    3.089229] Creating BlueDBM DMA buffer 710 
+[    3.089230] Creating BlueDBM DMA buffer 711 
+[    3.089231] Creating BlueDBM DMA buffer 712 
+[    3.089232] Creating BlueDBM DMA buffer 713 
+[    3.089234] Creating BlueDBM DMA buffer 714 
+[    3.089235] Creating BlueDBM DMA buffer 715 
+[    3.089236] Creating BlueDBM DMA buffer 716 
+[    3.089237] Creating BlueDBM DMA buffer 717 
+[    3.089238] Creating BlueDBM DMA buffer 718 
+[    3.089239] Creating BlueDBM DMA buffer 719 
+[    3.089240] Creating BlueDBM DMA buffer 720 
+[    3.089241] Creating BlueDBM DMA buffer 721 
+[    3.089243] Creating BlueDBM DMA buffer 722 
+[    3.089244] Creating BlueDBM DMA buffer 723 
+[    3.089245] Creating BlueDBM DMA buffer 724 
+[    3.089246] Creating BlueDBM DMA buffer 725 
+[    3.089247] Creating BlueDBM DMA buffer 726 
+[    3.089248] Creating BlueDBM DMA buffer 727 
+[    3.089250] Creating BlueDBM DMA buffer 728 
+[    3.089251] Creating BlueDBM DMA buffer 729 
+[    3.089252] Creating BlueDBM DMA buffer 730 
+[    3.089253] Creating BlueDBM DMA buffer 731 
+[    3.089254] Creating BlueDBM DMA buffer 732 
+[    3.089255] Creating BlueDBM DMA buffer 733 
+[    3.089256] Creating BlueDBM DMA buffer 734 
+[    3.089257] Creating BlueDBM DMA buffer 735 
+[    3.089259] Creating BlueDBM DMA buffer 736 
+[    3.089260] Creating BlueDBM DMA buffer 737 
+[    3.089261] Creating BlueDBM DMA buffer 738 
+[    3.089262] Creating BlueDBM DMA buffer 739 
+[    3.089263] Creating BlueDBM DMA buffer 740 
+[    3.089264] Creating BlueDBM DMA buffer 741 
+[    3.089265] Creating BlueDBM DMA buffer 742 
+[    3.089266] Creating BlueDBM DMA buffer 743 
+[    3.089268] Creating BlueDBM DMA buffer 744 
+[    3.089269] Creating BlueDBM DMA buffer 745 
+[    3.089270] Creating BlueDBM DMA buffer 746 
+[    3.089271] Creating BlueDBM DMA buffer 747 
+[    3.089272] Creating BlueDBM DMA buffer 748 
+[    3.089273] Creating BlueDBM DMA buffer 749 
+[    3.089275] Creating BlueDBM DMA buffer 750 
+[    3.089276] Creating BlueDBM DMA buffer 751 
+[    3.089277] Creating BlueDBM DMA buffer 752 
+[    3.089278] Creating BlueDBM DMA buffer 753 
+[    3.089279] Creating BlueDBM DMA buffer 754 
+[    3.089281] Creating BlueDBM DMA buffer 755 
+[    3.089282] Creating BlueDBM DMA buffer 756 
+[    3.089283] Creating BlueDBM DMA buffer 757 
+[    3.089284] Creating BlueDBM DMA buffer 758 
+[    3.089285] Creating BlueDBM DMA buffer 759 
+[    3.089287] Creating BlueDBM DMA buffer 760 
+[    3.089288] Creating BlueDBM DMA buffer 761 
+[    3.089289] Creating BlueDBM DMA buffer 762 
+[    3.089290] Creating BlueDBM DMA buffer 763 
+[    3.089291] Creating BlueDBM DMA buffer 764 
+[    3.089292] Creating BlueDBM DMA buffer 765 
+[    3.089294] Creating BlueDBM DMA buffer 766 
+[    3.089295] Creating BlueDBM DMA buffer 767 
+[    3.089296] Creating BlueDBM DMA buffer 768 
+[    3.089297] Creating BlueDBM DMA buffer 769 
+[    3.089298] Creating BlueDBM DMA buffer 770 
+[    3.089300] Creating BlueDBM DMA buffer 771 
+[    3.089301] Creating BlueDBM DMA buffer 772 
+[    3.089302] Creating BlueDBM DMA buffer 773 
+[    3.089303] Creating BlueDBM DMA buffer 774 
+[    3.089304] Creating BlueDBM DMA buffer 775 
+[    3.089305] Creating BlueDBM DMA buffer 776 
+[    3.089306] Creating BlueDBM DMA buffer 777 
+[    3.089307] Creating BlueDBM DMA buffer 778 
+[    3.089309] Creating BlueDBM DMA buffer 779 
+[    3.089310] Creating BlueDBM DMA buffer 780 
+[    3.089311] Creating BlueDBM DMA buffer 781 
+[    3.089312] Creating BlueDBM DMA buffer 782 
+[    3.089313] Creating BlueDBM DMA buffer 783 
+[    3.089314] Creating BlueDBM DMA buffer 784 
+[    3.089315] Creating BlueDBM DMA buffer 785 
+[    3.089317] Creating BlueDBM DMA buffer 786 
+[    3.089318] Creating BlueDBM DMA buffer 787 
+[    3.089319] Creating BlueDBM DMA buffer 788 
+[    3.089320] Creating BlueDBM DMA buffer 789 
+[    3.089321] Creating BlueDBM DMA buffer 790 
+[    3.089322] Creating BlueDBM DMA buffer 791 
+[    3.089323] Creating BlueDBM DMA buffer 792 
+[    3.089325] Creating BlueDBM DMA buffer 793 
+[    3.089326] Creating BlueDBM DMA buffer 794 
+[    3.089327] Creating BlueDBM DMA buffer 795 
+[    3.089328] Creating BlueDBM DMA buffer 796 
+[    3.089330] Creating BlueDBM DMA buffer 797 
+[    3.089331] Creating BlueDBM DMA buffer 798 
+[    3.089332] Creating BlueDBM DMA buffer 799 
+[    3.089333] Creating BlueDBM DMA buffer 800 
+[    3.089334] Creating BlueDBM DMA buffer 801 
+[    3.089335] Creating BlueDBM DMA buffer 802 
+[    3.089336] Creating BlueDBM DMA buffer 803 
+[    3.089338] Creating BlueDBM DMA buffer 804 
+[    3.089339] Creating BlueDBM DMA buffer 805 
+[    3.089340] Creating BlueDBM DMA buffer 806 
+[    3.089341] Creating BlueDBM DMA buffer 807 
+[    3.089342] Creating BlueDBM DMA buffer 808 
+[    3.089343] Creating BlueDBM DMA buffer 809 
+[    3.089344] Creating BlueDBM DMA buffer 810 
+[    3.089346] Creating BlueDBM DMA buffer 811 
+[    3.089347] Creating BlueDBM DMA buffer 812 
+[    3.089348] Creating BlueDBM DMA buffer 813 
+[    3.089349] Creating BlueDBM DMA buffer 814 
+[    3.089350] Creating BlueDBM DMA buffer 815 
+[    3.089353] Creating BlueDBM DMA buffer 816 
+[    3.089354] Creating BlueDBM DMA buffer 817 
+[    3.089355] Creating BlueDBM DMA buffer 818 
+[    3.089357] Creating BlueDBM DMA buffer 819 
+[    3.089358] Creating BlueDBM DMA buffer 820 
+[    3.089360] Creating BlueDBM DMA buffer 821 
+[    3.089361] Creating BlueDBM DMA buffer 822 
+[    3.089363] Creating BlueDBM DMA buffer 823 
+[    3.089364] Creating BlueDBM DMA buffer 824 
+[    3.089366] Creating BlueDBM DMA buffer 825 
+[    3.089367] Creating BlueDBM DMA buffer 826 
+[    3.089368] Creating BlueDBM DMA buffer 827 
+[    3.089370] Creating BlueDBM DMA buffer 828 
+[    3.089371] Creating BlueDBM DMA buffer 829 
+[    3.089373] Creating BlueDBM DMA buffer 830 
+[    3.089374] Creating BlueDBM DMA buffer 831 
+[    3.089375] Creating BlueDBM DMA buffer 832 
+[    3.089376] Creating BlueDBM DMA buffer 833 
+[    3.089377] Creating BlueDBM DMA buffer 834 
+[    3.089378] Creating BlueDBM DMA buffer 835 
+[    3.089380] Creating BlueDBM DMA buffer 836 
+[    3.089381] Creating BlueDBM DMA buffer 837 
+[    3.089382] Creating BlueDBM DMA buffer 838 
+[    3.089383] Creating BlueDBM DMA buffer 839 
+[    3.089384] Creating BlueDBM DMA buffer 840 
+[    3.089386] Creating BlueDBM DMA buffer 841 
+[    3.089387] Creating BlueDBM DMA buffer 842 
+[    3.089388] Creating BlueDBM DMA buffer 843 
+[    3.089389] Creating BlueDBM DMA buffer 844 
+[    3.089390] Creating BlueDBM DMA buffer 845 
+[    3.089392] Creating BlueDBM DMA buffer 846 
+[    3.089393] Creating BlueDBM DMA buffer 847 
+[    3.089394] Creating BlueDBM DMA buffer 848 
+[    3.089395] Creating BlueDBM DMA buffer 849 
+[    3.089396] Creating BlueDBM DMA buffer 850 
+[    3.089398] Creating BlueDBM DMA buffer 851 
+[    3.089399] Creating BlueDBM DMA buffer 852 
+[    3.089400] Creating BlueDBM DMA buffer 853 
+[    3.089401] Creating BlueDBM DMA buffer 854 
+[    3.089402] Creating BlueDBM DMA buffer 855 
+[    3.089403] Creating BlueDBM DMA buffer 856 
+[    3.089405] Creating BlueDBM DMA buffer 857 
+[    3.089406] Creating BlueDBM DMA buffer 858 
+[    3.089407] Creating BlueDBM DMA buffer 859 
+[    3.089408] Creating BlueDBM DMA buffer 860 
+[    3.089409] Creating BlueDBM DMA buffer 861 
+[    3.089410] Creating BlueDBM DMA buffer 862 
+[    3.089412] Creating BlueDBM DMA buffer 863 
+[    3.089413] Creating BlueDBM DMA buffer 864 
+[    3.089414] Creating BlueDBM DMA buffer 865 
+[    3.089415] Creating BlueDBM DMA buffer 866 
+[    3.089416] Creating BlueDBM DMA buffer 867 
+[    3.089417] Creating BlueDBM DMA buffer 868 
+[    3.089419] Creating BlueDBM DMA buffer 869 
+[    3.089420] Creating BlueDBM DMA buffer 870 
+[    3.089421] Creating BlueDBM DMA buffer 871 
+[    3.089422] Creating BlueDBM DMA buffer 872 
+[    3.089423] Creating BlueDBM DMA buffer 873 
+[    3.089424] Creating BlueDBM DMA buffer 874 
+[    3.089426] Creating BlueDBM DMA buffer 875 
+[    3.089427] Creating BlueDBM DMA buffer 876 
+[    3.089428] Creating BlueDBM DMA buffer 877 
+[    3.089429] Creating BlueDBM DMA buffer 878 
+[    3.089430] Creating BlueDBM DMA buffer 879 
+[    3.089431] Creating BlueDBM DMA buffer 880 
+[    3.089433] Creating BlueDBM DMA buffer 881 
+[    3.089434] Creating BlueDBM DMA buffer 882 
+[    3.089435] Creating BlueDBM DMA buffer 883 
+[    3.089436] Creating BlueDBM DMA buffer 884 
+[    3.089442] Creating BlueDBM DMA buffer 885 
+[    3.089443] Creating BlueDBM DMA buffer 886 
+[    3.089444] Creating BlueDBM DMA buffer 887 
+[    3.089445] Creating BlueDBM DMA buffer 888 
+[    3.089446] Creating BlueDBM DMA buffer 889 
+[    3.089447] Creating BlueDBM DMA buffer 890 
+[    3.089449] Creating BlueDBM DMA buffer 891 
+[    3.089450] Creating BlueDBM DMA buffer 892 
+[    3.089451] Creating BlueDBM DMA buffer 893 
+[    3.089453] Creating BlueDBM DMA buffer 894 
+[    3.089454] Creating BlueDBM DMA buffer 895 
+[    3.089456] Creating BlueDBM DMA buffer 896 
+[    3.089457] Creating BlueDBM DMA buffer 897 
+[    3.089459] Creating BlueDBM DMA buffer 898 
+[    3.089460] Creating BlueDBM DMA buffer 899 
+[    3.089461] Creating BlueDBM DMA buffer 900 
+[    3.089462] Creating BlueDBM DMA buffer 901 
+[    3.089463] Creating BlueDBM DMA buffer 902 
+[    3.089464] Creating BlueDBM DMA buffer 903 
+[    3.089466] Creating BlueDBM DMA buffer 904 
+[    3.089467] Creating BlueDBM DMA buffer 905 
+[    3.089468] Creating BlueDBM DMA buffer 906 
+[    3.089469] Creating BlueDBM DMA buffer 907 
+[    3.089470] Creating BlueDBM DMA buffer 908 
+[    3.089472] Creating BlueDBM DMA buffer 909 
+[    3.089473] Creating BlueDBM DMA buffer 910 
+[    3.089474] Creating BlueDBM DMA buffer 911 
+[    3.089475] Creating BlueDBM DMA buffer 912 
+[    3.089476] Creating BlueDBM DMA buffer 913 
+[    3.089477] Creating BlueDBM DMA buffer 914 
+[    3.089478] Creating BlueDBM DMA buffer 915 
+[    3.089480] Creating BlueDBM DMA buffer 916 
+[    3.089481] Creating BlueDBM DMA buffer 917 
+[    3.089482] Creating BlueDBM DMA buffer 918 
+[    3.089483] Creating BlueDBM DMA buffer 919 
+[    3.089485] Creating BlueDBM DMA buffer 920 
+[    3.089486] Creating BlueDBM DMA buffer 921 
+[    3.089487] Creating BlueDBM DMA buffer 922 
+[    3.089488] Creating BlueDBM DMA buffer 923 
+[    3.089489] Creating BlueDBM DMA buffer 924 
+[    3.089491] Creating BlueDBM DMA buffer 925 
+[    3.089492] Creating BlueDBM DMA buffer 926 
+[    3.089493] Creating BlueDBM DMA buffer 927 
+[    3.089494] Creating BlueDBM DMA buffer 928 
+[    3.089495] Creating BlueDBM DMA buffer 929 
+[    3.089496] Creating BlueDBM DMA buffer 930 
+[    3.089497] Creating BlueDBM DMA buffer 931 
+[    3.089499] Creating BlueDBM DMA buffer 932 
+[    3.089500] Creating BlueDBM DMA buffer 933 
+[    3.089501] Creating BlueDBM DMA buffer 934 
+[    3.089502] Creating BlueDBM DMA buffer 935 
+[    3.089503] Creating BlueDBM DMA buffer 936 
+[    3.089504] Creating BlueDBM DMA buffer 937 
+[    3.089506] Creating BlueDBM DMA buffer 938 
+[    3.089507] Creating BlueDBM DMA buffer 939 
+[    3.089508] Creating BlueDBM DMA buffer 940 
+[    3.089509] Creating BlueDBM DMA buffer 941 
+[    3.089510] Creating BlueDBM DMA buffer 942 
+[    3.089511] Creating BlueDBM DMA buffer 943 
+[    3.089513] Creating BlueDBM DMA buffer 944 
+[    3.089514] Creating BlueDBM DMA buffer 945 
+[    3.089515] Creating BlueDBM DMA buffer 946 
+[    3.089516] Creating BlueDBM DMA buffer 947 
+[    3.089517] Creating BlueDBM DMA buffer 948 
+[    3.089518] Creating BlueDBM DMA buffer 949 
+[    3.089520] Creating BlueDBM DMA buffer 950 
+[    3.089521] Creating BlueDBM DMA buffer 951 
+[    3.089522] Creating BlueDBM DMA buffer 952 
+[    3.089523] Creating BlueDBM DMA buffer 953 
+[    3.089524] Creating BlueDBM DMA buffer 954 
+[    3.089525] Creating BlueDBM DMA buffer 955 
+[    3.089527] Creating BlueDBM DMA buffer 956 
+[    3.089528] Creating BlueDBM DMA buffer 957 
+[    3.089529] Creating BlueDBM DMA buffer 958 
+[    3.089530] Creating BlueDBM DMA buffer 959 
+[    3.089531] Creating BlueDBM DMA buffer 960 
+[    3.089532] Creating BlueDBM DMA buffer 961 
+[    3.089534] Creating BlueDBM DMA buffer 962 
+[    3.089535] Creating BlueDBM DMA buffer 963 
+[    3.089536] Creating BlueDBM DMA buffer 964 
+[    3.089537] Creating BlueDBM DMA buffer 965 
+[    3.089538] Creating BlueDBM DMA buffer 966 
+[    3.089540] Creating BlueDBM DMA buffer 967 
+[    3.089541] Creating BlueDBM DMA buffer 968 
+[    3.089542] Creating BlueDBM DMA buffer 969 
+[    3.089543] Creating BlueDBM DMA buffer 970 
+[    3.089544] Creating BlueDBM DMA buffer 971 
+[    3.089546] Creating BlueDBM DMA buffer 972 
+[    3.089547] Creating BlueDBM DMA buffer 973 
+[    3.089548] Creating BlueDBM DMA buffer 974 
+[    3.089549] Creating BlueDBM DMA buffer 975 
+[    3.089550] Creating BlueDBM DMA buffer 976 
+[    3.089552] Creating BlueDBM DMA buffer 977 
+[    3.089553] Creating BlueDBM DMA buffer 978 
+[    3.089554] Creating BlueDBM DMA buffer 979 
+[    3.089555] Creating BlueDBM DMA buffer 980 
+[    3.089556] Creating BlueDBM DMA buffer 981 
+[    3.089557] Creating BlueDBM DMA buffer 982 
+[    3.089559] Creating BlueDBM DMA buffer 983 
+[    3.089560] Creating BlueDBM DMA buffer 984 
+[    3.089561] Creating BlueDBM DMA buffer 985 
+[    3.089562] Creating BlueDBM DMA buffer 986 
+[    3.089563] Creating BlueDBM DMA buffer 987 
+[    3.089564] Creating BlueDBM DMA buffer 988 
+[    3.089566] Creating BlueDBM DMA buffer 989 
+[    3.089567] Creating BlueDBM DMA buffer 990 
+[    3.089568] Creating BlueDBM DMA buffer 991 
+[    3.089569] Creating BlueDBM DMA buffer 992 
+[    3.089571] Creating BlueDBM DMA buffer 993 
+[    3.089572] Creating BlueDBM DMA buffer 994 
+[    3.089573] Creating BlueDBM DMA buffer 995 
+[    3.089574] Creating BlueDBM DMA buffer 996 
+[    3.089576] Creating BlueDBM DMA buffer 997 
+[    3.089577] Creating BlueDBM DMA buffer 998 
+[    3.089578] Creating BlueDBM DMA buffer 999 
+[    3.089579] Creating BlueDBM DMA buffer 1000 
+[    3.089580] Creating BlueDBM DMA buffer 1001 
+[    3.089581] Creating BlueDBM DMA buffer 1002 
+[    3.089583] Creating BlueDBM DMA buffer 1003 
+[    3.089584] Creating BlueDBM DMA buffer 1004 
+[    3.089586] Creating BlueDBM DMA buffer 1005 
+[    3.089587] Creating BlueDBM DMA buffer 1006 
+[    3.089588] Creating BlueDBM DMA buffer 1007 
+[    3.089589] Creating BlueDBM DMA buffer 1008 
+[    3.089590] Creating BlueDBM DMA buffer 1009 
+[    3.089591] Creating BlueDBM DMA buffer 1010 
+[    3.089593] Creating BlueDBM DMA buffer 1011 
+[    3.089594] Creating BlueDBM DMA buffer 1012 
+[    3.089595] Creating BlueDBM DMA buffer 1013 
+[    3.089596] Creating BlueDBM DMA buffer 1014 
+[    3.089597] Creating BlueDBM DMA buffer 1015 
+[    3.089599] Creating BlueDBM DMA buffer 1016 
+[    3.089600] Creating BlueDBM DMA buffer 1017 
+[    3.089601] Creating BlueDBM DMA buffer 1018 
+[    3.089602] Creating BlueDBM DMA buffer 1019 
+[    3.089603] Creating BlueDBM DMA buffer 1020 
+[    3.089604] Creating BlueDBM DMA buffer 1021 
+[    3.089606] Creating BlueDBM DMA buffer 1022 
+[    3.089607] Creating BlueDBM DMA buffer 1023 
+[    3.089608] Creating BlueDBM DMA buffer 1024 
+[    3.089609] Creating BlueDBM DMA buffer 1025 
+[    3.089611] Creating BlueDBM DMA buffer 1026 
+[    3.089612] Creating BlueDBM DMA buffer 1027 
+[    3.089613] Creating BlueDBM DMA buffer 1028 
+[    3.089614] Creating BlueDBM DMA buffer 1029 
+[    3.089616] Creating BlueDBM DMA buffer 1030 
+[    3.089617] Creating BlueDBM DMA buffer 1031 
+[    3.089618] Creating BlueDBM DMA buffer 1032 
+[    3.089619] Creating BlueDBM DMA buffer 1033 
+[    3.089620] Creating BlueDBM DMA buffer 1034 
+[    3.089621] Creating BlueDBM DMA buffer 1035 
+[    3.089623] Creating BlueDBM DMA buffer 1036 
+[    3.089624] Creating BlueDBM DMA buffer 1037 
+[    3.089625] Creating BlueDBM DMA buffer 1038 
+[    3.089626] Creating BlueDBM DMA buffer 1039 
+[    3.089627] Creating BlueDBM DMA buffer 1040 
+[    3.089629] Creating BlueDBM DMA buffer 1041 
+[    3.089630] Creating BlueDBM DMA buffer 1042 
+[    3.089631] Creating BlueDBM DMA buffer 1043 
+[    3.089632] Creating BlueDBM DMA buffer 1044 
+[    3.089633] Creating BlueDBM DMA buffer 1045 
+[    3.089634] Creating BlueDBM DMA buffer 1046 
+[    3.089636] Creating BlueDBM DMA buffer 1047 
+[    3.089637] Creating BlueDBM DMA buffer 1048 
+[    3.089638] Creating BlueDBM DMA buffer 1049 
+[    3.089640] Creating BlueDBM DMA buffer 1050 
+[    3.089641] Creating BlueDBM DMA buffer 1051 
+[    3.089643] Creating BlueDBM DMA buffer 1052 
+[    3.089644] Creating BlueDBM DMA buffer 1053 
+[    3.089645] Creating BlueDBM DMA buffer 1054 
+[    3.089646] Creating BlueDBM DMA buffer 1055 
+[    3.089647] Creating BlueDBM DMA buffer 1056 
+[    3.089648] Creating BlueDBM DMA buffer 1057 
+[    3.089649] Creating BlueDBM DMA buffer 1058 
+[    3.089651] Creating BlueDBM DMA buffer 1059 
+[    3.089652] Creating BlueDBM DMA buffer 1060 
+[    3.089653] Creating BlueDBM DMA buffer 1061 
+[    3.089654] Creating BlueDBM DMA buffer 1062 
+[    3.089655] Creating BlueDBM DMA buffer 1063 
+[    3.089656] Creating BlueDBM DMA buffer 1064 
+[    3.089658] Creating BlueDBM DMA buffer 1065 
+[    3.089659] Creating BlueDBM DMA buffer 1066 
+[    3.089660] Creating BlueDBM DMA buffer 1067 
+[    3.089661] Creating BlueDBM DMA buffer 1068 
+[    3.089662] Creating BlueDBM DMA buffer 1069 
+[    3.089663] Creating BlueDBM DMA buffer 1070 
+[    3.089665] Creating BlueDBM DMA buffer 1071 
+[    3.089666] Creating BlueDBM DMA buffer 1072 
+[    3.089667] Creating BlueDBM DMA buffer 1073 
+[    3.089669] Creating BlueDBM DMA buffer 1074 
+[    3.089670] Creating BlueDBM DMA buffer 1075 
+[    3.089671] Creating BlueDBM DMA buffer 1076 
+[    3.089672] Creating BlueDBM DMA buffer 1077 
+[    3.089673] Creating BlueDBM DMA buffer 1078 
+[    3.089675] Creating BlueDBM DMA buffer 1079 
+[    3.089676] Creating BlueDBM DMA buffer 1080 
+[    3.089677] Creating BlueDBM DMA buffer 1081 
+[    3.089679] Creating BlueDBM DMA buffer 1082 
+[    3.089680] Creating BlueDBM DMA buffer 1083 
+[    3.089681] Creating BlueDBM DMA buffer 1084 
+[    3.089682] Creating BlueDBM DMA buffer 1085 
+[    3.089683] Creating BlueDBM DMA buffer 1086 
+[    3.089684] Creating BlueDBM DMA buffer 1087 
+[    3.089686] Creating BlueDBM DMA buffer 1088 
+[    3.089687] Creating BlueDBM DMA buffer 1089 
+[    3.089688] Creating BlueDBM DMA buffer 1090 
+[    3.089689] Creating BlueDBM DMA buffer 1091 
+[    3.089690] Creating BlueDBM DMA buffer 1092 
+[    3.089692] Creating BlueDBM DMA buffer 1093 
+[    3.089693] Creating BlueDBM DMA buffer 1094 
+[    3.089694] Creating BlueDBM DMA buffer 1095 
+[    3.089695] Creating BlueDBM DMA buffer 1096 
+[    3.089696] Creating BlueDBM DMA buffer 1097 
+[    3.089697] Creating BlueDBM DMA buffer 1098 
+[    3.089698] Creating BlueDBM DMA buffer 1099 
+[    3.089700] Creating BlueDBM DMA buffer 1100 
+[    3.089701] Creating BlueDBM DMA buffer 1101 
+[    3.089702] Creating BlueDBM DMA buffer 1102 
+[    3.089703] Creating BlueDBM DMA buffer 1103 
+[    3.089704] Creating BlueDBM DMA buffer 1104 
+[    3.089706] Creating BlueDBM DMA buffer 1105 
+[    3.089707] Creating BlueDBM DMA buffer 1106 
+[    3.089708] Creating BlueDBM DMA buffer 1107 
+[    3.089709] Creating BlueDBM DMA buffer 1108 
+[    3.089710] Creating BlueDBM DMA buffer 1109 
+[    3.089712] Creating BlueDBM DMA buffer 1110 
+[    3.089713] Creating BlueDBM DMA buffer 1111 
+[    3.089714] Creating BlueDBM DMA buffer 1112 
+[    3.089715] Creating BlueDBM DMA buffer 1113 
+[    3.089716] Creating BlueDBM DMA buffer 1114 
+[    3.089717] Creating BlueDBM DMA buffer 1115 
+[    3.089718] Creating BlueDBM DMA buffer 1116 
+[    3.089720] Creating BlueDBM DMA buffer 1117 
+[    3.089721] Creating BlueDBM DMA buffer 1118 
+[    3.089722] Creating BlueDBM DMA buffer 1119 
+[    3.089723] Creating BlueDBM DMA buffer 1120 
+[    3.089724] Creating BlueDBM DMA buffer 1121 
+[    3.089725] Creating BlueDBM DMA buffer 1122 
+[    3.089726] Creating BlueDBM DMA buffer 1123 
+[    3.089728] Creating BlueDBM DMA buffer 1124 
+[    3.089729] Creating BlueDBM DMA buffer 1125 
+[    3.089730] Creating BlueDBM DMA buffer 1126 
+[    3.089731] Creating BlueDBM DMA buffer 1127 
+[    3.089732] Creating BlueDBM DMA buffer 1128 
+[    3.089733] Creating BlueDBM DMA buffer 1129 
+[    3.089735] Creating BlueDBM DMA buffer 1130 
+[    3.089736] Creating BlueDBM DMA buffer 1131 
+[    3.089737] Creating BlueDBM DMA buffer 1132 
+[    3.089738] Creating BlueDBM DMA buffer 1133 
+[    3.089739] Creating BlueDBM DMA buffer 1134 
+[    3.089740] Creating BlueDBM DMA buffer 1135 
+[    3.089742] Creating BlueDBM DMA buffer 1136 
+[    3.089743] Creating BlueDBM DMA buffer 1137 
+[    3.089744] Creating BlueDBM DMA buffer 1138 
+[    3.089745] Creating BlueDBM DMA buffer 1139 
+[    3.089746] Creating BlueDBM DMA buffer 1140 
+[    3.089747] Creating BlueDBM DMA buffer 1141 
+[    3.089748] Creating BlueDBM DMA buffer 1142 
+[    3.089749] Creating BlueDBM DMA buffer 1143 
+[    3.089751] Creating BlueDBM DMA buffer 1144 
+[    3.089752] Creating BlueDBM DMA buffer 1145 
+[    3.089753] Creating BlueDBM DMA buffer 1146 
+[    3.089754] Creating BlueDBM DMA buffer 1147 
+[    3.089755] Creating BlueDBM DMA buffer 1148 
+[    3.089756] Creating BlueDBM DMA buffer 1149 
+[    3.089758] Creating BlueDBM DMA buffer 1150 
+[    3.089759] Creating BlueDBM DMA buffer 1151 
+[    3.089760] Creating BlueDBM DMA buffer 1152 
+[    3.089761] Creating BlueDBM DMA buffer 1153 
+[    3.089762] Creating BlueDBM DMA buffer 1154 
+[    3.089764] Creating BlueDBM DMA buffer 1155 
+[    3.089765] Creating BlueDBM DMA buffer 1156 
+[    3.089766] Creating BlueDBM DMA buffer 1157 
+[    3.089767] Creating BlueDBM DMA buffer 1158 
+[    3.089768] Creating BlueDBM DMA buffer 1159 
+[    3.089769] Creating BlueDBM DMA buffer 1160 
+[    3.089771] Creating BlueDBM DMA buffer 1161 
+[    3.089772] Creating BlueDBM DMA buffer 1162 
+[    3.089773] Creating BlueDBM DMA buffer 1163 
+[    3.089774] Creating BlueDBM DMA buffer 1164 
+[    3.089775] Creating BlueDBM DMA buffer 1165 
+[    3.089776] Creating BlueDBM DMA buffer 1166 
+[    3.089778] Creating BlueDBM DMA buffer 1167 
+[    3.089779] Creating BlueDBM DMA buffer 1168 
+[    3.089780] Creating BlueDBM DMA buffer 1169 
+[    3.089782] Creating BlueDBM DMA buffer 1170 
+[    3.089783] Creating BlueDBM DMA buffer 1171 
+[    3.089784] Creating BlueDBM DMA buffer 1172 
+[    3.089785] Creating BlueDBM DMA buffer 1173 
+[    3.089787] Creating BlueDBM DMA buffer 1174 
+[    3.089788] Creating BlueDBM DMA buffer 1175 
+[    3.089789] Creating BlueDBM DMA buffer 1176 
+[    3.089790] Creating BlueDBM DMA buffer 1177 
+[    3.089792] Creating BlueDBM DMA buffer 1178 
+[    3.089793] Creating BlueDBM DMA buffer 1179 
+[    3.089794] Creating BlueDBM DMA buffer 1180 
+[    3.089795] Creating BlueDBM DMA buffer 1181 
+[    3.089796] Creating BlueDBM DMA buffer 1182 
+[    3.089798] Creating BlueDBM DMA buffer 1183 
+[    3.089799] Creating BlueDBM DMA buffer 1184 
+[    3.089800] Creating BlueDBM DMA buffer 1185 
+[    3.089801] Creating BlueDBM DMA buffer 1186 
+[    3.089803] Creating BlueDBM DMA buffer 1187 
+[    3.089804] Creating BlueDBM DMA buffer 1188 
+[    3.089805] Creating BlueDBM DMA buffer 1189 
+[    3.089806] Creating BlueDBM DMA buffer 1190 
+[    3.089807] Creating BlueDBM DMA buffer 1191 
+[    3.089808] Creating BlueDBM DMA buffer 1192 
+[    3.089810] Creating BlueDBM DMA buffer 1193 
+[    3.089811] Creating BlueDBM DMA buffer 1194 
+[    3.089812] Creating BlueDBM DMA buffer 1195 
+[    3.089813] Creating BlueDBM DMA buffer 1196 
+[    3.089815] Creating BlueDBM DMA buffer 1197 
+[    3.089816] Creating BlueDBM DMA buffer 1198 
+[    3.089817] Creating BlueDBM DMA buffer 1199 
+[    3.089818] Creating BlueDBM DMA buffer 1200 
+[    3.089819] Creating BlueDBM DMA buffer 1201 
+[    3.089821] Creating BlueDBM DMA buffer 1202 
+[    3.089822] Creating BlueDBM DMA buffer 1203 
+[    3.089823] Creating BlueDBM DMA buffer 1204 
+[    3.089824] Creating BlueDBM DMA buffer 1205 
+[    3.089825] Creating BlueDBM DMA buffer 1206 
+[    3.089827] Creating BlueDBM DMA buffer 1207 
+[    3.089828] Creating BlueDBM DMA buffer 1208 
+[    3.089829] Creating BlueDBM DMA buffer 1209 
+[    3.089830] Creating BlueDBM DMA buffer 1210 
+[    3.089831] Creating BlueDBM DMA buffer 1211 
+[    3.089833] Creating BlueDBM DMA buffer 1212 
+[    3.089834] Creating BlueDBM DMA buffer 1213 
+[    3.089835] Creating BlueDBM DMA buffer 1214 
+[    3.089837] Creating BlueDBM DMA buffer 1215 
+[    3.089838] Creating BlueDBM DMA buffer 1216 
+[    3.089839] Creating BlueDBM DMA buffer 1217 
+[    3.089841] Creating BlueDBM DMA buffer 1218 
+[    3.089843] Creating BlueDBM DMA buffer 1219 
+[    3.089844] Creating BlueDBM DMA buffer 1220 
+[    3.089845] Creating BlueDBM DMA buffer 1221 
+[    3.089846] Creating BlueDBM DMA buffer 1222 
+[    3.089847] Creating BlueDBM DMA buffer 1223 
+[    3.089849] Creating BlueDBM DMA buffer 1224 
+[    3.089850] Creating BlueDBM DMA buffer 1225 
+[    3.089851] Creating BlueDBM DMA buffer 1226 
+[    3.089852] Creating BlueDBM DMA buffer 1227 
+[    3.089853] Creating BlueDBM DMA buffer 1228 
+[    3.089854] Creating BlueDBM DMA buffer 1229 
+[    3.089856] Creating BlueDBM DMA buffer 1230 
+[    3.089857] Creating BlueDBM DMA buffer 1231 
+[    3.089858] Creating BlueDBM DMA buffer 1232 
+[    3.089859] Creating BlueDBM DMA buffer 1233 
+[    3.089860] Creating BlueDBM DMA buffer 1234 
+[    3.089861] Creating BlueDBM DMA buffer 1235 
+[    3.089863] Creating BlueDBM DMA buffer 1236 
+[    3.089864] Creating BlueDBM DMA buffer 1237 
+[    3.089865] Creating BlueDBM DMA buffer 1238 
+[    3.089866] Creating BlueDBM DMA buffer 1239 
+[    3.089867] Creating BlueDBM DMA buffer 1240 
+[    3.089869] Creating BlueDBM DMA buffer 1241 
+[    3.089870] Creating BlueDBM DMA buffer 1242 
+[    3.089871] Creating BlueDBM DMA buffer 1243 
+[    3.089872] Creating BlueDBM DMA buffer 1244 
+[    3.089874] Creating BlueDBM DMA buffer 1245 
+[    3.089875] Creating BlueDBM DMA buffer 1246 
+[    3.089876] Creating BlueDBM DMA buffer 1247 
+[    3.089877] Creating BlueDBM DMA buffer 1248 
+[    3.089878] Creating BlueDBM DMA buffer 1249 
+[    3.089879] Creating BlueDBM DMA buffer 1250 
+[    3.089881] Creating BlueDBM DMA buffer 1251 
+[    3.089882] Creating BlueDBM DMA buffer 1252 
+[    3.089883] Creating BlueDBM DMA buffer 1253 
+[    3.089884] Creating BlueDBM DMA buffer 1254 
+[    3.089886] Creating BlueDBM DMA buffer 1255 
+[    3.089887] Creating BlueDBM DMA buffer 1256 
+[    3.089888] Creating BlueDBM DMA buffer 1257 
+[    3.089889] Creating BlueDBM DMA buffer 1258 
+[    3.089890] Creating BlueDBM DMA buffer 1259 
+[    3.089891] Creating BlueDBM DMA buffer 1260 
+[    3.089892] Creating BlueDBM DMA buffer 1261 
+[    3.089894] Creating BlueDBM DMA buffer 1262 
+[    3.089895] Creating BlueDBM DMA buffer 1263 
+[    3.089896] Creating BlueDBM DMA buffer 1264 
+[    3.089897] Creating BlueDBM DMA buffer 1265 
+[    3.089898] Creating BlueDBM DMA buffer 1266 
+[    3.089900] Creating BlueDBM DMA buffer 1267 
+[    3.089901] Creating BlueDBM DMA buffer 1268 
+[    3.089902] Creating BlueDBM DMA buffer 1269 
+[    3.089903] Creating BlueDBM DMA buffer 1270 
+[    3.089904] Creating BlueDBM DMA buffer 1271 
+[    3.089905] Creating BlueDBM DMA buffer 1272 
+[    3.089907] Creating BlueDBM DMA buffer 1273 
+[    3.089908] Creating BlueDBM DMA buffer 1274 
+[    3.089909] Creating BlueDBM DMA buffer 1275 
+[    3.089910] Creating BlueDBM DMA buffer 1276 
+[    3.089911] Creating BlueDBM DMA buffer 1277 
+[    3.089912] Creating BlueDBM DMA buffer 1278 
+[    3.089913] Creating BlueDBM DMA buffer 1279 
+[    3.089915] Creating BlueDBM DMA buffer 1280 
+[    3.089916] Creating BlueDBM DMA buffer 1281 
+[    3.089917] Creating BlueDBM DMA buffer 1282 
+[    3.089918] Creating BlueDBM DMA buffer 1283 
+[    3.089919] Creating BlueDBM DMA buffer 1284 
+[    3.089920] Creating BlueDBM DMA buffer 1285 
+[    3.089921] Creating BlueDBM DMA buffer 1286 
+[    3.089923] Creating BlueDBM DMA buffer 1287 
+[    3.089924] Creating BlueDBM DMA buffer 1288 
+[    3.089925] Creating BlueDBM DMA buffer 1289 
+[    3.089926] Creating BlueDBM DMA buffer 1290 
+[    3.089928] Creating BlueDBM DMA buffer 1291 
+[    3.089929] Creating BlueDBM DMA buffer 1292 
+[    3.089930] Creating BlueDBM DMA buffer 1293 
+[    3.089931] Creating BlueDBM DMA buffer 1294 
+[    3.089932] Creating BlueDBM DMA buffer 1295 
+[    3.089933] Creating BlueDBM DMA buffer 1296 
+[    3.089935] Creating BlueDBM DMA buffer 1297 
+[    3.089936] Creating BlueDBM DMA buffer 1298 
+[    3.089937] Creating BlueDBM DMA buffer 1299 
+[    3.089938] Creating BlueDBM DMA buffer 1300 
+[    3.089939] Creating BlueDBM DMA buffer 1301 
+[    3.089941] Creating BlueDBM DMA buffer 1302 
+[    3.089942] Creating BlueDBM DMA buffer 1303 
+[    3.089943] Creating BlueDBM DMA buffer 1304 
+[    3.089945] Creating BlueDBM DMA buffer 1305 
+[    3.089946] Creating BlueDBM DMA buffer 1306 
+[    3.089947] Creating BlueDBM DMA buffer 1307 
+[    3.089948] Creating BlueDBM DMA buffer 1308 
+[    3.089950] Creating BlueDBM DMA buffer 1309 
+[    3.089951] Creating BlueDBM DMA buffer 1310 
+[    3.089952] Creating BlueDBM DMA buffer 1311 
+[    3.089953] Creating BlueDBM DMA buffer 1312 
+[    3.089955] Creating BlueDBM DMA buffer 1313 
+[    3.089956] Creating BlueDBM DMA buffer 1314 
+[    3.089957] Creating BlueDBM DMA buffer 1315 
+[    3.089958] Creating BlueDBM DMA buffer 1316 
+[    3.089959] Creating BlueDBM DMA buffer 1317 
+[    3.089960] Creating BlueDBM DMA buffer 1318 
+[    3.089961] Creating BlueDBM DMA buffer 1319 
+[    3.089963] Creating BlueDBM DMA buffer 1320 
+[    3.089964] Creating BlueDBM DMA buffer 1321 
+[    3.089965] Creating BlueDBM DMA buffer 1322 
+[    3.089966] Creating BlueDBM DMA buffer 1323 
+[    3.089967] Creating BlueDBM DMA buffer 1324 
+[    3.089968] Creating BlueDBM DMA buffer 1325 
+[    3.089969] Creating BlueDBM DMA buffer 1326 
+[    3.089971] Creating BlueDBM DMA buffer 1327 
+[    3.089972] Creating BlueDBM DMA buffer 1328 
+[    3.089973] Creating BlueDBM DMA buffer 1329 
+[    3.089974] Creating BlueDBM DMA buffer 1330 
+[    3.089976] Creating BlueDBM DMA buffer 1331 
+[    3.089977] Creating BlueDBM DMA buffer 1332 
+[    3.089978] Creating BlueDBM DMA buffer 1333 
+[    3.089979] Creating BlueDBM DMA buffer 1334 
+[    3.089980] Creating BlueDBM DMA buffer 1335 
+[    3.089981] Creating BlueDBM DMA buffer 1336 
+[    3.089983] Creating BlueDBM DMA buffer 1337 
+[    3.089984] Creating BlueDBM DMA buffer 1338 
+[    3.089985] Creating BlueDBM DMA buffer 1339 
+[    3.089986] Creating BlueDBM DMA buffer 1340 
+[    3.089988] Creating BlueDBM DMA buffer 1341 
+[    3.089989] Creating BlueDBM DMA buffer 1342 
+[    3.089990] Creating BlueDBM DMA buffer 1343 
+[    3.089991] Creating BlueDBM DMA buffer 1344 
+[    3.089992] Creating BlueDBM DMA buffer 1345 
+[    3.089994] Creating BlueDBM DMA buffer 1346 
+[    3.089995] Creating BlueDBM DMA buffer 1347 
+[    3.089996] Creating BlueDBM DMA buffer 1348 
+[    3.089997] Creating BlueDBM DMA buffer 1349 
+[    3.089998] Creating BlueDBM DMA buffer 1350 
+[    3.089999] Creating BlueDBM DMA buffer 1351 
+[    3.090001] Creating BlueDBM DMA buffer 1352 
+[    3.090002] Creating BlueDBM DMA buffer 1353 
+[    3.090003] Creating BlueDBM DMA buffer 1354 
+[    3.090004] Creating BlueDBM DMA buffer 1355 
+[    3.090006] Creating BlueDBM DMA buffer 1356 
+[    3.090007] Creating BlueDBM DMA buffer 1357 
+[    3.090008] Creating BlueDBM DMA buffer 1358 
+[    3.090009] Creating BlueDBM DMA buffer 1359 
+[    3.090010] Creating BlueDBM DMA buffer 1360 
+[    3.090012] Creating BlueDBM DMA buffer 1361 
+[    3.090013] Creating BlueDBM DMA buffer 1362 
+[    3.090014] Creating BlueDBM DMA buffer 1363 
+[    3.090015] Creating BlueDBM DMA buffer 1364 
+[    3.090016] Creating BlueDBM DMA buffer 1365 
+[    3.090017] Creating BlueDBM DMA buffer 1366 
+[    3.090018] Creating BlueDBM DMA buffer 1367 
+[    3.090020] Creating BlueDBM DMA buffer 1368 
+[    3.090021] Creating BlueDBM DMA buffer 1369 
+[    3.090022] Creating BlueDBM DMA buffer 1370 
+[    3.090023] Creating BlueDBM DMA buffer 1371 
+[    3.090024] Creating BlueDBM DMA buffer 1372 
+[    3.090025] Creating BlueDBM DMA buffer 1373 
+[    3.090027] Creating BlueDBM DMA buffer 1374 
+[    3.090028] Creating BlueDBM DMA buffer 1375 
+[    3.090029] Creating BlueDBM DMA buffer 1376 
+[    3.090030] Creating BlueDBM DMA buffer 1377 
+[    3.090031] Creating BlueDBM DMA buffer 1378 
+[    3.090032] Creating BlueDBM DMA buffer 1379 
+[    3.090034] Creating BlueDBM DMA buffer 1380 
+[    3.090035] Creating BlueDBM DMA buffer 1381 
+[    3.090036] Creating BlueDBM DMA buffer 1382 
+[    3.090037] Creating BlueDBM DMA buffer 1383 
+[    3.090039] Creating BlueDBM DMA buffer 1384 
+[    3.090040] Creating BlueDBM DMA buffer 1385 
+[    3.090041] Creating BlueDBM DMA buffer 1386 
+[    3.090042] Creating BlueDBM DMA buffer 1387 
+[    3.090043] Creating BlueDBM DMA buffer 1388 
+[    3.090045] Creating BlueDBM DMA buffer 1389 
+[    3.090046] Creating BlueDBM DMA buffer 1390 
+[    3.090047] Creating BlueDBM DMA buffer 1391 
+[    3.090048] Creating BlueDBM DMA buffer 1392 
+[    3.090050] Creating BlueDBM DMA buffer 1393 
+[    3.090051] Creating BlueDBM DMA buffer 1394 
+[    3.090052] Creating BlueDBM DMA buffer 1395 
+[    3.090053] Creating BlueDBM DMA buffer 1396 
+[    3.090054] Creating BlueDBM DMA buffer 1397 
+[    3.090055] Creating BlueDBM DMA buffer 1398 
+[    3.090056] Creating BlueDBM DMA buffer 1399 
+[    3.090057] Creating BlueDBM DMA buffer 1400 
+[    3.090059] Creating BlueDBM DMA buffer 1401 
+[    3.090060] Creating BlueDBM DMA buffer 1402 
+[    3.090061] Creating BlueDBM DMA buffer 1403 
+[    3.090062] Creating BlueDBM DMA buffer 1404 
+[    3.090063] Creating BlueDBM DMA buffer 1405 
+[    3.090064] Creating BlueDBM DMA buffer 1406 
+[    3.090065] Creating BlueDBM DMA buffer 1407 
+[    3.090067] Creating BlueDBM DMA buffer 1408 
+[    3.090068] Creating BlueDBM DMA buffer 1409 
+[    3.090069] Creating BlueDBM DMA buffer 1410 
+[    3.090070] Creating BlueDBM DMA buffer 1411 
+[    3.090072] Creating BlueDBM DMA buffer 1412 
+[    3.090073] Creating BlueDBM DMA buffer 1413 
+[    3.090074] Creating BlueDBM DMA buffer 1414 
+[    3.090075] Creating BlueDBM DMA buffer 1415 
+[    3.090076] Creating BlueDBM DMA buffer 1416 
+[    3.090078] Creating BlueDBM DMA buffer 1417 
+[    3.090079] Creating BlueDBM DMA buffer 1418 
+[    3.090080] Creating BlueDBM DMA buffer 1419 
+[    3.090081] Creating BlueDBM DMA buffer 1420 
+[    3.090082] Creating BlueDBM DMA buffer 1421 
+[    3.090083] Creating BlueDBM DMA buffer 1422 
+[    3.090085] Creating BlueDBM DMA buffer 1423 
+[    3.090086] Creating BlueDBM DMA buffer 1424 
+[    3.090087] Creating BlueDBM DMA buffer 1425 
+[    3.090088] Creating BlueDBM DMA buffer 1426 
+[    3.090089] Creating BlueDBM DMA buffer 1427 
+[    3.090090] Creating BlueDBM DMA buffer 1428 
+[    3.090091] Creating BlueDBM DMA buffer 1429 
+[    3.090092] Creating BlueDBM DMA buffer 1430 
+[    3.090094] Creating BlueDBM DMA buffer 1431 
+[    3.090095] Creating BlueDBM DMA buffer 1432 
+[    3.090096] Creating BlueDBM DMA buffer 1433 
+[    3.090097] Creating BlueDBM DMA buffer 1434 
+[    3.090098] Creating BlueDBM DMA buffer 1435 
+[    3.090100] Creating BlueDBM DMA buffer 1436 
+[    3.090101] Creating BlueDBM DMA buffer 1437 
+[    3.090102] Creating BlueDBM DMA buffer 1438 
+[    3.090104] Creating BlueDBM DMA buffer 1439 
+[    3.090105] Creating BlueDBM DMA buffer 1440 
+[    3.090106] Creating BlueDBM DMA buffer 1441 
+[    3.090107] Creating BlueDBM DMA buffer 1442 
+[    3.090108] Creating BlueDBM DMA buffer 1443 
+[    3.090109] Creating BlueDBM DMA buffer 1444 
+[    3.090111] Creating BlueDBM DMA buffer 1445 
+[    3.090112] Creating BlueDBM DMA buffer 1446 
+[    3.090113] Creating BlueDBM DMA buffer 1447 
+[    3.090114] Creating BlueDBM DMA buffer 1448 
+[    3.090115] Creating BlueDBM DMA buffer 1449 
+[    3.090117] Creating BlueDBM DMA buffer 1450 
+[    3.090118] Creating BlueDBM DMA buffer 1451 
+[    3.090119] Creating BlueDBM DMA buffer 1452 
+[    3.090120] Creating BlueDBM DMA buffer 1453 
+[    3.090121] Creating BlueDBM DMA buffer 1454 
+[    3.090123] Creating BlueDBM DMA buffer 1455 
+[    3.090124] Creating BlueDBM DMA buffer 1456 
+[    3.090125] Creating BlueDBM DMA buffer 1457 
+[    3.090126] Creating BlueDBM DMA buffer 1458 
+[    3.090127] Creating BlueDBM DMA buffer 1459 
+[    3.090128] Creating BlueDBM DMA buffer 1460 
+[    3.090129] Creating BlueDBM DMA buffer 1461 
+[    3.090131] Creating BlueDBM DMA buffer 1462 
+[    3.090132] Creating BlueDBM DMA buffer 1463 
+[    3.090133] Creating BlueDBM DMA buffer 1464 
+[    3.090134] Creating BlueDBM DMA buffer 1465 
+[    3.090135] Creating BlueDBM DMA buffer 1466 
+[    3.090136] Creating BlueDBM DMA buffer 1467 
+[    3.090137] Creating BlueDBM DMA buffer 1468 
+[    3.090138] Creating BlueDBM DMA buffer 1469 
+[    3.090140] Creating BlueDBM DMA buffer 1470 
+[    3.090141] Creating BlueDBM DMA buffer 1471 
+[    3.090142] Creating BlueDBM DMA buffer 1472 
+[    3.090143] Creating BlueDBM DMA buffer 1473 
+[    3.090144] Creating BlueDBM DMA buffer 1474 
+[    3.090146] Creating BlueDBM DMA buffer 1475 
+[    3.090147] Creating BlueDBM DMA buffer 1476 
+[    3.090148] Creating BlueDBM DMA buffer 1477 
+[    3.090149] Creating BlueDBM DMA buffer 1478 
+[    3.090150] Creating BlueDBM DMA buffer 1479 
+[    3.090151] Creating BlueDBM DMA buffer 1480 
+[    3.090153] Creating BlueDBM DMA buffer 1481 
+[    3.090154] Creating BlueDBM DMA buffer 1482 
+[    3.090155] Creating BlueDBM DMA buffer 1483 
+[    3.090157] Creating BlueDBM DMA buffer 1484 
+[    3.090158] Creating BlueDBM DMA buffer 1485 
+[    3.090159] Creating BlueDBM DMA buffer 1486 
+[    3.090160] Creating BlueDBM DMA buffer 1487 
+[    3.090161] Creating BlueDBM DMA buffer 1488 
+[    3.090162] Creating BlueDBM DMA buffer 1489 
+[    3.090164] Creating BlueDBM DMA buffer 1490 
+[    3.090165] Creating BlueDBM DMA buffer 1491 
+[    3.090166] Creating BlueDBM DMA buffer 1492 
+[    3.090167] Creating BlueDBM DMA buffer 1493 
+[    3.090168] Creating BlueDBM DMA buffer 1494 
+[    3.090169] Creating BlueDBM DMA buffer 1495 
+[    3.090170] Creating BlueDBM DMA buffer 1496 
+[    3.090171] Creating BlueDBM DMA buffer 1497 
+[    3.090173] Creating BlueDBM DMA buffer 1498 
+[    3.090174] Creating BlueDBM DMA buffer 1499 
+[    3.090175] Creating BlueDBM DMA buffer 1500 
+[    3.090176] Creating BlueDBM DMA buffer 1501 
+[    3.090177] Creating BlueDBM DMA buffer 1502 
+[    3.090178] Creating BlueDBM DMA buffer 1503 
+[    3.090180] Creating BlueDBM DMA buffer 1504 
+[    3.090181] Creating BlueDBM DMA buffer 1505 
+[    3.090182] Creating BlueDBM DMA buffer 1506 
+[    3.090183] Creating BlueDBM DMA buffer 1507 
+[    3.090184] Creating BlueDBM DMA buffer 1508 
+[    3.090185] Creating BlueDBM DMA buffer 1509 
+[    3.090187] Creating BlueDBM DMA buffer 1510 
+[    3.090188] Creating BlueDBM DMA buffer 1511 
+[    3.090189] Creating BlueDBM DMA buffer 1512 
+[    3.090190] Creating BlueDBM DMA buffer 1513 
+[    3.090192] Creating BlueDBM DMA buffer 1514 
+[    3.090193] Creating BlueDBM DMA buffer 1515 
+[    3.090194] Creating BlueDBM DMA buffer 1516 
+[    3.090195] Creating BlueDBM DMA buffer 1517 
+[    3.090196] Creating BlueDBM DMA buffer 1518 
+[    3.090197] Creating BlueDBM DMA buffer 1519 
+[    3.090199] Creating BlueDBM DMA buffer 1520 
+[    3.090200] Creating BlueDBM DMA buffer 1521 
+[    3.090201] Creating BlueDBM DMA buffer 1522 
+[    3.090202] Creating BlueDBM DMA buffer 1523 
+[    3.090203] Creating BlueDBM DMA buffer 1524 
+[    3.090204] Creating BlueDBM DMA buffer 1525 
+[    3.090205] Creating BlueDBM DMA buffer 1526 
+[    3.090206] Creating BlueDBM DMA buffer 1527 
+[    3.090207] Creating BlueDBM DMA buffer 1528 
+[    3.090208] Creating BlueDBM DMA buffer 1529 
+[    3.090209] Creating BlueDBM DMA buffer 1530 
+[    3.090210] Creating BlueDBM DMA buffer 1531 
+[    3.090211] Creating BlueDBM DMA buffer 1532 
+[    3.090212] Creating BlueDBM DMA buffer 1533 
+[    3.090383] Creating BlueDBM DMA buffer 1534 
+[    3.090384] Creating BlueDBM DMA buffer 1535 
+[    3.090385] Creating BlueDBM DMA buffer 1536 
+[    3.090386] Creating BlueDBM DMA buffer 1537 
+[    3.090387] Creating BlueDBM DMA buffer 1538 
+[    3.090388] Creating BlueDBM DMA buffer 1539 
+[    3.090389] Creating BlueDBM DMA buffer 1540 
+[    3.090390] Creating BlueDBM DMA buffer 1541 
+[    3.090391] Creating BlueDBM DMA buffer 1542 
+[    3.090391] Creating BlueDBM DMA buffer 1543 
+[    3.090392] Creating BlueDBM DMA buffer 1544 
+[    3.090393] Creating BlueDBM DMA buffer 1545 
+[    3.090394] Creating BlueDBM DMA buffer 1546 
+[    3.090395] Creating BlueDBM DMA buffer 1547 
+[    3.090396] Creating BlueDBM DMA buffer 1548 
+[    3.090397] Creating BlueDBM DMA buffer 1549 
+[    3.090398] Creating BlueDBM DMA buffer 1550 
+[    3.090399] Creating BlueDBM DMA buffer 1551 
+[    3.090400] Creating BlueDBM DMA buffer 1552 
+[    3.090400] Creating BlueDBM DMA buffer 1553 
+[    3.090401] Creating BlueDBM DMA buffer 1554 
+[    3.090402] Creating BlueDBM DMA buffer 1555 
+[    3.090403] Creating BlueDBM DMA buffer 1556 
+[    3.090404] Creating BlueDBM DMA buffer 1557 
+[    3.090405] Creating BlueDBM DMA buffer 1558 
+[    3.090406] Creating BlueDBM DMA buffer 1559 
+[    3.090407] Creating BlueDBM DMA buffer 1560 
+[    3.090407] Creating BlueDBM DMA buffer 1561 
+[    3.090408] Creating BlueDBM DMA buffer 1562 
+[    3.090409] Creating BlueDBM DMA buffer 1563 
+[    3.090410] Creating BlueDBM DMA buffer 1564 
+[    3.090411] Creating BlueDBM DMA buffer 1565 
+[    3.090412] Creating BlueDBM DMA buffer 1566 
+[    3.090413] Creating BlueDBM DMA buffer 1567 
+[    3.090414] Creating BlueDBM DMA buffer 1568 
+[    3.090415] Creating BlueDBM DMA buffer 1569 
+[    3.090415] Creating BlueDBM DMA buffer 1570 
+[    3.090416] Creating BlueDBM DMA buffer 1571 
+[    3.090417] Creating BlueDBM DMA buffer 1572 
+[    3.090418] Creating BlueDBM DMA buffer 1573 
+[    3.090419] Creating BlueDBM DMA buffer 1574 
+[    3.090420] Creating BlueDBM DMA buffer 1575 
+[    3.090421] Creating BlueDBM DMA buffer 1576 
+[    3.090422] Creating BlueDBM DMA buffer 1577 
+[    3.090423] Creating BlueDBM DMA buffer 1578 
+[    3.090423] Creating BlueDBM DMA buffer 1579 
+[    3.090424] Creating BlueDBM DMA buffer 1580 
+[    3.090425] Creating BlueDBM DMA buffer 1581 
+[    3.090426] Creating BlueDBM DMA buffer 1582 
+[    3.090427] Creating BlueDBM DMA buffer 1583 
+[    3.090428] Creating BlueDBM DMA buffer 1584 
+[    3.090429] Creating BlueDBM DMA buffer 1585 
+[    3.090430] Creating BlueDBM DMA buffer 1586 
+[    3.090430] Creating BlueDBM DMA buffer 1587 
+[    3.090431] Creating BlueDBM DMA buffer 1588 
+[    3.090432] Creating BlueDBM DMA buffer 1589 
+[    3.090433] Creating BlueDBM DMA buffer 1590 
+[    3.090434] Creating BlueDBM DMA buffer 1591 
+[    3.090435] Creating BlueDBM DMA buffer 1592 
+[    3.090436] Creating BlueDBM DMA buffer 1593 
+[    3.090437] Creating BlueDBM DMA buffer 1594 
+[    3.090438] Creating BlueDBM DMA buffer 1595 
+[    3.090439] Creating BlueDBM DMA buffer 1596 
+[    3.090440] Creating BlueDBM DMA buffer 1597 
+[    3.090441] Creating BlueDBM DMA buffer 1598 
+[    3.090442] Creating BlueDBM DMA buffer 1599 
+[    3.090443] Creating BlueDBM DMA buffer 1600 
+[    3.090444] Creating BlueDBM DMA buffer 1601 
+[    3.090445] Creating BlueDBM DMA buffer 1602 
+[    3.090446] Creating BlueDBM DMA buffer 1603 
+[    3.090447] Creating BlueDBM DMA buffer 1604 
+[    3.090448] Creating BlueDBM DMA buffer 1605 
+[    3.090449] Creating BlueDBM DMA buffer 1606 
+[    3.090450] Creating BlueDBM DMA buffer 1607 
+[    3.090450] Creating BlueDBM DMA buffer 1608 
+[    3.090451] Creating BlueDBM DMA buffer 1609 
+[    3.090452] Creating BlueDBM DMA buffer 1610 
+[    3.090453] Creating BlueDBM DMA buffer 1611 
+[    3.090454] Creating BlueDBM DMA buffer 1612 
+[    3.090455] Creating BlueDBM DMA buffer 1613 
+[    3.090455] Creating BlueDBM DMA buffer 1614 
+[    3.090456] Creating BlueDBM DMA buffer 1615 
+[    3.090457] Creating BlueDBM DMA buffer 1616 
+[    3.090458] Creating BlueDBM DMA buffer 1617 
+[    3.090459] Creating BlueDBM DMA buffer 1618 
+[    3.090460] Creating BlueDBM DMA buffer 1619 
+[    3.090460] Creating BlueDBM DMA buffer 1620 
+[    3.090461] Creating BlueDBM DMA buffer 1621 
+[    3.090462] Creating BlueDBM DMA buffer 1622 
+[    3.090463] Creating BlueDBM DMA buffer 1623 
+[    3.090464] Creating BlueDBM DMA buffer 1624 
+[    3.090465] Creating BlueDBM DMA buffer 1625 
+[    3.090465] Creating BlueDBM DMA buffer 1626 
+[    3.090466] Creating BlueDBM DMA buffer 1627 
+[    3.090467] Creating BlueDBM DMA buffer 1628 
+[    3.090468] Creating BlueDBM DMA buffer 1629 
+[    3.090469] Creating BlueDBM DMA buffer 1630 
+[    3.090470] Creating BlueDBM DMA buffer 1631 
+[    3.090470] Creating BlueDBM DMA buffer 1632 
+[    3.090471] Creating BlueDBM DMA buffer 1633 
+[    3.090472] Creating BlueDBM DMA buffer 1634 
+[    3.090473] Creating BlueDBM DMA buffer 1635 
+[    3.090474] Creating BlueDBM DMA buffer 1636 
+[    3.090475] Creating BlueDBM DMA buffer 1637 
+[    3.090476] Creating BlueDBM DMA buffer 1638 
+[    3.090477] Creating BlueDBM DMA buffer 1639 
+[    3.090478] Creating BlueDBM DMA buffer 1640 
+[    3.090479] Creating BlueDBM DMA buffer 1641 
+[    3.090480] Creating BlueDBM DMA buffer 1642 
+[    3.090481] Creating BlueDBM DMA buffer 1643 
+[    3.090483] Creating BlueDBM DMA buffer 1644 
+[    3.090484] Creating BlueDBM DMA buffer 1645 
+[    3.090485] Creating BlueDBM DMA buffer 1646 
+[    3.090486] Creating BlueDBM DMA buffer 1647 
+[    3.090487] Creating BlueDBM DMA buffer 1648 
+[    3.090488] Creating BlueDBM DMA buffer 1649 
+[    3.090489] Creating BlueDBM DMA buffer 1650 
+[    3.090490] Creating BlueDBM DMA buffer 1651 
+[    3.090491] Creating BlueDBM DMA buffer 1652 
+[    3.090493] Creating BlueDBM DMA buffer 1653 
+[    3.090494] Creating BlueDBM DMA buffer 1654 
+[    3.090495] Creating BlueDBM DMA buffer 1655 
+[    3.090496] Creating BlueDBM DMA buffer 1656 
+[    3.090497] Creating BlueDBM DMA buffer 1657 
+[    3.090498] Creating BlueDBM DMA buffer 1658 
+[    3.090499] Creating BlueDBM DMA buffer 1659 
+[    3.090500] Creating BlueDBM DMA buffer 1660 
+[    3.090501] Creating BlueDBM DMA buffer 1661 
+[    3.090502] Creating BlueDBM DMA buffer 1662 
+[    3.090504] Creating BlueDBM DMA buffer 1663 
+[    3.090505] Creating BlueDBM DMA buffer 1664 
+[    3.090506] Creating BlueDBM DMA buffer 1665 
+[    3.090507] Creating BlueDBM DMA buffer 1666 
+[    3.090508] Creating BlueDBM DMA buffer 1667 
+[    3.090509] Creating BlueDBM DMA buffer 1668 
+[    3.090510] Creating BlueDBM DMA buffer 1669 
+[    3.090511] Creating BlueDBM DMA buffer 1670 
+[    3.090513] Creating BlueDBM DMA buffer 1671 
+[    3.090514] Creating BlueDBM DMA buffer 1672 
+[    3.090515] Creating BlueDBM DMA buffer 1673 
+[    3.090516] Creating BlueDBM DMA buffer 1674 
+[    3.090518] Creating BlueDBM DMA buffer 1675 
+[    3.090519] Creating BlueDBM DMA buffer 1676 
+[    3.090520] Creating BlueDBM DMA buffer 1677 
+[    3.090521] Creating BlueDBM DMA buffer 1678 
+[    3.090522] Creating BlueDBM DMA buffer 1679 
+[    3.090523] Creating BlueDBM DMA buffer 1680 
+[    3.090524] Creating BlueDBM DMA buffer 1681 
+[    3.090525] Creating BlueDBM DMA buffer 1682 
+[    3.090526] Creating BlueDBM DMA buffer 1683 
+[    3.090528] Creating BlueDBM DMA buffer 1684 
+[    3.090529] Creating BlueDBM DMA buffer 1685 
+[    3.090530] Creating BlueDBM DMA buffer 1686 
+[    3.090531] Creating BlueDBM DMA buffer 1687 
+[    3.090532] Creating BlueDBM DMA buffer 1688 
+[    3.090533] Creating BlueDBM DMA buffer 1689 
+[    3.090534] Creating BlueDBM DMA buffer 1690 
+[    3.090535] Creating BlueDBM DMA buffer 1691 
+[    3.090536] Creating BlueDBM DMA buffer 1692 
+[    3.090537] Creating BlueDBM DMA buffer 1693 
+[    3.090538] Creating BlueDBM DMA buffer 1694 
+[    3.090539] Creating BlueDBM DMA buffer 1695 
+[    3.090539] Creating BlueDBM DMA buffer 1696 
+[    3.090540] Creating BlueDBM DMA buffer 1697 
+[    3.090541] Creating BlueDBM DMA buffer 1698 
+[    3.090542] Creating BlueDBM DMA buffer 1699 
+[    3.090543] Creating BlueDBM DMA buffer 1700 
+[    3.090544] Creating BlueDBM DMA buffer 1701 
+[    3.090545] Creating BlueDBM DMA buffer 1702 
+[    3.090545] Creating BlueDBM DMA buffer 1703 
+[    3.090546] Creating BlueDBM DMA buffer 1704 
+[    3.090547] Creating BlueDBM DMA buffer 1705 
+[    3.090548] Creating BlueDBM DMA buffer 1706 
+[    3.090549] Creating BlueDBM DMA buffer 1707 
+[    3.090550] Creating BlueDBM DMA buffer 1708 
+[    3.090550] Creating BlueDBM DMA buffer 1709 
+[    3.090551] Creating BlueDBM DMA buffer 1710 
+[    3.090552] Creating BlueDBM DMA buffer 1711 
+[    3.090553] Creating BlueDBM DMA buffer 1712 
+[    3.090554] Creating BlueDBM DMA buffer 1713 
+[    3.090555] Creating BlueDBM DMA buffer 1714 
+[    3.090555] Creating BlueDBM DMA buffer 1715 
+[    3.090556] Creating BlueDBM DMA buffer 1716 
+[    3.090557] Creating BlueDBM DMA buffer 1717 
+[    3.090558] Creating BlueDBM DMA buffer 1718 
+[    3.090559] Creating BlueDBM DMA buffer 1719 
+[    3.090560] Creating BlueDBM DMA buffer 1720 
+[    3.090560] Creating BlueDBM DMA buffer 1721 
+[    3.090561] Creating BlueDBM DMA buffer 1722 
+[    3.090562] Creating BlueDBM DMA buffer 1723 
+[    3.090563] Creating BlueDBM DMA buffer 1724 
+[    3.090564] Creating BlueDBM DMA buffer 1725 
+[    3.090565] Creating BlueDBM DMA buffer 1726 
+[    3.090566] Creating BlueDBM DMA buffer 1727 
+[    3.090567] Creating BlueDBM DMA buffer 1728 
+[    3.090568] Creating BlueDBM DMA buffer 1729 
+[    3.090569] Creating BlueDBM DMA buffer 1730 
+[    3.090570] Creating BlueDBM DMA buffer 1731 
+[    3.090570] Creating BlueDBM DMA buffer 1732 
+[    3.090571] Creating BlueDBM DMA buffer 1733 
+[    3.090572] Creating BlueDBM DMA buffer 1734 
+[    3.090573] Creating BlueDBM DMA buffer 1735 
+[    3.090574] Creating BlueDBM DMA buffer 1736 
+[    3.090575] Creating BlueDBM DMA buffer 1737 
+[    3.090576] Creating BlueDBM DMA buffer 1738 
+[    3.090577] Creating BlueDBM DMA buffer 1739 
+[    3.090578] Creating BlueDBM DMA buffer 1740 
+[    3.090579] Creating BlueDBM DMA buffer 1741 
+[    3.090579] Creating BlueDBM DMA buffer 1742 
+[    3.090580] Creating BlueDBM DMA buffer 1743 
+[    3.090581] Creating BlueDBM DMA buffer 1744 
+[    3.090582] Creating BlueDBM DMA buffer 1745 
+[    3.090583] Creating BlueDBM DMA buffer 1746 
+[    3.090584] Creating BlueDBM DMA buffer 1747 
+[    3.090584] Creating BlueDBM DMA buffer 1748 
+[    3.090585] Creating BlueDBM DMA buffer 1749 
+[    3.090586] Creating BlueDBM DMA buffer 1750 
+[    3.090587] Creating BlueDBM DMA buffer 1751 
+[    3.090588] Creating BlueDBM DMA buffer 1752 
+[    3.090589] Creating BlueDBM DMA buffer 1753 
+[    3.090589] Creating BlueDBM DMA buffer 1754 
+[    3.090590] Creating BlueDBM DMA buffer 1755 
+[    3.090591] Creating BlueDBM DMA buffer 1756 
+[    3.090592] Creating BlueDBM DMA buffer 1757 
+[    3.090593] Creating BlueDBM DMA buffer 1758 
+[    3.090594] Creating BlueDBM DMA buffer 1759 
+[    3.090594] Creating BlueDBM DMA buffer 1760 
+[    3.090595] Creating BlueDBM DMA buffer 1761 
+[    3.090596] Creating BlueDBM DMA buffer 1762 
+[    3.090597] Creating BlueDBM DMA buffer 1763 
+[    3.090598] Creating BlueDBM DMA buffer 1764 
+[    3.090599] Creating BlueDBM DMA buffer 1765 
+[    3.090600] Creating BlueDBM DMA buffer 1766 
+[    3.090601] Creating BlueDBM DMA buffer 1767 
+[    3.090601] Creating BlueDBM DMA buffer 1768 
+[    3.090602] Creating BlueDBM DMA buffer 1769 
+[    3.090603] Creating BlueDBM DMA buffer 1770 
+[    3.090604] Creating BlueDBM DMA buffer 1771 
+[    3.090605] Creating BlueDBM DMA buffer 1772 
+[    3.090606] Creating BlueDBM DMA buffer 1773 
+[    3.090607] Creating BlueDBM DMA buffer 1774 
+[    3.090607] Creating BlueDBM DMA buffer 1775 
+[    3.090608] Creating BlueDBM DMA buffer 1776 
+[    3.090609] Creating BlueDBM DMA buffer 1777 
+[    3.090610] Creating BlueDBM DMA buffer 1778 
+[    3.090611] Creating BlueDBM DMA buffer 1779 
+[    3.090612] Creating BlueDBM DMA buffer 1780 
+[    3.090613] Creating BlueDBM DMA buffer 1781 
+[    3.090613] Creating BlueDBM DMA buffer 1782 
+[    3.090614] Creating BlueDBM DMA buffer 1783 
+[    3.090615] Creating BlueDBM DMA buffer 1784 
+[    3.090616] Creating BlueDBM DMA buffer 1785 
+[    3.090617] Creating BlueDBM DMA buffer 1786 
+[    3.090618] Creating BlueDBM DMA buffer 1787 
+[    3.090619] Creating BlueDBM DMA buffer 1788 
+[    3.090619] Creating BlueDBM DMA buffer 1789 
+[    3.090620] Creating BlueDBM DMA buffer 1790 
+[    3.090621] Creating BlueDBM DMA buffer 1791 
+[    3.090622] Creating BlueDBM DMA buffer 1792 
+[    3.090623] Creating BlueDBM DMA buffer 1793 
+[    3.090624] Creating BlueDBM DMA buffer 1794 
+[    3.090625] Creating BlueDBM DMA buffer 1795 
+[    3.090626] Creating BlueDBM DMA buffer 1796 
+[    3.090627] Creating BlueDBM DMA buffer 1797 
+[    3.090628] Creating BlueDBM DMA buffer 1798 
+[    3.090628] Creating BlueDBM DMA buffer 1799 
+[    3.090629] Creating BlueDBM DMA buffer 1800 
+[    3.090630] Creating BlueDBM DMA buffer 1801 
+[    3.090631] Creating BlueDBM DMA buffer 1802 
+[    3.090632] Creating BlueDBM DMA buffer 1803 
+[    3.090633] Creating BlueDBM DMA buffer 1804 
+[    3.090634] Creating BlueDBM DMA buffer 1805 
+[    3.090635] Creating BlueDBM DMA buffer 1806 
+[    3.090635] Creating BlueDBM DMA buffer 1807 
+[    3.090636] Creating BlueDBM DMA buffer 1808 
+[    3.090637] Creating BlueDBM DMA buffer 1809 
+[    3.090638] Creating BlueDBM DMA buffer 1810 
+[    3.090639] Creating BlueDBM DMA buffer 1811 
+[    3.090640] Creating BlueDBM DMA buffer 1812 
+[    3.090641] Creating BlueDBM DMA buffer 1813 
+[    3.090641] Creating BlueDBM DMA buffer 1814 
+[    3.090643] Creating BlueDBM DMA buffer 1815 
+[    3.090643] Creating BlueDBM DMA buffer 1816 
+[    3.090644] Creating BlueDBM DMA buffer 1817 
+[    3.090645] Creating BlueDBM DMA buffer 1818 
+[    3.090646] Creating BlueDBM DMA buffer 1819 
+[    3.090647] Creating BlueDBM DMA buffer 1820 
+[    3.090648] Creating BlueDBM DMA buffer 1821 
+[    3.090649] Creating BlueDBM DMA buffer 1822 
+[    3.090650] Creating BlueDBM DMA buffer 1823 
+[    3.090651] Creating BlueDBM DMA buffer 1824 
+[    3.090651] Creating BlueDBM DMA buffer 1825 
+[    3.090652] Creating BlueDBM DMA buffer 1826 
+[    3.090653] Creating BlueDBM DMA buffer 1827 
+[    3.090654] Creating BlueDBM DMA buffer 1828 
+[    3.090655] Creating BlueDBM DMA buffer 1829 
+[    3.090656] Creating BlueDBM DMA buffer 1830 
+[    3.090657] Creating BlueDBM DMA buffer 1831 
+[    3.090658] Creating BlueDBM DMA buffer 1832 
+[    3.090658] Creating BlueDBM DMA buffer 1833 
+[    3.090659] Creating BlueDBM DMA buffer 1834 
+[    3.090660] Creating BlueDBM DMA buffer 1835 
+[    3.090661] Creating BlueDBM DMA buffer 1836 
+[    3.090662] Creating BlueDBM DMA buffer 1837 
+[    3.090663] Creating BlueDBM DMA buffer 1838 
+[    3.090664] Creating BlueDBM DMA buffer 1839 
+[    3.090665] Creating BlueDBM DMA buffer 1840 
+[    3.090665] Creating BlueDBM DMA buffer 1841 
+[    3.090666] Creating BlueDBM DMA buffer 1842 
+[    3.090667] Creating BlueDBM DMA buffer 1843 
+[    3.090668] Creating BlueDBM DMA buffer 1844 
+[    3.090669] Creating BlueDBM DMA buffer 1845 
+[    3.090670] Creating BlueDBM DMA buffer 1846 
+[    3.090671] Creating BlueDBM DMA buffer 1847 
+[    3.090672] Creating BlueDBM DMA buffer 1848 
+[    3.090673] Creating BlueDBM DMA buffer 1849 
+[    3.090673] Creating BlueDBM DMA buffer 1850 
+[    3.090674] Creating BlueDBM DMA buffer 1851 
+[    3.090675] Creating BlueDBM DMA buffer 1852 
+[    3.090676] Creating BlueDBM DMA buffer 1853 
+[    3.090677] Creating BlueDBM DMA buffer 1854 
+[    3.090677] Creating BlueDBM DMA buffer 1855 
+[    3.090678] Creating BlueDBM DMA buffer 1856 
+[    3.090679] Creating BlueDBM DMA buffer 1857 
+[    3.090680] Creating BlueDBM DMA buffer 1858 
+[    3.090681] Creating BlueDBM DMA buffer 1859 
+[    3.090682] Creating BlueDBM DMA buffer 1860 
+[    3.090682] Creating BlueDBM DMA buffer 1861 
+[    3.090683] Creating BlueDBM DMA buffer 1862 
+[    3.090684] Creating BlueDBM DMA buffer 1863 
+[    3.090685] Creating BlueDBM DMA buffer 1864 
+[    3.090686] Creating BlueDBM DMA buffer 1865 
+[    3.090687] Creating BlueDBM DMA buffer 1866 
+[    3.090688] Creating BlueDBM DMA buffer 1867 
+[    3.090689] Creating BlueDBM DMA buffer 1868 
+[    3.090690] Creating BlueDBM DMA buffer 1869 
+[    3.090690] Creating BlueDBM DMA buffer 1870 
+[    3.090691] Creating BlueDBM DMA buffer 1871 
+[    3.090692] Creating BlueDBM DMA buffer 1872 
+[    3.090693] Creating BlueDBM DMA buffer 1873 
+[    3.090694] Creating BlueDBM DMA buffer 1874 
+[    3.090695] Creating BlueDBM DMA buffer 1875 
+[    3.090696] Creating BlueDBM DMA buffer 1876 
+[    3.090697] Creating BlueDBM DMA buffer 1877 
+[    3.090697] Creating BlueDBM DMA buffer 1878 
+[    3.090698] Creating BlueDBM DMA buffer 1879 
+[    3.090699] Creating BlueDBM DMA buffer 1880 
+[    3.090700] Creating BlueDBM DMA buffer 1881 
+[    3.090701] Creating BlueDBM DMA buffer 1882 
+[    3.090702] Creating BlueDBM DMA buffer 1883 
+[    3.090703] Creating BlueDBM DMA buffer 1884 
+[    3.090703] Creating BlueDBM DMA buffer 1885 
+[    3.090704] Creating BlueDBM DMA buffer 1886 
+[    3.090705] Creating BlueDBM DMA buffer 1887 
+[    3.090706] Creating BlueDBM DMA buffer 1888 
+[    3.090707] Creating BlueDBM DMA buffer 1889 
+[    3.090708] Creating BlueDBM DMA buffer 1890 
+[    3.090708] Creating BlueDBM DMA buffer 1891 
+[    3.090709] Creating BlueDBM DMA buffer 1892 
+[    3.090710] Creating BlueDBM DMA buffer 1893 
+[    3.090711] Creating BlueDBM DMA buffer 1894 
+[    3.090712] Creating BlueDBM DMA buffer 1895 
+[    3.090713] Creating BlueDBM DMA buffer 1896 
+[    3.090714] Creating BlueDBM DMA buffer 1897 
+[    3.090715] Creating BlueDBM DMA buffer 1898 
+[    3.090716] Creating BlueDBM DMA buffer 1899 
+[    3.090717] Creating BlueDBM DMA buffer 1900 
+[    3.090717] Creating BlueDBM DMA buffer 1901 
+[    3.090718] Creating BlueDBM DMA buffer 1902 
+[    3.090719] Creating BlueDBM DMA buffer 1903 
+[    3.090720] Creating BlueDBM DMA buffer 1904 
+[    3.090721] Creating BlueDBM DMA buffer 1905 
+[    3.090722] Creating BlueDBM DMA buffer 1906 
+[    3.090723] Creating BlueDBM DMA buffer 1907 
+[    3.090724] Creating BlueDBM DMA buffer 1908 
+[    3.090724] Creating BlueDBM DMA buffer 1909 
+[    3.090725] Creating BlueDBM DMA buffer 1910 
+[    3.090726] Creating BlueDBM DMA buffer 1911 
+[    3.090727] Creating BlueDBM DMA buffer 1912 
+[    3.090728] Creating BlueDBM DMA buffer 1913 
+[    3.090729] Creating BlueDBM DMA buffer 1914 
+[    3.090729] Creating BlueDBM DMA buffer 1915 
+[    3.090730] Creating BlueDBM DMA buffer 1916 
+[    3.090731] Creating BlueDBM DMA buffer 1917 
+[    3.090732] Creating BlueDBM DMA buffer 1918 
+[    3.090733] Creating BlueDBM DMA buffer 1919 
+[    3.090734] Creating BlueDBM DMA buffer 1920 
+[    3.090735] Creating BlueDBM DMA buffer 1921 
+[    3.090736] Creating BlueDBM DMA buffer 1922 
+[    3.090737] Creating BlueDBM DMA buffer 1923 
+[    3.090738] Creating BlueDBM DMA buffer 1924 
+[    3.090738] Creating BlueDBM DMA buffer 1925 
+[    3.090739] Creating BlueDBM DMA buffer 1926 
+[    3.090740] Creating BlueDBM DMA buffer 1927 
+[    3.090741] Creating BlueDBM DMA buffer 1928 
+[    3.090742] Creating BlueDBM DMA buffer 1929 
+[    3.090743] Creating BlueDBM DMA buffer 1930 
+[    3.090744] Creating BlueDBM DMA buffer 1931 
+[    3.090744] Creating BlueDBM DMA buffer 1932 
+[    3.090745] Creating BlueDBM DMA buffer 1933 
+[    3.090746] Creating BlueDBM DMA buffer 1934 
+[    3.090747] Creating BlueDBM DMA buffer 1935 
+[    3.090748] Creating BlueDBM DMA buffer 1936 
+[    3.090749] Creating BlueDBM DMA buffer 1937 
+[    3.090750] Creating BlueDBM DMA buffer 1938 
+[    3.090751] Creating BlueDBM DMA buffer 1939 
+[    3.090751] Creating BlueDBM DMA buffer 1940 
+[    3.090752] Creating BlueDBM DMA buffer 1941 
+[    3.090753] Creating BlueDBM DMA buffer 1942 
+[    3.090754] Creating BlueDBM DMA buffer 1943 
+[    3.090755] Creating BlueDBM DMA buffer 1944 
+[    3.090756] Creating BlueDBM DMA buffer 1945 
+[    3.090757] Creating BlueDBM DMA buffer 1946 
+[    3.090757] Creating BlueDBM DMA buffer 1947 
+[    3.090758] Creating BlueDBM DMA buffer 1948 
+[    3.090759] Creating BlueDBM DMA buffer 1949 
+[    3.090760] Creating BlueDBM DMA buffer 1950 
+[    3.090761] Creating BlueDBM DMA buffer 1951 
+[    3.090762] Creating BlueDBM DMA buffer 1952 
+[    3.090763] Creating BlueDBM DMA buffer 1953 
+[    3.090764] Creating BlueDBM DMA buffer 1954 
+[    3.090764] Creating BlueDBM DMA buffer 1955 
+[    3.090765] Creating BlueDBM DMA buffer 1956 
+[    3.090766] Creating BlueDBM DMA buffer 1957 
+[    3.090767] Creating BlueDBM DMA buffer 1958 
+[    3.090768] Creating BlueDBM DMA buffer 1959 
+[    3.090769] Creating BlueDBM DMA buffer 1960 
+[    3.090771] Creating BlueDBM DMA buffer 1961 
+[    3.090772] Creating BlueDBM DMA buffer 1962 
+[    3.090773] Creating BlueDBM DMA buffer 1963 
+[    3.090774] Creating BlueDBM DMA buffer 1964 
+[    3.090775] Creating BlueDBM DMA buffer 1965 
+[    3.090776] Creating BlueDBM DMA buffer 1966 
+[    3.090777] Creating BlueDBM DMA buffer 1967 
+[    3.090779] Creating BlueDBM DMA buffer 1968 
+[    3.090780] Creating BlueDBM DMA buffer 1969 
+[    3.090781] Creating BlueDBM DMA buffer 1970 
+[    3.090782] Creating BlueDBM DMA buffer 1971 
+[    3.090783] Creating BlueDBM DMA buffer 1972 
+[    3.090785] Creating BlueDBM DMA buffer 1973 
+[    3.090786] Creating BlueDBM DMA buffer 1974 
+[    3.090787] Creating BlueDBM DMA buffer 1975 
+[    3.090788] Creating BlueDBM DMA buffer 1976 
+[    3.090789] Creating BlueDBM DMA buffer 1977 
+[    3.090791] Creating BlueDBM DMA buffer 1978 
+[    3.090792] Creating BlueDBM DMA buffer 1979 
+[    3.090793] Creating BlueDBM DMA buffer 1980 
+[    3.090794] Creating BlueDBM DMA buffer 1981 
+[    3.090795] Creating BlueDBM DMA buffer 1982 
+[    3.090796] Creating BlueDBM DMA buffer 1983 
+[    3.090797] Creating BlueDBM DMA buffer 1984 
+[    3.090799] Creating BlueDBM DMA buffer 1985 
+[    3.090800] Creating BlueDBM DMA buffer 1986 
+[    3.090801] Creating BlueDBM DMA buffer 1987 
+[    3.090802] Creating BlueDBM DMA buffer 1988 
+[    3.090803] Creating BlueDBM DMA buffer 1989 
+[    3.090804] Creating BlueDBM DMA buffer 1990 
+[    3.090805] Creating BlueDBM DMA buffer 1991 
+[    3.090806] Creating BlueDBM DMA buffer 1992 
+[    3.090807] Creating BlueDBM DMA buffer 1993 
+[    3.090808] Creating BlueDBM DMA buffer 1994 
+[    3.090809] Creating BlueDBM DMA buffer 1995 
+[    3.090810] Creating BlueDBM DMA buffer 1996 
+[    3.090812] Creating BlueDBM DMA buffer 1997 
+[    3.090813] Creating BlueDBM DMA buffer 1998 
+[    3.090814] Creating BlueDBM DMA buffer 1999 
+[    3.090815] Creating BlueDBM DMA buffer 2000 
+[    3.090816] Creating BlueDBM DMA buffer 2001 
+[    3.090817] Creating BlueDBM DMA buffer 2002 
+[    3.090818] Creating BlueDBM DMA buffer 2003 
+[    3.090819] Creating BlueDBM DMA buffer 2004 
+[    3.090820] Creating BlueDBM DMA buffer 2005 
+[    3.090821] Creating BlueDBM DMA buffer 2006 
+[    3.090823] Creating BlueDBM DMA buffer 2007 
+[    3.090824] Creating BlueDBM DMA buffer 2008 
+[    3.090825] Creating BlueDBM DMA buffer 2009 
+[    3.090826] Creating BlueDBM DMA buffer 2010 
+[    3.090828] Creating BlueDBM DMA buffer 2011 
+[    3.090829] Creating BlueDBM DMA buffer 2012 
+[    3.090830] Creating BlueDBM DMA buffer 2013 
+[    3.090831] Creating BlueDBM DMA buffer 2014 
+[    3.090832] Creating BlueDBM DMA buffer 2015 
+[    3.090833] Creating BlueDBM DMA buffer 2016 
+[    3.090834] Creating BlueDBM DMA buffer 2017 
+[    3.090835] Creating BlueDBM DMA buffer 2018 
+[    3.090836] Creating BlueDBM DMA buffer 2019 
+[    3.090838] Creating BlueDBM DMA buffer 2020 
+[    3.090839] Creating BlueDBM DMA buffer 2021 
+[    3.090840] Creating BlueDBM DMA buffer 2022 
+[    3.090841] Creating BlueDBM DMA buffer 2023 
+[    3.090843] Creating BlueDBM DMA buffer 2024 
+[    3.090844] Creating BlueDBM DMA buffer 2025 
+[    3.090845] Creating BlueDBM DMA buffer 2026 
+[    3.090846] Creating BlueDBM DMA buffer 2027 
+[    3.090847] Creating BlueDBM DMA buffer 2028 
+[    3.090848] Creating BlueDBM DMA buffer 2029 
+[    3.090849] Creating BlueDBM DMA buffer 2030 
+[    3.090849] Creating BlueDBM DMA buffer 2031 
+[    3.090851] Creating BlueDBM DMA buffer 2032 
+[    3.090852] Creating BlueDBM DMA buffer 2033 
+[    3.090853] Creating BlueDBM DMA buffer 2034 
+[    3.090854] Creating BlueDBM DMA buffer 2035 
+[    3.090855] Creating BlueDBM DMA buffer 2036 
+[    3.090856] Creating BlueDBM DMA buffer 2037 
+[    3.090858] Creating BlueDBM DMA buffer 2038 
+[    3.090859] Creating BlueDBM DMA buffer 2039 
+[    3.090860] Creating BlueDBM DMA buffer 2040 
+[    3.090861] Creating BlueDBM DMA buffer 2041 
+[    3.090862] Creating BlueDBM DMA buffer 2042 
+[    3.090864] Creating BlueDBM DMA buffer 2043 
+[    3.090865] Creating BlueDBM DMA buffer 2044 
+[    3.090866] Creating BlueDBM DMA buffer 2045 
+[    3.090867] Creating BlueDBM DMA buffer 2046 
+[    3.090868] Creating BlueDBM DMA buffer 2047 
+[    3.090870] BlueDBM DMA buffer alloc successful
+[    3.090872] IOCTL number written: 40080000
+[    3.090872] BlueDBM PCIe driver loaded
+[    3.102201] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    3.102387] cfg80211: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[    3.111182] usbcore: registered new interface driver usbserial_generic
+[    3.111189] usbserial: USB Serial support registered for generic
+[    3.113770] usbcore: registered new interface driver ftdi_sio
+[    3.113775] usbserial: USB Serial support registered for FTDI USB Serial Device
+[    3.113788] ftdi_sio 1-5:1.0: FTDI USB Serial Device converter detected
+[    3.113801] usb 1-5: Detected FT2232H
+[    3.114175] usb 1-5: FTDI USB Serial Device converter now attached to ttyUSB0
+[    3.114196] ftdi_sio 1-5:1.1: FTDI USB Serial Device converter detected
+[    3.114211] usb 1-5: Detected FT2232H
+[    3.114289] usb 1-5: FTDI USB Serial Device converter now attached to ttyUSB1
+[    3.120221] RAPL PMU: API unit is 2^-32 Joules, 5 fixed counters, 655360 ms ovfl timer
+[    3.120223] RAPL PMU: hw unit of domain pp0-core 2^-14 Joules
+[    3.120223] RAPL PMU: hw unit of domain package 2^-14 Joules
+[    3.120224] RAPL PMU: hw unit of domain dram 2^-14 Joules
+[    3.120224] RAPL PMU: hw unit of domain pp1-gpu 2^-14 Joules
+[    3.120225] RAPL PMU: hw unit of domain psys 2^-14 Joules
+[    3.127775] AVX2 version of gcm_enc/dec engaged.
+[    3.127775] AES CTR mode by8 optimization enabled
+[    3.129650] snd_hda_intel 0000:00:1f.3: enabling device (0000 -> 0002)
+[    3.129798] snd_hda_intel 0000:00:1f.3: bound 0000:00:02.0 (ops i915_audio_component_bind_ops [i915])
+[    3.129901] rtl8821ae 0000:06:00.0: enabling device (0000 -> 0003)
+[    3.143487] rtl8821ae: Using firmware rtlwifi/rtl8812aefw.bin
+[    3.143489] rtl8821ae: Using firmware rtlwifi/rtl8812aefw_wowlan.bin
+[    3.143688] rtl8821ae 0000:06:00.0: Direct firmware load for rtlwifi/rtl8812aefw.bin failed with error -2
+[    3.144135] rtlwifi: Loading alternative firmware rtlwifi/rtl8821aefw.bin
+[    3.144145] rtl8821ae 0000:06:00.0: Direct firmware load for rtlwifi/rtl8812aefw_wowlan.bin failed with error -2
+[    3.144158] rtlwifi: Loading alternative firmware rtlwifi/rtl8821aefw.bin
+[    3.155004] ieee80211 phy0: Selected rate control algorithm 'rtl_rc'
+[    3.155163] rtlwifi: rtlwifi: wireless switch is on
+[    3.156142] rtl8821ae 0000:06:00.0 wlp6s0: renamed from wlan0
+[    3.164245] intel_rapl: Found RAPL domain package
+[    3.164246] intel_rapl: Found RAPL domain core
+[    3.164247] intel_rapl: Found RAPL domain uncore
+[    3.164247] intel_rapl: Found RAPL domain dram
+[    3.166923] snd_hda_codec_realtek hdaudioC0D0: autoconfig for ALC887-VD: line_outs=1 (0x14/0x0/0x0/0x0/0x0) type:line
+[    3.166925] snd_hda_codec_realtek hdaudioC0D0:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
+[    3.166926] snd_hda_codec_realtek hdaudioC0D0:    hp_outs=1 (0x1b/0x0/0x0/0x0/0x0)
+[    3.166926] snd_hda_codec_realtek hdaudioC0D0:    mono: mono_out=0x0
+[    3.166927] snd_hda_codec_realtek hdaudioC0D0:    dig-out=0x11/0x0
+[    3.166927] snd_hda_codec_realtek hdaudioC0D0:    inputs:
+[    3.166929] snd_hda_codec_realtek hdaudioC0D0:      Front Mic=0x19
+[    3.166930] snd_hda_codec_realtek hdaudioC0D0:      Rear Mic=0x18
+[    3.166930] snd_hda_codec_realtek hdaudioC0D0:      Line=0x1a
+[    3.174575] random: crng init done
+[    3.174576] random: 7 urandom warning(s) missed due to ratelimiting
+[    3.184514] input: HDA Intel PCH Front Mic as /devices/pci0000:00/0000:00:1f.3/sound/card0/input8
+[    3.184551] input: HDA Intel PCH Rear Mic as /devices/pci0000:00/0000:00:1f.3/sound/card0/input9
+[    3.184586] input: HDA Intel PCH Line as /devices/pci0000:00/0000:00:1f.3/sound/card0/input10
+[    3.184623] input: HDA Intel PCH Line Out as /devices/pci0000:00/0000:00:1f.3/sound/card0/input11
+[    3.184658] input: HDA Intel PCH Front Headphone as /devices/pci0000:00/0000:00:1f.3/sound/card0/input12
+[    3.184692] input: HDA Intel PCH HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:1f.3/sound/card0/input13
+[    3.184728] input: HDA Intel PCH HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:1f.3/sound/card0/input14
+[    3.184761] input: HDA Intel PCH HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:1f.3/sound/card0/input15
+[    3.566440] audit: type=1400 audit(1537406816.063:2): apparmor="STATUS" operation="profile_load" profile="unconfined" name="libreoffice-xpdfimport" pid=873 comm="apparmor_parser"
+[    3.566543] audit: type=1400 audit(1537406816.063:3): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/sbin/ippusbxd" pid=877 comm="apparmor_parser"
+[    3.566560] audit: type=1400 audit(1537406816.063:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/usr/bin/man" pid=869 comm="apparmor_parser"
+[    3.566561] audit: type=1400 audit(1537406816.063:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="man_filter" pid=869 comm="apparmor_parser"
+[    3.566562] audit: type=1400 audit(1537406816.063:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="man_groff" pid=869 comm="apparmor_parser"
+[    3.566675] audit: type=1400 audit(1537406816.063:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="libreoffice-senddoc" pid=871 comm="apparmor_parser"
+[    3.566677] audit: type=1400 audit(1537406816.063:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="libreoffice-senddoc//sanitized_helper" pid=871 comm="apparmor_parser"
+[    3.567306] audit: type=1400 audit(1537406816.063:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name="libreoffice-oopslash" pid=870 comm="apparmor_parser"
+[    3.567408] audit: type=1400 audit(1537406816.063:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/sbin/dhclient" pid=866 comm="apparmor_parser"
+[    3.712438] [drm] RC6 on
+[    4.108850] IPv6: ADDRCONF(NETDEV_UP): enp4s0: link is not ready
+[    4.154811] r8169 0000:04:00.0 enp4s0: link down
+[    4.154812] r8169 0000:04:00.0 enp4s0: link down
+[    4.154910] IPv6: ADDRCONF(NETDEV_UP): enp4s0: link is not ready
+[    4.157590] IPv6: ADDRCONF(NETDEV_UP): wlp6s0: link is not ready
+[    8.467655] r8169 0000:04:00.0 enp4s0: link up
+[    8.467660] IPv6: ADDRCONF(NETDEV_CHANGE): enp4s0: link becomes ready
+[   34.139417] PKCS#7 signature not signed with a trusted key
+[   34.144721] vboxdrv: Found 12 processor cores
+[   34.164357] vboxdrv: TSC mode is Invariant, tentative frequency 3696001330 Hz
+[   34.164357] vboxdrv: Successfully loaded version 5.2.10_Ubuntu (interface 0x00290001)
+[   34.167270] PKCS#7 signature not signed with a trusted key
+[   34.167565] VBoxNetFlt: Successfully started.
+[   34.170167] PKCS#7 signature not signed with a trusted key
+[   34.170470] VBoxNetAdp: Successfully started.
+[   34.173250] PKCS#7 signature not signed with a trusted key
+[   34.173640] VBoxPciLinuxInit
+[   34.174921] vboxpci: IOMMU not found (not registered)
+[   63.641605] rfkill: input handler disabled
+[  104.171017] BlueDBM character device mmap to bar0 f7300000 success physical: f7300000 off: 0
+[  104.171025] BlueDBM character device mmap from 7f8b76616000 to 7f8b76716000
+[  104.171391] BlueDBM character device mmap from 7f8b74bb6000 to 7f8b753b6000
+[  104.171615] pcieport 0000:00:1b.4: AER: Uncorrected (Non-Fatal) error received: id=00dc
+[  104.171629] pcieport 0000:00:1b.4: PCIe Bus Error: severity=Uncorrected (Non-Fatal), type=Transaction Layer, id=00dc(Requester ID)
+[  104.171637] pcieport 0000:00:1b.4:   device [8086:a2eb] error status/mask=00100000/00010000
+[  104.171644] pcieport 0000:00:1b.4:    [20] Unsupported Request    (First)
+[  104.171651] pcieport 0000:00:1b.4:   TLP Header: 40000020 000000ff 0008d000 00000000
+[  104.171661] pcieport 0000:00:1b.4: broadcast error_detected message
+[  104.171665] pcieport 0000:00:1b.4: AER: Device recovery failed
+[  120.713589] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[  120.713631] ftdi_sio 1-5:1.0: device disconnected
+[  120.769741] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.816409] pcieport 0000:00:1b.4: PCIe Bus Error: severity=Corrected, type=Physical Layer, id=00dc(Receiver ID)
+[  120.816413] pcieport 0000:00:1b.4:   device [8086:a2eb] error status/mask=00002001/00002000
+[  120.816415] pcieport 0000:00:1b.4:    [ 0] Receiver Error        
+[  120.816418] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819388] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819389] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819392] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819393] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819396] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819397] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819400] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819401] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819405] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819407] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819433] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819434] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819437] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819438] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819440] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819441] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819444] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819445] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819448] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819450] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819453] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819454] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819457] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819459] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819462] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819463] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819466] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819466] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819469] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819470] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819473] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819474] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819477] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819477] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819480] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819481] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819497] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819498] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819502] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  120.819503] pcieport 0000:00:1b.4: AER: Multiple Corrected error received: id=00dc
+[  120.819506] pcieport 0000:00:1b.4: can't find device of ID00dc
+[  135.970372] Removing bluespecpcie driver
+[  135.970382] Cleared PCIe master
+[  135.970406] IOunmap
+[  135.970411] pci_release_regions
+[  135.970417] pci_disable_device
+[  136.009374] pci 0000:02:00.0: [10ee:7028] type 00 class 0x058000
+[  136.009392] pci 0000:02:00.0: reg 0x10: [mem 0x00000000-0x000fffff]
+[  136.009431] pci 0000:02:00.0: Max Payload Size set to 256 (was 128, max 256)
+[  136.009484] pci 0000:02:00.0: PME# supported from D0 D1 D2 D3hot
+[  136.033583] pci 0000:02:00.0: BAR 0: assigned [mem 0xf7300000-0xf73fffff]
+[  136.033692] BlueDBM PCIe driver enabling device cmd 0
+[  136.033709] bdbmpcie 0000:02:00.0: enabling device (0000 -> 0002)
+[  136.033720] BlueDBM PCIe driver detected device 10ee 7028
+[  136.033726] BAR0: f7300000 @ f7300000
+[  136.033767] PCIe read: c001d00d (0)
+[  136.033773] PCIe read: 0 (1)
+[  136.033777] PCIe read: 0 (2)

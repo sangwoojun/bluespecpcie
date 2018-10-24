@@ -201,7 +201,7 @@ module ddr3_0_mig #
                                      // Output Driver Impedance Control (Mode Register 1).
                                      // # = "HIGH" - RZQ/7,
                                      //   = "LOW" - RZQ/6.
-   parameter RTT_NOM               = "40",
+   parameter RTT_NOM               = "60",
                                      // RTT_NOM (ODT) (Mode Register 1).
                                      //   = "120" - RZQ/2,
                                      //   = "60"  - RZQ/4,
@@ -263,13 +263,13 @@ module ddr3_0_mig #
                                      // memory tPRDI paramter in pS.
    parameter tRAS                  = 35000,
                                      // memory tRAS paramter in pS.
-   parameter tRCD                  = 13750,
+   parameter tRCD                  = 13125,
                                      // memory tRCD paramter in pS.
    parameter tREFI                 = 7800000,
                                      // memory tREFI paramter in pS.
    parameter tRFC                  = 110000,
                                      // memory tRFC paramter in pS.
-   parameter tRP                   = 13750,
+   parameter tRP                   = 13125,
                                      // memory tRP paramter in pS.
    parameter tRRD                  = 6000,
                                      // memory tRRD paramter in pS.

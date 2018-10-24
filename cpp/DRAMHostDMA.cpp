@@ -67,7 +67,7 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 		size_t pages = curbyte/m_fpga_alignment;
 		size_t pageoff = offset/m_fpga_alignment;
 
-		printf( "Writing %lx pages from %lx to %lx\n", pages, hostpageoff, pageoff );
+		//printf( "Writing %lx pages from %lx to %lx\n", pages, hostpageoff, pageoff );
 
 		pcie->userWriteWord(m_host_mem_arg, hostpageoff); // host mem page
 		pcie->userWriteWord(m_fpga_mem_arg, pageoff);// fpga mem page
@@ -75,11 +75,11 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 
 	
 		uint32_t writecnt = pcie->userReadWord(m_fpga_write_stat_off);
-		printf( "Waiting for %d to reach %ld\n", writecnt, m_write_done_total + i );
+		//printf( "Waiting for %d to reach %ld\n", writecnt, m_write_done_total + i );
 		while ( writecnt < m_write_done_total + i ) {
 			writecnt = pcie->userReadWord(m_fpga_write_stat_off);
 		}
-		printf( "Write done!\n" );
+		//printf( "Write done!\n" );
 
 		host_offset += curbyte;
 		offset += curbyte;
@@ -92,12 +92,12 @@ DRAMHostDMA::CopyToFPGA(size_t offset, void* buffer, size_t bytes) {
 	}
 
 	uint32_t writecnt = pcie->userReadWord(m_fpga_write_stat_off);
-	printf( "Waiting for %d to reach %ld\n", writecnt, m_write_done_total +writes_cnt );
+	//printf( "Waiting for %d to reach %ld\n", writecnt, m_write_done_total +writes_cnt );
 	while ( writecnt < m_write_done_total + writes_cnt ) {
 		writecnt = pcie->userReadWord(m_fpga_write_stat_off);
 	}
 	m_write_done_total = writecnt;
-	printf( "Write done!\n" );
+	//printf( "Write done!\n" );
 
 
 	m_mutex.unlock();

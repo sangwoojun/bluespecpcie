@@ -84,7 +84,11 @@ module mkDRAMBurstSplitter#(DRAMBurstControllerIfc dram) (DRAMBurstSplitterIfc#(
 	MergeNIfc#(rcnt, Tuple3#(Bit#(64), Bit#(32), Bit#(8))) mReader <- mkMergeN;
 	MergeNIfc#(wcnt, Tuple3#(Bit#(64), Bit#(32), Bit#(8))) mWriter <- mkMergeN;
 	Vector#(wcnt, SyncFIFOIfc#(Bit#(512))) writerQs <- replicateM(mkSyncFIFO(8,curclk,currst,dramclk));
-	Vector#(rcnt, SyncFIFOIfc#(Bit#(512))) readerQs <- replicateM(mkSyncFIFO(8,dramclk, dramrst, curclk));
+	Vector#(rcnt, FIFO#(Bit#(512))) readerQs <- replicateM(mkFIFO);
+
+	MergeNIfc#(wcnt, Bit#(512)) writerM <- mkMergeN;
+	SyncFIFOIfc#(Bit#(512)) writerdQ <- mkSyncFIFO(8,curclk,currst,dramclk);
+	SyncFIFOIfc#(Tuple2#(Bit#(8),Bit#(512))) readerdQ <- mkSyncFIFO(8,dramclk, dramrst, curclk);
 
 	SyncFIFOIfc#(Tuple3#(Bit#(64), Bit#(32), Bit#(8))) readerQ <- mkSyncFIFO(2, curclk, currst, dramclk);
 	SyncFIFOIfc#(Tuple3#(Bit#(64), Bit#(32), Bit#(8))) writerQ <- mkSyncFIFO(2, curclk, currst, dramclk);
@@ -92,6 +96,8 @@ module mkDRAMBurstSplitter#(DRAMBurstControllerIfc dram) (DRAMBurstSplitterIfc#(
 	Reg#(Bit#(32)) curReadCnt  <- mkReg(0,clocked_by dramclk, reset_by dramrst);
 	Reg#(Bit#(32)) curWriteCnt <- mkReg(0,clocked_by dramclk, reset_by dramrst);
 	Reg#(Bit#(8)) curClientIdx <- mkReg(0,clocked_by dramclk, reset_by dramrst);
+	
+	Reg#(Bit#(32)) curCnt <- mkReg(0);
 
 	rule relayDramRead; 
 		let r = mReader.first;
@@ -119,17 +125,29 @@ module mkDRAMBurstSplitter#(DRAMBurstControllerIfc dram) (DRAMBurstSplitterIfc#(
 	endrule
 	
 
+	rule relayWriteC;
+		writerM.deq;
+		writerdQ.enq(writerM.first);
+		curCnt <= curCnt - 1;
+	endrule
 	rule relayWrite ( curReadCnt == 0 && curWriteCnt > 0 );
 		curWriteCnt <= curWriteCnt - 1;
-		writerQs[curClientIdx].deq;
-		let d = writerQs[curClientIdx].first;
+		writerdQ.deq;
+		let d = writerdQ.first;
 		dram.write(d);
 	endrule
 
 	rule relayRead ( curReadCnt > 0 && curWriteCnt == 0 );
 		curReadCnt <= curReadCnt - 1;
 		let d <- dram.read;
-		readerQs[curClientIdx].enq(d);
+		readerdQ.enq(tuple2(curClientIdx, d));
+	endrule
+	rule relayReadClient;
+		readerdQ.deq;
+		let r = readerdQ.first;
+		curCnt <= curCnt - 1;
+	
+		readerQs[tpl_1(r)].enq(tpl_2(r));
 	endrule
 	
 	Vector#(rcnt, DRAMBurstReaderIfc) readers_;
@@ -137,8 +155,9 @@ module mkDRAMBurstSplitter#(DRAMBurstControllerIfc dram) (DRAMBurstSplitterIfc#(
 
 	for ( Integer i = 0; i < valueOf(rcnt); i=i+1) begin
 		readers_[i] = interface DRAMBurstReaderIfc;
-			method Action readReq(Bit#(64) addr, Bit#(32) words);
+			method Action readReq(Bit#(64) addr, Bit#(32) words) if ( curCnt == 0 );
 				mReader.enq[i].enq(tuple3(addr,words,fromInteger(i)));
+				curCnt <= words;
 			endmethod
 			method ActionValue#(Bit#(512)) read;
 				readerQs[i].deq;
@@ -149,11 +168,12 @@ module mkDRAMBurstSplitter#(DRAMBurstControllerIfc dram) (DRAMBurstSplitterIfc#(
 	end
 	for ( Integer i = 0; i < valueOf(wcnt); i=i+1) begin
 		writers_[i] = interface DRAMBurstWriterIfc;
-			method Action writeReq(Bit#(64) addr, Bit#(32) words);
+			method Action writeReq(Bit#(64) addr, Bit#(32) words) if ( curCnt == 0 );
 				mWriter.enq[i].enq(tuple3(addr,words,fromInteger(i)));
+				curCnt <= words;
 			endmethod
 			method Action write(Bit#(512) word);
-				writerQs[i].enq(word);
+				writerM.enq[i].enq(word);
 			endmethod
 		endinterface: DRAMBurstWriterIfc;
 	end

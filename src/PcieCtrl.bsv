@@ -137,8 +137,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	
 	FIFO#(Bit#(PcieKeepSz)) tlpKeepQ <- mkSizedFIFO(32);
 	FIFO#(Bit#(PcieInterfaceSz)) tlpQ <- mkSizedFIFO(32);
-	FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkSizedFIFO(32);
-	FIFO#(Bit#(PcieInterfaceSz)) tlp3Q <- mkSizedFIFO(32);
+	//swjun improve timing...
+	//FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkSizedFIFO(32);
+	//FIFO#(Bit#(PcieInterfaceSz)) tlp3Q <- mkSizedFIFO(32);
+	FIFO#(Bit#(PcieInterfaceSz)) tlp2Q <- mkFIFO;
+	FIFO#(Bit#(PcieInterfaceSz)) tlp3Q <- mkFIFO;
 	Reg#(Maybe#(Bit#(PcieInterfaceSz))) partBuffer <- mkReg(tagged Invalid);
 	Reg#(Bit#(PcieKeepSz)) keepBuffer <- mkReg(0);
 	Reg#(Bit#(5)) partOffset <- mkReg(0);
