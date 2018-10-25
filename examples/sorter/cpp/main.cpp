@@ -16,6 +16,14 @@ int main(int argc, char** argv) {
 	unsigned int d = pcie->readWord(0);
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
+	
+	/// try to reset
+	/*
+	for ( int i = 0; i < 8; i++ ) {
+		pcie->userWriteWord(1*4,i);
+	}
+	pcie->userWriteWord(2*4,0); //reset signal
+	*/
 
 	uint32_t cur_write_buf_idx = 128;
 	for ( int i = 0; i < 4; i++ ) {
@@ -44,16 +52,6 @@ int main(int argc, char** argv) {
 		pcie->userWriteWord(0,cmd);
 		buffercnt[idx] ++;
 	}
-	/*
-	for ( int idx = 0; idx < 16; idx++ ) {
-		uint32_t cmd = (idx<<16)|(idx*2+1);
-		pcie->userWriteWord(0,cmd);
-	}*/
-	/*
-	for ( int idx = 0; idx < 16; idx++ ) {
-		pcie->userWriteWord(0,(idx<<16)|0xffff);
-	}
-	*/
 
 	printf("Buffers sent\n");
 
@@ -77,6 +75,7 @@ int main(int argc, char** argv) {
 
 			done = pcie->userReadWord(0);
 		}
+
 		uint32_t res0 = pcie->userReadWord(32*4);
 		uint32_t res1 = pcie->userReadWord(33*4);
 		uint32_t res2 = pcie->userReadWord(34*4);
@@ -90,8 +89,10 @@ int main(int argc, char** argv) {
 		}
 
 		uint32_t donew = pcie->userReadWord(1*4);
+		bool last = false;
 		while (donew != 0xffffffff) {
-			uint32_t idx = (donew>>16);
+			uint32_t idx = ((donew>>16)&0x3fff);
+			last = ((donew>>31) > 0 ? true : false);
 			uint32_t bytes = (donew & 0xffff);
 			printf( "Write buffer done! %d 0x%x\n", idx, bytes );
 			uint32_t* wbuf = (dmabuf+(idx<<10));
@@ -103,9 +104,12 @@ int main(int argc, char** argv) {
 			pcie->userWriteWord(1*4,cur_write_buf_idx++);
 			if ( cur_write_buf_idx >= 256 ) cur_write_buf_idx = 128;
 
+			if ( last ) break;
 			donew = pcie->userReadWord(1*4);
 		}
-		sleep(1);
+		
+		if ( last ) break;
+		//sleep(1);
 		printf( "--\n" );
 		fflush(stdout);
 	}

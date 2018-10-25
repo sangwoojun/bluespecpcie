@@ -10,7 +10,7 @@ import PcieCtrl::*;
 interface DMAWriteHelperIfc;
 	method Action addHostBuffer(Bit#(32) off, Bit#(32) bytes);
 	method Action write(Maybe#(Bit#(128)) write);
-	method ActionValue#(Tuple2#(Bit#(32),Bit#(32))) bufferDone; 
+	method ActionValue#(Tuple3#(Bool, Bit#(32),Bit#(32))) bufferDone; 
 endinterface
 
 module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
@@ -24,11 +24,11 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 	Reg#(Bit#(32)) dmaWriteLeftWords <- mkReg(0, clocked_by pcieclk, reset_by pcierst); // fpga->host
     SyncFIFOIfc#(Maybe#(Bit#(128))) writeSyncQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
     SyncFIFOIfc#(Tuple2#(Bit#(32),Bit#(32))) writeBufferQ <- mkSyncFIFO(8, curclk, currst, pcieclk);
-	FIFO#(Bit#(128)) writeBufferDataQ <- mkSizedBRAMFIFO(8192, clocked_by pcieclk, reset_by pcierst); // 4 KB * 32
+	FIFO#(Bit#(128)) writeBufferDataQ <- mkSizedBRAMFIFO(512, clocked_by pcieclk, reset_by pcierst); // 8 KB
 	Reg#(Bool) writeBufferFlush <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) writeBufferCntUp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) writeBufferCntDn <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-    SyncFIFOIfc#(Tuple2#(Bit#(32),Bit#(32))) writeDoneQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
+    SyncFIFOIfc#(Tuple3#(Bool,Bit#(32),Bit#(32))) writeDoneQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
 
 	
 	/*****************************************************
@@ -75,7 +75,7 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 			dmaCurWriteLeft <= 8;
 			dmaWriteLeftWords <= dmaWriteLeftWords - 8;
 			if ( dmaWriteLeftWords == 8 ) begin
-				writeDoneQ.enq(tuple2(fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
+				writeDoneQ.enq(tuple3(False, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
 				dmaCurBufferWriteCnt <= 0;
 			end else begin
 				dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
@@ -87,7 +87,7 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 			dmaCurWriteLeft <= 8;
 			dmaWriteLeftWords <= dmaWriteLeftWords - 8;
 			if ( dmaWriteLeftWords == 8 ) begin
-				writeDoneQ.enq(tuple2(fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
+				writeDoneQ.enq(tuple3(False, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
 				dmaCurBufferWriteCnt <= 0;
 			end else begin
 				dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
@@ -105,7 +105,7 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 
 			dmaWriteHostStartOff <= tagged Invalid;
 
-			writeDoneQ.enq(tuple2(fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+qcount));
+			writeDoneQ.enq(tuple3(True, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+qcount));
 			dmaCurBufferWriteCnt <= 0;
 		end
 	endrule
@@ -139,9 +139,9 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 	method Action write(Maybe#(Bit#(128)) data);
 		writeSyncQ.enq(data);
 	endmethod
-	method ActionValue#(Tuple2#(Bit#(32),Bit#(32))) bufferDone; 
+	method ActionValue#(Tuple3#(Bool, Bit#(32),Bit#(32))) bufferDone; 
 		writeDoneQ.deq;
 		let d = writeDoneQ.first;
-		return tuple2(tpl_1(d), (tpl_2(d)<<4));
+		return tuple3(tpl_1(d), tpl_2(d), (tpl_3(d)<<4));
 	endmethod
 endmodule

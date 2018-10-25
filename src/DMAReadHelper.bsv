@@ -29,6 +29,7 @@ module mkDMAReadHelper#(PcieUserIfc pcie) (DMAReadHelperIfc);
 	FIFO#(Bit#(8)) dmaReadFreeTagQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
 	Vector#(16, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
 	Vector#(16, FIFO#(Bit#(128))) vDmaReadWords <- replicateM(mkSizedFIFO(8, clocked_by pcieclk, reset_by pcierst));
+	//ScatterNIfc#(16, Bit#(128)) dmaReadWordsS <- mkScatterN;//TODO use this
 	FIFO#(Tuple2#(Bit#(8),Bit#(8))) dmaReadTagOrderQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) dmaReadTagInit <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bool) dmaReadTagInitDone <- mkReg(False, clocked_by pcieclk, reset_by pcierst);

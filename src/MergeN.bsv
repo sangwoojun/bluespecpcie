@@ -4,6 +4,16 @@ import FIFO::*;
 import FIFOF::*;
 import Vector::*;
 
+interface ScatterDeqIfc#(type t);
+	method Action deq;
+	method t first;
+endinterface
+
+interface ScatterNIfc#(numeric type n, type t);
+	method Action enq(t data, Bit#(8) dst);
+	interface Vector#(n,ScatterDeqIfc#(t)) get;
+endinterface
+
 interface MergeEnqIfc#(type t);
 	method Action enq(t d);
 endinterface
@@ -14,6 +24,84 @@ interface MergeNIfc#(numeric type n, type t);
 	method Action deq;
 	method t first;
 endinterface
+
+module mkScatterN (ScatterNIfc#(n,t))
+	provisos(Bits#(t, a__), Log#(n,nsz)//, Add#(b__,TLog#(TDiv#(n,2)),TLog#(n))
+	);
+	if ( valueOf(n) > 2 ) begin
+		Vector#(2,ScatterNIfc#(TDiv#(n,2), t)) sa <- replicateM(mkScatterN);
+		FIFO#(Tuple2#(t,Bit#(8))) inQ <- mkFIFO;
+
+		rule relayInput;
+			let d = inQ.first;
+			inQ.deq;
+			let data =tpl_1(d);
+			let dst = tpl_2(d);
+			if ( dst[valueOf(nsz)-1] == 0 ) sa[0].enq(data, dst);
+			else sa[1].enq(data, truncate(dst));
+		endrule
+
+		//Vector#(2,FIFO#(t)) vOutQ <- replicateM(mkFIFO);
+		Vector#(n, ScatterDeqIfc#(t)) get_;
+		for ( Integer i = 0; i < valueOf(n); i=i+1) begin
+			get_[i] = interface ScatterDeqIfc;
+				method Action deq;
+					if ( i < valueOf(n)/2 ) begin
+						sa[0].get[i].deq;
+					end else begin
+						sa[1].get[i-(valueOf(n)/2)].deq;
+					end
+				endmethod
+				method t first;
+					if ( i < valueOf(n)/2 ) begin
+						return sa[0].get[i].first;
+					end else begin
+						return sa[1].get[i-(valueOf(n)/2)].first;
+					end
+				endmethod
+			endinterface;
+		end
+		interface get = get_;
+		method Action enq(t data, Bit#(8) dst);
+			inQ.enq(tuple2(data,dst));
+		endmethod
+
+	end else if ( valueOf(n) == 2 ) begin
+		Vector#(2,FIFO#(t)) vOutQ <- replicateM(mkFIFO);
+		Vector#(n, ScatterDeqIfc#(t)) get_;
+		for ( Integer i = 0; i < 2; i=i+1) begin
+			get_[i] = interface ScatterDeqIfc;
+				method Action deq;
+					vOutQ[i].deq;
+				endmethod
+				method t first;
+					return vOutQ[i].first;
+				endmethod
+			endinterface;
+		end
+		interface get = get_;
+		method Action enq(t data, Bit#(8) dst);
+			if ( dst[0] == 0 ) vOutQ[0].enq(data);
+			else vOutQ[1].enq(data);
+		endmethod
+
+	end else begin
+		FIFO#(t) inQ <- mkFIFO;
+		Vector#(n, ScatterDeqIfc#(t)) get_;
+		get_[0] = interface ScatterDeqIfc;
+			method Action deq;
+				inQ.deq;
+			endmethod
+			method t first;
+				return inQ.first;
+			endmethod
+		endinterface;
+		interface get = get_;
+		method Action enq(t data, Bit#(8) dst);
+			inQ.enq(data);
+		endmethod
+	end
+endmodule
 
 module mkMergeN (MergeNIfc#(n,t))
 	provisos(Bits#(t, a__));

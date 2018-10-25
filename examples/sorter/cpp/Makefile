@@ -9,7 +9,7 @@ LIB= -lrt -lpthread
 all:
 	echo "building for pcie"
 	mkdir -p obj
-	g++ main.cpp $(BDBMPCIECPP) $(BDBMPCIEINCLUDE) -o obj/main $(LIB) -pedantic -g -O2
+	g++ main.cpp $(BDBMPCIECPP) $(BDBMPCIEINCLUDE) -o obj/main $(LIB) -pedantic -g
 bsim:
 	echo "building for bluesim"
 	mkdir -p obj
