@@ -66,10 +66,12 @@ module mkHwMain#(PcieUserIfc pcie)
 		cycleCounter <= cycleCounter + 1;
 	endrule
 	SyncFIFOIfc#(Bool) resetReqQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
+	SyncFIFOIfc#(Bit#(8)) resetStateQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
 	Reg#(Bit#(8)) resetCounter <- mkReg(0);
 	rule incResetCnt;
 		resetReqQ.deq;
 		resetCounter <= resetCounter + 1;
+		if ( resetStateQ.notFull ) resetStateQ.enq(resetCounter+1);
 	endrule
 
 	SyncFIFOIfc#(Bit#(16)) dmarDoneQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
@@ -83,29 +85,33 @@ module mkHwMain#(PcieUserIfc pcie)
 	Vector#(32, ShiftUnpackerIfc#(Bit#(128), Bit#(96))) unpackers <- replicateM(mkShiftUnpacker);
 
 	ShiftPackerIfc#(Bit#(128), Bit#(96)) packer <- mkShiftPacker;
-	//Vector#(32, FIFO#(Maybe#(Bit#(128)))) vRelayQ <- replicateM(mkSizedBRAMFIFO(512)); // 8 KB
 	ScatterNIfc#(32,Maybe#(Bit#(128))) relayS <- mkScatterN;
-	//Vector#(32, FIFO#(Bit#(32))) vReadCntQ <- replicateM(mkSizedFIFO(16)); // 8 KB
 	ScatterNIfc#(32, Bit#(32)) readCntS <- mkScatterN;
 	MergeNIfc#(32, Bit#(16)) dmarDoneM <- mkMergeN;
+
 	for ( Integer i = 0; i < iFanIn; i=i+1 ) begin
-		FIFO#(Maybe#(Bit#(128))) relayQ <- mkSizedBRAMFIFO(512); // 8 KB
+		FIFO#(Maybe#(Bit#(128))) relayQ <- mkSizedBRAMFIFO(256*2+2); // 4 KB * 2 + 1 for reset + 1 just cuz
 		Reg#(Bit#(32)) curReadWordsCnt <- mkReg(0);
+		FIFOF#(Bit#(32)) readWordsReqQ <- mkSizedFIFOF(4);
 		rule relayVRelay;
 			relayS.get[i].deq;
 			relayQ.enq(relayS.get[i].first);
 		endrule
-		rule relayRelayQ;
+		rule readCntRelay;
+			readCntS.get[i].deq;
+			readWordsReqQ.enq(readCntS.get[i].first);
+		endrule
+		rule relayRelayQ ( readWordsReqQ.notEmpty );
 			relayQ.deq;
 			let d = relayQ.first;
 
 			unpackers[i].put(d);
 
 			if ( isValid(d) ) begin
-				if ( curReadWordsCnt + 1 >= readCntS.get[i].first ) begin
+				if ( curReadWordsCnt + 1 >= readWordsReqQ.first ) begin
 					dmarDoneM.enq[i].enq(fromInteger(i));
 					curReadWordsCnt <= 0;
-					readCntS.get[i].deq;
+					readWordsReqQ.deq;
 				end else begin
 					curReadWordsCnt <= curReadWordsCnt + 1;
 				end
@@ -162,15 +168,11 @@ module mkHwMain#(PcieUserIfc pcie)
 		if ( relayDmaResetCycleTarget == 0 ) begin
 			relayDmaResetCycleTarget <= cycleCounter + (1024*1024*4);
 			relayInvalidIdx <= fromInteger(iFanIn);
-		end else if ( relayDmaResetCycleTarget - cycleCounter < 256 )  begin // 256 so we don't miss the ending
+		end else if ( relayDmaResetCycleTarget - cycleCounter < 1024*1024 )  begin // so we don't miss the ending
 			relayDmaResetCnt <= relayDmaResetCnt + 1;
 			relayDmaResetCycleTarget <= 0;
 		end else begin
 			let r <- dmar.read;
-			if ( relayInvalidIdx > 0 ) begin
-				relayS.enq(tagged Invalid, relayInvalidIdx -1);
-				relayInvalidIdx <= relayInvalidIdx - 1;
-			end
 		end
 
 	endrule
@@ -178,9 +180,8 @@ module mkHwMain#(PcieUserIfc pcie)
 	Reg#(Maybe#(Tuple2#(Bit#(64),Bit#(32)))) lastKvp <- mkReg(tagged Invalid);
 	FIFO#(Maybe#(Tuple2#(Bit#(64),Bit#(32)))) sortReducedQ <- mkFIFO;
 
-	Reg#(Bit#(8)) sorterResultsResetCnt <- mkReg(0);
 	Reg#(Bool) sortResultFlushing <- mkReg(False);
-	rule getSortResult (sorterResultsResetCnt==resetCounter && !sortResultFlushing);
+	rule getSortResult (!sortResultFlushing);
 		let s <- sorter.get;
 		let ss = fromMaybe(?,s);
 		let lp = fromMaybe(?,lastKvp);
@@ -206,16 +207,9 @@ module mkHwMain#(PcieUserIfc pcie)
 			lastKvp <= tagged Invalid;
 		end
 	endrule
-	rule flushSortResult (sorterResultsResetCnt==resetCounter && sortResultFlushing);
+	rule flushSortResult (sortResultFlushing);
 		sortResultFlushing <= False;
 		sortReducedQ.enq(tagged Invalid);
-	endrule
-
-	rule resetSortResult (sorterResultsResetCnt!=resetCounter);
-		let s <- sorter.get;
-		if ( !isValid(s) ) begin
-			sorterResultsResetCnt <= sorterResultsResetCnt + 1;
-		end
 	endrule
     
 	rule packReduced;
@@ -237,14 +231,9 @@ module mkHwMain#(PcieUserIfc pcie)
 		// when reset, throw away until invalid reached
 	endrule
 
-	Reg#(Bit#(8)) dmaWritePResetCnt <- mkReg(0);
-	rule sendHost ( dmaWritePResetCnt==resetCounter );
+	rule sendHost;
 		let d <- packer.get;
 		dmaw.write(d);
-	endrule
-	rule resetSendHost ( dmaWritePResetCnt!=resetCounter );
-		dmaWritePResetCnt <= dmaWritePResetCnt + 1;
-		dmaw.write(tagged Invalid);
 	endrule
 	
 	SyncFIFOIfc#(Tuple2#(Bit#(16), Bit#(16))) dmaReadReqQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
@@ -275,27 +264,12 @@ module mkHwMain#(PcieUserIfc pcie)
 		let d <- dmaw.bufferDone;
 		dmaWriteBufferDoneQ.enq(d);
 	endrule
-	
-	Reg#(Bit#(8)) resetCounterC <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) cycleCounterC <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	rule incCycleC;
-		cycleCounterC <= cycleCounterC + 1;
-	endrule
 
-	Reg#(Bit#(8)) dmaDoneResetCounter <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) dmaDoneResetCycleTarget <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	rule resetDmaWriteDone ( dmaDoneResetCounter!=resetCounterC);
-		if ( dmaDoneResetCycleTarget == 0 ) begin
-			dmaDoneResetCycleTarget <= cycleCounterC + (1024*1024*4);
-		end else if ( dmaDoneResetCycleTarget - cycleCounterC < 256 )  begin // 256 so we don't miss the ending
-			dmaDoneResetCounter <= dmaDoneResetCounter + 1;
-			dmaDoneResetCycleTarget <= 0;
-		end else begin
-		end
-		if ( dmaWriteBufferDoneQ.notEmpty ) dmaWriteBufferDoneQ.deq;
-		if ( dmarDoneQ.notEmpty ) dmarDoneQ.deq;
-	endrule
-
+	// keep track of flushed inputs, for resetting
+	Reg#(Bit#(32)) inputDoneMask <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(16)) writeBufferCntUp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(16)) writeBufferCntDn <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(16)) lastWriteBufferIdx <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 
 	rule getCmd; // ( memReadLeft == 0 && memWriteLeft == 0 );
 		let w <- pcie.dataReceive;
@@ -308,13 +282,25 @@ module mkHwMain#(PcieUserIfc pcie)
 			Bit#(16) target = d[31:16];
 			Bit#(16) buffer = d[15:0];
 			dmaReadReqQ.enq(tuple2(buffer, target));
+
+			if ( buffer >= 1024 ) begin
+				inputDoneMask <= (inputDoneMask|(1<<target));
+			end else begin
+				inputDoneMask <= ~((~inputDoneMask)|(1<<target));
+			end
 		end else if ( off == 1 ) begin
 			dmaWriteBufferQ.enq(d);
+			lastWriteBufferIdx <= truncate(d);
+			writeBufferCntUp <= writeBufferCntUp + 1;
 		end else if ( off == 2 ) begin
 			//reset
 			resetReqQ.enq(True);
-			resetCounterC <= resetCounterC + 1;
+		end else if ( off == 3 ) begin
+			if ( (inputDoneMask>>d)[0] == 0 ) begin
+				dmaReadReqQ.enq(tuple2(16'hffff, truncate(d)));
+			end
 		end
+
 	endrule
 
 	rule readStat;
@@ -326,14 +312,14 @@ module mkHwMain#(PcieUserIfc pcie)
 		let offset = (a>>2);
 
 		if ( offset == 0 ) begin
-			if ( dmarDoneQ.notEmpty && dmaDoneResetCounter == resetCounterC ) begin
+			if ( dmarDoneQ.notEmpty) begin
 				dmarDoneQ.deq;
 				pcie.dataSend(r, zeroExtend(dmarDoneQ.first));
 			end else begin
 				pcie.dataSend(r, 32'hffffffff);
 			end
 		end else if ( offset == 1 ) begin
-			if ( dmaWriteBufferDoneQ.notEmpty && dmaDoneResetCounter == resetCounterC ) begin
+			if ( dmaWriteBufferDoneQ.notEmpty) begin
 				dmaWriteBufferDoneQ.deq;
 				let d = dmaWriteBufferDoneQ.first;
 				let off = tpl_2(d);
@@ -341,9 +327,15 @@ module mkHwMain#(PcieUserIfc pcie)
 				let idx = (off>>12);
 				Bit#(1) last = tpl_1(d)?1:0;
 				pcie.dataSend(r, {last, idx[14:0],bytes[15:0]});
+				writeBufferCntDn <= writeBufferCntDn + 1;
 			end else begin
 				pcie.dataSend(r, 32'hffffffff);
 			end
+		end else if ( offset == 2 ) begin
+				pcie.dataSend(r, inputDoneMask);
+		end else if ( offset == 3 ) begin
+				pcie.dataSend(r, {lastWriteBufferIdx, writeBufferCntUp-writeBufferCntDn});
+		/*
 		end else if ( offset == 32 ) begin
 			if ( sampleKvQ.notEmpty ) begin
 				pcie.dataSend(r, truncateLSB(tpl_1(sampleKvQ.first)));
@@ -363,7 +355,9 @@ module mkHwMain#(PcieUserIfc pcie)
 			end else begin
 				pcie.dataSend(r, 32'hffffffff);
 			end
+		*/
 		end else begin
+
 			pcie.dataSend(r, 32'hffffffff);
 		end
 	endrule

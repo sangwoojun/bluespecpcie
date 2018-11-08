@@ -25,6 +25,7 @@ module mkDMAReadHelper#(PcieUserIfc pcie) (DMAReadHelperIfc);
 	/**************************************
 	** DMA Host -> FPGA Start
 	**************************************/
+	//TODO changing dmaReadTagCount require changing curReadTag
 	Integer dmaReadTagCount  = 16;
 	FIFO#(Bit#(8)) dmaReadFreeTagQ <- mkSizedFIFO(dmaReadTagCount, clocked_by pcieclk, reset_by pcierst);
 	Vector#(16, Reg#(Bit#(8))) vDmaReadTagWordsLeft <- replicateM(mkReg(0, clocked_by pcieclk, reset_by pcierst));
@@ -85,14 +86,14 @@ module mkDMAReadHelper#(PcieUserIfc pcie) (DMAReadHelperIfc);
 		vDmaReadWords[tag].enq(word);
 	endrule
     SyncFIFOIfc#(Bit#(128)) dmaReadWordsQ2 <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
-	Reg#(Bit#(8)) curReadTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(4)) curReadTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) curReadTagCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	rule startReorderRead ( curReadTagCnt == 0 );
 		dmaReadTagOrderQ.deq;
 		let d = dmaReadTagOrderQ.first;
 		let tag = tpl_1(d);
 		let cnt = tpl_2(d);
-		curReadTag <= tag;
+		curReadTag <= truncate(tag);
 		curReadTagCnt <= cnt-1;
 		dmaReadWordsQ2.enq(vDmaReadWords[tag].first);
 		vDmaReadWords[tag].deq;

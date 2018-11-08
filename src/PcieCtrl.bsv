@@ -756,11 +756,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(IOWrite) userWrite2Q <- mkFIFO;
 	rule relayUserWriteQ;
 		userWrite1Q.deq;
-		//if ( userWriteQ.notFull() ) begin
-			userWriteQ.enq(userWrite1Q.first);
-		//end else begin
-			// IOWrite is dropped!
-		//end
+		userWriteQ.enq(userWrite1Q.first);
 	endrule
 	rule relayUserWrite2Q;
 		userWriteQ.deq;

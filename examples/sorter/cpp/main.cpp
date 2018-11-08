@@ -17,15 +17,48 @@ int main(int argc, char** argv) {
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
 	
-	/// try to reset
-	/*
-	for ( int i = 0; i < 8; i++ ) {
-		pcie->userWriteWord(1*4,i);
-	}
-	pcie->userWriteWord(2*4,0); //reset signal
-	*/
-
 	uint32_t cur_write_buf_idx = 128;
+
+	// resetting... needs more work
+	uint32_t flushmask = pcie->userReadWord(2*4);
+	printf( "flushmask: %x\n", flushmask ); fflush(stdout);
+	if ( flushmask > 0 && flushmask < 0xffffffff ) { // 32 bits
+		pcie->userWriteWord(2*4,0); //reset signal
+		int newflush = 0;
+		for ( int i = 0; i < 32; i++ ) {
+			if ( (flushmask>>i)%2 == 0 ) {
+				printf( "Sending flush req\n" );fflush(stdout);
+				pcie->userWriteWord(3*4,i); //send read flush to all sources
+				newflush ++;
+			}
+		}
+		printf( "Sent %d flush buffers\n", newflush );fflush(stdout);
+		while (newflush>0) {
+			uint32_t done = pcie->userReadWord(0);
+			while ( done != 0xffffffff ) {
+				done = pcie->userReadWord(0);
+			}
+			uint32_t donew = pcie->userReadWord(1*4);
+			bool last = false;
+			while (donew != 0xffffffff) {
+				uint32_t idx = ((donew>>16)&0x3fff);
+				last = ((donew>>31) > 0 ? true : false);
+				uint32_t bytes = (donew & 0xffff);
+				printf( "Write buffer done! %d 0x%x\n", idx, bytes );
+
+				pcie->userWriteWord(1*4,cur_write_buf_idx++);
+				cur_write_buf_idx++;
+
+				if ( last ) break;
+				donew = pcie->userReadWord(1*4);
+			}
+
+			if ( last ) break;
+		}
+		printf( "Reset done!\n" );
+	}
+	// done reset...
+
 	for ( int i = 0; i < 4; i++ ) {
 		pcie->userWriteWord(1*4,cur_write_buf_idx);
 		cur_write_buf_idx++;
@@ -64,9 +97,11 @@ int main(int argc, char** argv) {
 				uint32_t cmd = (done<<16)|(done*2+1);
 				pcie->userWriteWord(0,cmd);
 				buffercnt[done] ++;
+
 			} else if ( buffercnt[done] ==2 ) {
 				pcie->userWriteWord(0,(done<<16)|0xffff);
 				buffercnt[done] ++;
+
 			} else if ( buffercnt[done] == 3){
 			} else {
 				printf( "ANOTHER done signal from %d\n", done );

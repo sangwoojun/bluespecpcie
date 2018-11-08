@@ -26,9 +26,14 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
     SyncFIFOIfc#(Tuple2#(Bit#(32),Bit#(32))) writeBufferQ <- mkSyncFIFO(8, curclk, currst, pcieclk);
 	FIFO#(Bit#(128)) writeBufferDataQ <- mkSizedBRAMFIFO(512, clocked_by pcieclk, reset_by pcierst); // 8 KB
 	Reg#(Bool) writeBufferFlush <- mkReg(False, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) writeBufferCntUp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) writeBufferCntDn <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-    SyncFIFOIfc#(Tuple3#(Bool,Bit#(32),Bit#(32))) writeDoneQ <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
+	Reg#(Bit#(16)) writeBufferCntUp <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(16)) writeBufferCntDn <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+    FIFO#(Tuple3#(Bool,Bit#(32),Bit#(32))) writeDoneQ <- mkFIFO(clocked_by pcieclk, reset_by pcierst);
+    SyncFIFOIfc#(Tuple3#(Bool,Bit#(32),Bit#(32))) writeDoneQ2 <- mkSyncFIFO(32, pcieclk, pcierst, curclk);
+	rule relayWriteDone;
+		writeDoneQ.deq;
+		writeDoneQ2.enq(writeDoneQ.first);
+	endrule
 
 	
 	/*****************************************************
@@ -58,56 +63,47 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 
 
 
-	Reg#(Bit#(32)) dmaCurWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(16)) dmaCurWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) dmaCurTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) dmaCurBufferWriteCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	rule genPcieWrite ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && (writeBufferCntUp-writeBufferCntDn >= 8 || writeBufferFlush ) );
+	rule genPcieWrite ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn >= 8);
+	//|| writeBufferFlush ) );
+		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
+		dmaWriteFreeTagQ.deq;
+		dmaCurTag <= writeTag;
+
+		pcie.dmaWriteReq(dmaWriteHostOff, 8, writeTag);
+		dmaWriteHostOff <= dmaWriteHostOff + 128;
+
+		dmaCurWriteLeft <= 8;
+		dmaWriteLeftWords <= dmaWriteLeftWords - 8;
+		if ( dmaWriteLeftWords == 8 ) begin
+			writeDoneQ.enq(tuple3(False, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
+			dmaCurBufferWriteCnt <= 0;
+		end else begin
+			dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
+		end
+	endrule
+	rule genPcieFlush ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn < 8 && writeBufferFlush );
 		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
 		dmaWriteFreeTagQ.deq;
 		dmaCurTag <= writeTag;
 		let qcount = writeBufferCntUp-writeBufferCntDn;
 
-		if ( !writeBufferFlush ) begin
-			// qcount >= 8
-			pcie.dmaWriteReq(dmaWriteHostOff, 8, writeTag);
-			dmaWriteHostOff <= dmaWriteHostOff + 128;
-
-			dmaCurWriteLeft <= 8;
-			dmaWriteLeftWords <= dmaWriteLeftWords - 8;
-			if ( dmaWriteLeftWords == 8 ) begin
-				writeDoneQ.enq(tuple3(False, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
-				dmaCurBufferWriteCnt <= 0;
-			end else begin
-				dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
-			end
-		end else if ( qcount > 8 ) begin
-			pcie.dmaWriteReq(dmaWriteHostOff, 8, writeTag);
-			dmaWriteHostOff <= dmaWriteHostOff + 128;
-
-			dmaCurWriteLeft <= 8;
-			dmaWriteLeftWords <= dmaWriteLeftWords - 8;
-			if ( dmaWriteLeftWords == 8 ) begin
-				writeDoneQ.enq(tuple3(False, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+8));
-				dmaCurBufferWriteCnt <= 0;
-			end else begin
-				dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
-			end
-		end else begin
-			if (qcount > 0) begin
-				pcie.dmaWriteReq(dmaWriteHostOff, truncate(qcount), writeTag);
-			end
-			dmaCurWriteLeft <= qcount;
-			dmaWriteHostOff <= dmaWriteHostOff + (qcount*16);
-
-			//we are flushing, and no more data left in queue
-			dmaWriteLeftWords <= 0;
-			writeBufferFlush <= False;
-
-			dmaWriteHostStartOff <= tagged Invalid;
-
-			writeDoneQ.enq(tuple3(True, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+qcount));
-			dmaCurBufferWriteCnt <= 0;
+		if (qcount > 0) begin
+			pcie.dmaWriteReq(dmaWriteHostOff, truncate(qcount), writeTag);
 		end
+		dmaCurWriteLeft <= qcount;
+		dmaWriteHostOff <= dmaWriteHostOff + (zeroExtend(qcount)*16);
+
+		//we are flushing, and no more data left in queue
+		dmaWriteLeftWords <= 0;
+		writeBufferFlush <= False;
+
+		dmaWriteHostStartOff <= tagged Invalid;
+
+		writeDoneQ.enq(tuple3(True, fromMaybe(?,dmaWriteHostStartOff), dmaCurBufferWriteCnt+zeroExtend(qcount)));
+		dmaCurBufferWriteCnt <= 0;
 	endrule
 
 	rule doPcieWrite( dmaCurWriteLeft > 0 );
@@ -140,8 +136,8 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 		writeSyncQ.enq(data);
 	endmethod
 	method ActionValue#(Tuple3#(Bool, Bit#(32),Bit#(32))) bufferDone; 
-		writeDoneQ.deq;
-		let d = writeDoneQ.first;
+		writeDoneQ2.deq;
+		let d = writeDoneQ2.first;
 		return tuple3(tpl_1(d), tpl_2(d), (tpl_3(d)<<4));
 	endmethod
 endmodule
