@@ -75,7 +75,7 @@ module mkHwMain#(PcieUserIfc pcie)
 	endrule
 
 	SyncFIFOIfc#(Bit#(16)) dmarDoneQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
-	SyncFIFOIfc#(Tuple2#(Bit#(64),Bit#(32))) sampleKvQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
+	//SyncFIFOIfc#(Tuple2#(Bit#(64),Bit#(32))) sampleKvQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
 	
 	DMAReadHelperIfc dmar <- mkDMAReadHelper(pcie);
 	DMAWriteHelperIfc dmaw <- mkDMAWriteHelper(pcie);
@@ -107,15 +107,15 @@ module mkHwMain#(PcieUserIfc pcie)
 
 			unpackers[i].put(d);
 
-			if ( isValid(d) ) begin
-				if ( curReadWordsCnt + 1 >= readWordsReqQ.first ) begin
-					dmarDoneM.enq[i].enq(fromInteger(i));
-					curReadWordsCnt <= 0;
-					readWordsReqQ.deq;
-				end else begin
-					curReadWordsCnt <= curReadWordsCnt + 1;
-				end
+			//if ( isValid(d) ) begin
+			if ( curReadWordsCnt + 1 >= readWordsReqQ.first ) begin
+				if ( isValid(d) ) dmarDoneM.enq[i].enq(fromInteger(i));
+				curReadWordsCnt <= 0;
+				readWordsReqQ.deq;
+			end else begin
+				curReadWordsCnt <= curReadWordsCnt + 1;
 			end
+			//end
 		endrule
 		rule insertSorter;
 			let d <- unpackers[i].get;
@@ -218,11 +218,11 @@ module mkHwMain#(PcieUserIfc pcie)
 
 		if ( isValid(d) ) begin
 			let dd = fromMaybe(?,d);
-			let key = tpl_1(dd);
-			let val = tpl_2(dd);
+			/*
 			if ( sampleKvQ.notFull ) begin
 				sampleKvQ.enq(dd);
 			end
+			*/
 
 			packer.put(tagged Valid encodeTuple2(dd));
 		end else begin
@@ -245,6 +245,7 @@ module mkHwMain#(PcieUserIfc pcie)
 		Bit#(16) target = tpl_2(r);
 		if ( oid >= 1024 ) begin
 			dmarTargetIdxQ.enq(tuple2(False,target));
+			readCntS.enq(1, truncate(target));
 		end else begin
 			dmar.readReq(offset, (1<<12));
 			dmarTargetIdxQ.enq(tuple2(True,target));
