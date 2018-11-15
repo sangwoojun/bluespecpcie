@@ -66,7 +66,7 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 	Reg#(Bit#(16)) dmaCurWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(8)) dmaCurTag <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) dmaCurBufferWriteCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	rule genPcieWrite ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn >= 8);
+	rule genPcieWrite ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn > 8);
 	//|| writeBufferFlush ) );
 		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
 		dmaWriteFreeTagQ.deq;
@@ -84,7 +84,7 @@ module mkDMAWriteHelper#(PcieUserIfc pcie) (DMAWriteHelperIfc);
 			dmaCurBufferWriteCnt <= dmaCurBufferWriteCnt + 8;
 		end
 	endrule
-	rule genPcieFlush ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn < 8 && writeBufferFlush );
+	rule genPcieFlush ( dmaCurWriteLeft == 0 && dmaWriteLeftWords > 0 && writeBufferCntUp-writeBufferCntDn <= 8 && writeBufferFlush );
 		Bit#(8) writeTag = dmaWriteFreeTagQ.first;
 		dmaWriteFreeTagQ.deq;
 		dmaCurTag <= writeTag;

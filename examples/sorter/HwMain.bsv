@@ -65,15 +65,6 @@ module mkHwMain#(PcieUserIfc pcie)
 	rule incCyle;
 		cycleCounter <= cycleCounter + 1;
 	endrule
-	SyncFIFOIfc#(Bool) resetReqQ <- mkSyncFIFO(16, pcieclk, pcierst, curclk);
-	SyncFIFOIfc#(Bit#(8)) resetStateQ <- mkSyncFIFO(16, curclk, currst, pcieclk);
-	Reg#(Bit#(8)) resetCounter <- mkReg(0);
-	rule incResetCnt;
-		resetReqQ.deq;
-		resetCounter <= resetCounter + 1;
-		if ( resetStateQ.notFull ) resetStateQ.enq(resetCounter+1);
-	endrule
-
 	SyncFIFOIfc#(Bit#(16)) dmarDoneQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
 	//SyncFIFOIfc#(Tuple2#(Bit#(64),Bit#(32))) sampleKvQ <- mkSyncFIFO(32, curclk, currst, pcieclk);
 	
@@ -91,15 +82,15 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	for ( Integer i = 0; i < iFanIn; i=i+1 ) begin
 		FIFO#(Maybe#(Bit#(128))) relayQ <- mkSizedBRAMFIFO(256*2+2); // 4 KB * 2 + 1 for reset + 1 just cuz
-		Reg#(Bit#(32)) curReadWordsCnt <- mkReg(0);
-		FIFOF#(Bit#(32)) readWordsReqQ <- mkSizedFIFOF(4);
+		Reg#(Bit#(16)) curReadWordsCnt <- mkReg(0);
+		FIFOF#(Bit#(16)) readWordsReqQ <- mkSizedFIFOF(4);
 		rule relayVRelay;
 			relayS.get[i].deq;
 			relayQ.enq(relayS.get[i].first);
 		endrule
 		rule readCntRelay;
 			readCntS.get[i].deq;
-			readWordsReqQ.enq(readCntS.get[i].first);
+			readWordsReqQ.enq(truncate(readCntS.get[i].first));
 		endrule
 		rule relayRelayQ ( readWordsReqQ.notEmpty );
 			relayQ.deq;
@@ -149,7 +140,7 @@ module mkHwMain#(PcieUserIfc pcie)
 		end
 	endrule
 	Reg#(Bit#(8)) relayDmaResetCnt <- mkReg(0);
-	rule relayDmaTarget ( relayDmaResetCnt==resetCounter && dmarTargetRelayWordsLeft > 0 );
+	rule relayDmaTarget ( dmarTargetRelayWordsLeft > 0 );
 		if ( dmarFlush ) begin
 			relayS.enq(tagged Invalid, truncate(dmarCurTarget));
 			dmarFlush <= False;
@@ -159,22 +150,6 @@ module mkHwMain#(PcieUserIfc pcie)
 			relayS.enq(tagged Valid r, truncate(dmarCurTarget));
 			dmarTargetRelayWordsLeft <= dmarTargetRelayWordsLeft - 1;
 		end
-	endrule
-
-	Reg#(Bit#(32)) relayDmaResetCycleTarget <- mkReg(0);
-	Reg#(Bit#(8)) relayInvalidIdx <- mkReg(0);
-	rule resetRelayDma (relayDmaResetCnt!=resetCounter);
-		// if reset, insert invalid once to all, and throw away values for a few thousand cycles
-		if ( relayDmaResetCycleTarget == 0 ) begin
-			relayDmaResetCycleTarget <= cycleCounter + (1024*1024*4);
-			relayInvalidIdx <= fromInteger(iFanIn);
-		end else if ( relayDmaResetCycleTarget - cycleCounter < 1024*1024 )  begin // so we don't miss the ending
-			relayDmaResetCnt <= relayDmaResetCnt + 1;
-			relayDmaResetCycleTarget <= 0;
-		end else begin
-			let r <- dmar.read;
-		end
-
 	endrule
 
 	Reg#(Maybe#(Tuple2#(Bit#(64),Bit#(32)))) lastKvp <- mkReg(tagged Invalid);
@@ -293,9 +268,6 @@ module mkHwMain#(PcieUserIfc pcie)
 			dmaWriteBufferQ.enq(d);
 			lastWriteBufferIdx <= truncate(d);
 			writeBufferCntUp <= writeBufferCntUp + 1;
-		end else if ( off == 2 ) begin
-			//reset
-			resetReqQ.enq(True);
 		end else if ( off == 3 ) begin
 			if ( (inputDoneMask>>d)[0] == 0 ) begin
 				dmaReadReqQ.enq(tuple2(16'hffff, truncate(d)));
