@@ -187,21 +187,31 @@ module mkHwMain#(PcieUserIfc pcie)
 		sortReducedQ.enq(tagged Invalid);
 	endrule
     
+	Reg#(Bool) ignoreRest <- mkReg(False);
+	Reg#(Bit#(64)) lastKey <- mkReg(0);
 	rule packReduced;
 		sortReducedQ.deq;
 		let d = sortReducedQ.first;
 
 		if ( isValid(d) ) begin
 			let dd = fromMaybe(?,d);
+			let key = tpl_1(dd);
 			/*
 			if ( sampleKvQ.notFull ) begin
 				sampleKvQ.enq(dd);
 			end
 			*/
+			if ( lastKey > key || key == -1 ) begin
+				ignoreRest <= True;
+			end else if ( !ignoreRest ) begin
+				packer.put(tagged Valid encodeTuple2(dd));
+				lastKey <= key;
+			end
 
-			packer.put(tagged Valid encodeTuple2(dd));
 		end else begin
 			packer.put(tagged Invalid);
+			ignoreRest <= False;
+			lastKey <= 0;
 		end
 		// when reset, throw away until invalid reached
 	endrule
