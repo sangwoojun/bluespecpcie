@@ -81,7 +81,8 @@ module mkHwMain#(PcieUserIfc pcie)
 	MergeNIfc#(32, Bit#(16)) dmarDoneM <- mkMergeN;
 
 	for ( Integer i = 0; i < iFanIn; i=i+1 ) begin
-		FIFO#(Maybe#(Bit#(128))) relayQ <- mkSizedBRAMFIFO(256*2+2); // 4 KB * 2 + 1 for reset + 1 just cuz
+		FIFO#(Maybe#(Bit#(128))) relayQ <- mkSizedBRAMFIFO(256+2); // 4 KB + 1 for reset + 1 just cuz
+		FIFO#(Maybe#(Bit#(128))) relayQ2 <- mkSizedBRAMFIFO(256+2); // 4 KB + 1 for reset + 1 just cuz
 		Reg#(Bit#(16)) curReadWordsCnt <- mkReg(0);
 		FIFOF#(Bit#(16)) readWordsReqQ <- mkSizedFIFOF(4);
 		rule relayVRelay;
@@ -95,8 +96,9 @@ module mkHwMain#(PcieUserIfc pcie)
 		rule relayRelayQ ( readWordsReqQ.notEmpty );
 			relayQ.deq;
 			let d = relayQ.first;
+			relayQ2.enq(d);
 
-			unpackers[i].put(d);
+			//unpackers[i].put(d);
 
 			//if ( isValid(d) ) begin
 			if ( curReadWordsCnt + 1 >= readWordsReqQ.first ) begin
@@ -107,6 +109,10 @@ module mkHwMain#(PcieUserIfc pcie)
 				curReadWordsCnt <= curReadWordsCnt + 1;
 			end
 			//end
+		endrule
+		rule relayRelayQ2;
+			relayQ2.deq;
+			unpackers[i].put(relayQ2.first);
 		endrule
 		rule insertSorter;
 			let d <- unpackers[i].get;

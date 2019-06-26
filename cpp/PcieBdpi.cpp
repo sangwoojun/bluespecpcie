@@ -12,7 +12,7 @@
 
 #include "ShmFifo.h"
 
-#define DMA_BUFFER_SIZE (1024*1024*8)
+#define DMA_BUFFER_SIZE (1024*1024*4)
 #define SHM_SIZE (1024*8*3 + DMA_BUFFER_SIZE)
 
 ShmFifo* infifo = NULL;
@@ -95,7 +95,7 @@ extern "C" bool bdpiIOReady() {
 	if ( !shmReady() ) return false;
 	if ( infifo->empty() ) return false;
 
-	//printf( "bdpiIOReady returning true!\n" );
+	printf( "bdpiIOReady returning true!\n" );
 	return true;
 }
 

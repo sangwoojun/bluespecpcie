@@ -54,6 +54,7 @@ BdbmPcie::m_pInstance = NULL;
 BdbmPcie*
 BdbmPcie::getInstance() {
 	if (m_pInstance == NULL) {
+		//printf( "Initializing BdbmPcie\n" ); fflush(stdout);
 		m_pInstance = new BdbmPcie();
 	}
 
@@ -77,6 +78,7 @@ BdbmPcie::Init_Bluesim() {
 	
 	int shm_fd = shm_open(shmname, O_RDWR, 0666);
 	printf( "software shm_open %s returned %d with errno %d\n", shmname, shm_fd, errno);
+	fflush(stdout);
 	
 	int ret = ftruncate(shm_fd, SHM_SIZE);
 	shm_ptr = mmap(0,SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
@@ -93,6 +95,7 @@ BdbmPcie::Init_Bluesim() {
 
 	//pthread_create(&pollThread, NULL, bdbmPollThread, NULL);
 	printf( "bsim PCIe interface init done!\n" );
+	fflush(stdout);
 }
 
 void

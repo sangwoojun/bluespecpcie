@@ -13,6 +13,7 @@ double timespec_diff_sec( timespec start, timespec end ) {
 
 
 int main(int argc, char** argv) {
+	//printf( "Software startec\n" ); fflush(stdout);
 	BdbmPcie* pcie = BdbmPcie::getInstance();
 
 	unsigned int d = pcie->readWord(0);
@@ -35,8 +36,8 @@ int main(int argc, char** argv) {
 	timespec now;
 	
 	clock_gettime(CLOCK_REALTIME, & start);
-	for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
-	//for ( int i = 0; i < 2048; i++ ) { // 256MB
+	//for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
+	for ( int i = 0; i < 1024; i++ ) { // 256MB
 		pcie->userWriteWord(8, 0xcccccaaf);
 		//usleep(1001);
 	}
@@ -49,7 +50,8 @@ int main(int argc, char** argv) {
 
 	clock_gettime(CLOCK_REALTIME, & start);
 	
-	for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
+	//for ( int i = 0; i < 1024*1024*256/4; i++ ) { // 256MB
+	for ( int i = 0; i < 1024; i++ ) { // 256MB
 		pcie->userReadWord(4);
 	}
 	clock_gettime(CLOCK_REALTIME, & now);

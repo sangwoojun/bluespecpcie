@@ -6,16 +6,20 @@ thread safety is not enforced, because it's going to be used for shmem
 MAKE SURE THERE IS ONLY ONE SOURCE AND ONE DRAIN!
 */
 
-ShmFifo::ShmFifo(uint64_t* mem, int size) {
-	this->mem = mem+2;
-	this->size = (uint64_t)size-2;
+ShmFifo::ShmFifo(uint64_t* mem_, int size) {
+	this->mem = mem_+3;
+	this->size = (uint64_t)size-3;
 
-	headidx = &mem[0];
-	tailidx = &mem[1];
+	headidx = &mem_[0];
+	tailidx = &mem_[1];
 
-	//TODO maybe only the first user should init head and tail
-	*headidx = 0;
-	*tailidx = 0;
+	// Check magic number so that only one host inits 
+	if ( mem_[2] != 0xc001d00d ) {
+		*headidx = 0;
+		*tailidx = 0;
+		printf( "Initializing shared memory fifo structures\n" );
+		mem_[2] = 0xc001d00d;
+	}
 }
 
 void
@@ -41,6 +45,7 @@ ShmFifo::push(uint64_t v) {
 	(*headidx) = nexthead;
 
 	//printf( "Pushed %lx to idx %ld\n", v, *headidx-1 );
+	//fflush(stdout);
 
 	return;
 }

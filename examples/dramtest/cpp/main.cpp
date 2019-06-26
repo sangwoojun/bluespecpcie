@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #include "bdbmpcie.h"
-#include "dmasplitter.h"
+//#include "dmasplitter.h"
 
 double timespec_diff_sec( timespec start, timespec end ) {
 	double t = end.tv_sec - start.tv_sec;
@@ -12,7 +12,7 @@ double timespec_diff_sec( timespec start, timespec end ) {
 
 int main(int argc, char** argv) {
 	BdbmPcie* pcie = BdbmPcie::getInstance();
-	DMASplitter* dma = DMASplitter::getInstance();
+	//DMASplitter* dma = DMASplitter::getInstance();
 
 	//uint32_t size = 128*128;
 
