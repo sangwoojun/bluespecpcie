@@ -12,6 +12,7 @@ import DMASplitter::*;
 
 import Float32::*;
 import Float64::*;
+import Cordic::*;
 
 interface HwMainIfc;
 endinterface
@@ -31,8 +32,12 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	FpPairIfc#(64) mult <- mkFpMult64(clocked_by pcieclk, reset_by pcierst);
 	FpFilterIfc#(64) sqrt <- mkFpSqrt64(clocked_by pcieclk, reset_by pcierst);
+	CordicSinCosIfc sincos <- mkCordicSinCos(clocked_by pcieclk, reset_by pcierst);
+
 	Reg#(Bit#(64)) doubleResultBuffer <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(64)) doubleResultBuffer2 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) cordicResultBuffer <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+
 
 	Reg#(Bit#(64)) doubleBuffer1 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(64)) doubleBuffer2 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
@@ -53,6 +58,8 @@ module mkHwMain#(PcieUserIfc pcie)
 			pcie.dataSend(r, truncate(doubleResultBuffer2));
 		end else if ( offset == 3 ) begin 
 			pcie.dataSend(r, truncate(doubleResultBuffer2>>32));
+		end else if ( offset == 4 ) begin
+			pcie.dataSend(r, cordicResultBuffer);
 		end else begin
 			//pcie.dataSend(r, pcie.debug_data);
 			pcie.dataSend(r, writeCounter);
@@ -77,6 +84,8 @@ module mkHwMain#(PcieUserIfc pcie)
 			Bit#(64) b2 = doubleBuffer2 | (zeroExtend(d)<<32);
 			mult.enq(doubleBuffer1, b2);
 			sqrt.enq(b2);
+		end else if ( off == 4 ) begin
+			sincos.enq(truncate(d));
 		end else begin
 			//pcie.assertUptrain;
 			writeCounter <= writeCounter + 1;
@@ -94,6 +103,12 @@ module mkHwMain#(PcieUserIfc pcie)
 		sqrt.deq;
 		doubleResultBuffer2 <= d;
 		$display( "sqrt %x ", d );
+	endrule
+	rule rrrr3;
+		let d = sincos.first;
+		sincos.deq;
+		cordicResultBuffer <= {tpl_1(d),tpl_2(d)};
+		$display( "sincos %x ", d );
 	endrule
 
 endmodule

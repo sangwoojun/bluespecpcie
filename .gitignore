@@ -18,6 +18,6 @@ webtalk.log
 .sched
 
 pcie_7x_0
-.Xil
-.bak
-.prj
+*.Xil
+*.bak
+*.prj
