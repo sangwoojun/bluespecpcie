@@ -11,11 +11,11 @@ import DDR3::*;
 import DDR3Controller::*;
 import DDR3Common::*;
 
-typedef Bit#(29) DDR3Address;
+typedef Bit#(28) DDR3Address;
 typedef Bit#(64) ByteEn;
 typedef Bit#(512) DDR3Data;
 
-module mkDDR3Simulator(DDR3_User_VC707_1GB);
+module mkDDR3Simulator(DDR3_User_1GB);
    RegFile#(Bit#(26), DDR3Data) data <- mkRegFileFull();
    //Vector#(TExp#(26), Reg#(DDR3Data)) data <- replicateM(mkReg(0));
    FIFO#(DDR3Data) responses <- mkFIFO();

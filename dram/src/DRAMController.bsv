@@ -16,6 +16,8 @@ import Counter::*;
 
 import DRAMControllerTypes::*;
 
+typedef 64 MaxReadReqs;
+
 interface DebugProbe;
    method DDRRequest req;
    method DDRResponse resp;
@@ -34,7 +36,7 @@ endinterface
 interface DRAMControllerIfc;
 	interface DRAMUserIfc user;
 	interface DebugProbe debug;
-	interface DDR3Client ddr3_cli;
+	//interface DDR3Client ddr3_cli;
 endinterface
 
 typedef struct{
@@ -58,13 +60,21 @@ function Bit#(64) addrReMapping(Bit#(64) v);
 endfunction
                                            
 
-(*synthesize*)
-module mkDRAMController(DRAMControllerIfc);
-   Clock clk <- exposeCurrentClock;
+//(*synthesize*)
+module mkDRAMController#(DDR3_User_1GB ddr3) (DRAMControllerIfc);
+   Integer maxReadReqs = valueOf(MaxReadReqs);
+
+   Clock cur_clk <- exposeCurrentClock;
    Reset rst_n <- exposeCurrentReset;
+
+   Clock ddr_clk = ddr3.clock;
+   Reset ddr_rst = ddr3.reset_n;
       
-   FIFO#(DDRRequest) reqs <- mkFIFO();
-   FIFO#(DDRResponse) resps <- mkFIFO();
+   SyncFIFOIfc#(DDRRequest) reqs <- mkSyncFIFOFromCC(32, ddr_clk);
+   SyncFIFOIfc#(DDRResponse) respSyncQ <- mkSyncFIFOToCC(32, ddr_clk, ddr_rst);
+   FIFO#(DDRResponse) resps <- mkSizedFIFO(maxReadReqs, clocked_by ddr_clk, reset_by ddr_rst);
+
+
    
    
    FIFO#(DRAMWrRequest) dramWrCmdQ <- mkFIFO();
@@ -163,170 +173,53 @@ module mkDRAMController(DRAMControllerIfc);
                   
       
    endrule
+
+   Reg#(Bit#(TAdd#(1,TLog#(MaxReadReqs)))) reqCountUp <- mkReg(0, clocked_by ddr_clk, reset_by ddr_rst); 
+   Reg#(Bit#(TAdd#(1,TLog#(MaxReadReqs)))) reqCountDown <- mkReg(0, clocked_by ddr_clk, reset_by ddr_rst); 
    
    Reg#(Bit#(512)) readCache <- mkRegU();
-   Reg#(Bit#(64)) cnt <- mkReg(0);
-   rule recvRead;
+   //Reg#(Bit#(64)) cnt <- mkReg(0);
+	rule recvRead;
 
-      Bit#(512) res <- toGet(resps).get();
-      let v <- toGet(readOffsetQ).get();
-      //$display("dram recvRead = %h", res);
-      //readOffsetQ.deq;
-      let cache = tpl_1(v);
-      let offset = tpl_2(v);
-      //$display("(%t), cache = %d, offset = %d", $time, cache, offset);
-                  
-      if ( cache ) begin
-         readCache <= res;
-      end
-      else begin
-         cnt <= cnt + 1;
-         if ( offset == 0)
-            rightSft.rotateByteBy(extend(res), offset);
-         else
-            rightSft.rotateByteBy({res,readCache}, offset);
-      end
-   endrule
+		Bit#(512) res <- toGet(respSyncQ).get();
+		let v <- toGet(readOffsetQ).get();
+		//$display("dram recvRead = %h", res);
+		//readOffsetQ.deq;
+		let cache = tpl_1(v);
+		let offset = tpl_2(v);
+		//$display("(%t), cache = %d, offset = %d", $time, cache, offset);
+
+		if ( cache ) begin
+			readCache <= res;
+		end
+		else begin
+			//cnt <= cnt + 1;
+			if ( offset == 0)
+				rightSft.rotateByteBy(extend(res), offset);
+			else
+				rightSft.rotateByteBy({res,readCache}, offset);
+		end
+	endrule
 
    Wire#(DDRRequest) req_wire <- mkWire;
    Wire#(DDRResponse) resp_wire <- mkWire;
-   
-   interface DRAMUserIfc user;
-   interface Clock user_clk = clk;
-   interface Reset user_rst = rst_n;
 
-   method Action write(Bit#(64) addr, Bit#(512) data, Bit#(7) bytes);
-      let mappedaddr = addrReMapping(addr);
-      DDRPhyAddr v = unpack(truncate(mappedaddr));      
-      //$display("DRAMWrite Cmd, addr = %d, {bank = %d, row = %d, col = %d, offset = %d} data = %h, bytes = %d", mappedaddr, v.bankaddr, v.rowaddr, v.coladdr, v.offset, data, bytes);
-      Bit#(6) offset = truncate(addr);
-      Bit#(64) mask = (1<<bytes) - 1;
-      let mask0 = mask << offset;
-      let mask1 = mask >> ((~offset) + 1);
+   rule relayReqs (reqCountUp-reqCountDown < fromInteger(maxReadReqs));
+	   reqs.deq;
+	   let req = reqs.first;
+	   ddr3.request(truncate(req.address), req.writeen, req.datain);
+	   if ( req.writeen == 0 ) reqCountUp <= reqCountUp + 1;
+   endrule
 
-      //$display("DRAMWrite Cmd, addr = %d, data = %h, bytes = %h", addr, data, bytes);
-      dramWrCmdQ.enq(DRAMWrRequest{nBytes: bytes, addr: mappedaddr, data: data, mask0:mask0, mask1:mask1});
-      nextCmdTypeQ.enq(False);
-   endmethod
-   
-   method Action readReq(Bit#(64) addr, Bit#(7) bytes);
-      //$display("\x1b[35mDRAMController(%t): get read req, addr = %d, bytes = %d\x1b[0m", $time, addr, bytes);
-      let mappedaddr = addrReMapping(addr);
-      DDRPhyAddr v = unpack(truncate(mappedaddr));      
-      //$display("DRAMRead Cmd, addr = %d, {bank = %d, row = %d, col = %d, offset = %d} , bytes = %d", mappedaddr, v.bankaddr, v.rowaddr, v.coladdr, v.offset, bytes);
-      dramRdCmdQ.enq(DRAMRdRequest{nBytes: bytes, addr: mappedaddr});
-      nextCmdTypeQ.enq(True);
-   endmethod
-   method ActionValue#(Bit#(512)) read;
-      let v <- rightSft.getVal;
-      return truncate(v);
-   endmethod
-   endinterface
+   rule relayResps;
+	   let x <- ddr3.read_data;
+	   resps.enq(x);
+   endrule
 
-
-   interface DDR3Client ddr3_cli;
-      //interface Get request = toGet(reqs);
-      //interface Put response = toPut(resps);
-      interface Get request;// = toGet(reqs);
-         method ActionValue#(DDRRequest) get();
-            let v <- toGet(reqs).get();
-            req_wire <= v;
-            return v;
-         endmethod
-      endinterface
-      
-      interface Put response;
-         method Action put(DDRResponse v);
-            resp_wire <= v;
-            toPut(resps).put(v);
-         endmethod
-      endinterface
-   endinterface
-   
-   interface DebugProbe debug;
-      method DDRRequest req;
-         return req_wire;
-      endmethod
-      method DDRResponse resp;
-         return resp_wire;
-      endmethod
-   endinterface
-   
-endmodule
-
-typedef 64 MAX_OUTSTANDING_READS;
-
-instance Connectable#(DDR3Client, DDR3_User_VC707_1GB);
-   module mkConnection#(DDR3Client cli, DDR3_User_VC707_1GB usr)(Empty);
-      
-      // Make sure we have enough buffer space to not drop responses!
-      Counter#(TLog#(MAX_OUTSTANDING_READS)) reads <- mkCounter(0, clocked_by(usr.clock), reset_by(usr.reset_n));
-      FIFO#(DDRResponse) respbuf <- mkSizedFIFO(valueof(MAX_OUTSTANDING_READS), clocked_by(usr.clock), reset_by(usr.reset_n));
-   
-      rule request (reads.value() != fromInteger(valueof(MAX_OUTSTANDING_READS)-1));
-         let req <- cli.request.get();
-         usr.request(truncate(req.address), req.writeen, req.datain);
-         
-         if (req.writeen == 0) begin
-            reads.up();
-         end
-      endrule
-   
-      rule response (True);
-         let x <- usr.read_data;
-         respbuf.enq(x);
-      endrule
-   
-      rule forward (True);
-         let x <- toGet(respbuf).get();
-         cli.response.put(x);
-         reads.down();
-      endrule
-   endmodule
-endinstance
-instance Connectable#(DDR3Client, DDR3_User_KC705_1GB);
-   module mkConnection#(DDR3Client cli, DDR3_User_KC705_1GB usr)(Empty);
-      
-      // Make sure we have enough buffer space to not drop responses!
-      Counter#(TLog#(MAX_OUTSTANDING_READS)) reads <- mkCounter(0, clocked_by(usr.clock), reset_by(usr.reset_n));
-      FIFO#(DDRResponse) respbuf <- mkSizedFIFO(valueof(MAX_OUTSTANDING_READS), clocked_by(usr.clock), reset_by(usr.reset_n));
-   
-      rule request (reads.value() != fromInteger(valueof(MAX_OUTSTANDING_READS)-1));
-         let req <- cli.request.get();
-         usr.request(truncate(req.address), req.writeen, req.datain);
-         
-         if (req.writeen == 0) begin
-            reads.up();
-         end
-      endrule
-   
-      rule response (True);
-         let x <- usr.read_data;
-         respbuf.enq(x);
-      endrule
-   
-      rule forward (True);
-         let x <- toGet(respbuf).get();
-         cli.response.put(x);
-         reads.down();
-      endrule
-   endmodule
-endinstance
-
-
-// Brings a DDR3Client from one clock domain to another.
-module mkDDR3ClientSync#(DDR3Client ddr2,
-    Clock sclk, Reset srst, Clock dclk, Reset drst
-    ) (DDR3Client);
-
-    SyncFIFOIfc#(DDRRequest) reqs <- mkSyncFIFO(32, sclk, srst, dclk);
-    SyncFIFOIfc#(DDRResponse) resps <- mkSyncFIFO(32, dclk, drst, sclk);
-
-    mkConnection(toPut(reqs), toGet(ddr2.request));
-    mkConnection(toGet(resps), toPut(ddr2.response));
-
-    interface Get request = toGet(reqs);
-    interface Put response = toPut(resps);
-endmodule
+	rule relayResps2;
+		resps.deq;
+		respSyncQ.enq(resps.first);
+		reqCountDown <= reqCountDown + 1;
+	endrule
 
 endpackage: DRAMController
