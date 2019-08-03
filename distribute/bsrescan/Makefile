@@ -4,5 +4,5 @@ all:
 install: all
 	sudo chown root:root obj/main
 	sudo mkdir -p /opt/bluespecpcie_manager
-	sudo cp obj/main /opt/bluespecpcie_manager/rescan
-	sudo chmod 4755 /opt/bluespecpcie_manager/rescan
+	sudo cp obj/main /opt/bluespecpcie_manager/bsrescan
+	sudo chmod 4755 /opt/bluespecpcie_manager/bsrescan
