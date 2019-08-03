@@ -103,9 +103,14 @@
 # (UG) for guidelines regarding clock resource selection.
 #
 
-set_property IOSTANDARD LVCMOS18 [get_ports RST_N_sys_rst_n]
-set_property PULLUP true [get_ports RST_N_sys_rst_n]
-set_property LOC AV35 [get_ports RST_N_sys_rst_n]
+#set_property IOSTANDARD LVCMOS18 [get_ports RST_N_sys_rst_n]
+#set_property PULLUP true [get_ports RST_N_sys_rst_n]
+#set_property LOC AV35 [get_ports RST_N_sys_rst_n]
+
+set_property IOSTANDARD LVCMOS18 [get_ports RST_N_pcie_rst_n]
+set_property PULLUP true [get_ports RST_N_pcie_rst_n]
+set_property LOC AV35 [get_ports RST_N_pcie_rst_n]
+set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 set_property IOSTANDARD DIFF_SSTL15 [get_ports CLK_pcie_clk_*]
 set_property LOC AB7 [get_ports CLK_pcie_clk_n]
@@ -144,6 +149,7 @@ set_property LOC AR37 [get_ports led[2]]
 set_property LOC AT37 [get_ports led[3]]
 
 set_property LOC IBUFDS_GTE2_X1Y5 [get_cells -hier refclk_ibuf]
+
 
 
 
