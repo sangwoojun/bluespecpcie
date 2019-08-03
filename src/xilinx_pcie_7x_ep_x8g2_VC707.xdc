@@ -121,7 +121,7 @@ set_property LOC E18 [get_ports CLK_sys_clk_n]
 set_property LOC E19 [get_ports CLK_sys_clk_p]
 
 set_property IOSTANDARD LVCMOS18 [get_ports CLK_emcclk]
-set_property LOC AP37 [get_ports CLK_emcclk]
+#set_property LOC AP37 [get_ports CLK_emcclk]
 
 set_property BITSTREAM.CONFIG.BPI_SYNC_MODE Type1 [current_design]
 set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN div-1 [current_design]

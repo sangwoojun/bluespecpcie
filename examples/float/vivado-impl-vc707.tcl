@@ -5,6 +5,7 @@ set_param general.maxThreads 8
 # STEP#0: define output directory area.
 #
 set pciedir ../../../
+set libdir ../../../../bluelib/src/coregen/vc707/
 #set flashdir ../../../flash/
 
 set outputDir ./hw
@@ -25,6 +26,10 @@ read_ip $pciedir/core/vc707/pcie_7x_0/pcie_7x_0.xci
 read_verilog [ glob $pciedir/src/*.v ]
 read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_VC707.xdc
 ############## end Pcie Stuff
+
+############# Float Stuff
+source $libdir/../fp_import.tcl
+############# end Float Stuff
 
 ############# Flash Stuff
 #read_ip $flashdir/aurora_8b10b_fmc1/aurora_8b10b_fmc1.xci
