@@ -16,6 +16,7 @@ webtalk.jou
 webtalk.log
 
 .sched
+core
 
 pcie_7x_0
 *.Xil
