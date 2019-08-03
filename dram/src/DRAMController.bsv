@@ -221,5 +221,52 @@ module mkDRAMController#(DDR3_User_1GB ddr3) (DRAMControllerIfc);
 		respSyncQ.enq(resps.first);
 		reqCountDown <= reqCountDown + 1;
 	endrule
+    
+
+   
+   interface DRAMUserIfc user;
+   interface Clock user_clk = cur_clk;
+   interface Reset user_rst = rst_n;
+
+   method Action write(Bit#(64) addr, Bit#(512) data, Bit#(7) bytes);
+      let mappedaddr = addrReMapping(addr);
+      DDRPhyAddr v = unpack(truncate(mappedaddr));      
+      //$display("DRAMWrite Cmd, addr = %d, {bank = %d, row = %d, col = %d, offset = %d} data = %h, bytes = %d", mappedaddr, v.bankaddr, v.rowaddr, v.coladdr, v.offset, data, bytes);
+      Bit#(6) offset = truncate(addr);
+      Bit#(64) mask = (1<<bytes) - 1;
+      let mask0 = mask << offset;
+      let mask1 = mask >> ((~offset) + 1);
+
+      //$display("DRAMWrite Cmd, addr = %d, data = %h, bytes = %h", addr, data, bytes);
+      dramWrCmdQ.enq(DRAMWrRequest{nBytes: bytes, addr: mappedaddr, data: data, mask0:mask0, mask1:mask1});
+      nextCmdTypeQ.enq(False);
+   endmethod
+   
+   method Action readReq(Bit#(64) addr, Bit#(7) bytes);
+      //$display("\x1b[35mDRAMController(%t): get read req, addr = %d, bytes = %d\x1b[0m", $time, addr, bytes);
+      let mappedaddr = addrReMapping(addr);
+      DDRPhyAddr v = unpack(truncate(mappedaddr));      
+      //$display("DRAMRead Cmd, addr = %d, {bank = %d, row = %d, col = %d, offset = %d} , bytes = %d", mappedaddr, v.bankaddr, v.rowaddr, v.coladdr, v.offset, bytes);
+      dramRdCmdQ.enq(DRAMRdRequest{nBytes: bytes, addr: mappedaddr});
+      nextCmdTypeQ.enq(True);
+   endmethod
+   method ActionValue#(Bit#(512)) read;
+      let v <- rightSft.getVal;
+      return truncate(v);
+   endmethod
+   endinterface
+
+
+   
+   interface DebugProbe debug;
+      method DDRRequest req;
+         return req_wire;
+      endmethod
+      method DDRResponse resp;
+         return resp_wire;
+      endmethod
+   endinterface
+   
+endmodule
 
 endpackage: DRAMController
