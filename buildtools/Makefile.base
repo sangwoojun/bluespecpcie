@@ -1,0 +1,42 @@
+BSVPATH =$(LIBPATH)/src/:
+COREPATH =$(LIBPATH)/core/$(BOARD)/
+#DRAMPATH =$(LIBPATH)/dram/src/
+
+BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
+
+BSCFLAGS_SYNTH = -bdir ./$(BOARD)/obj -vdir ./$(BOARD)/verilog/top -simdir ./$(BOARD)/obj -info-dir ./$(BOARD) -fdir ./$(BOARD) -D $(BOARD)
+BSCFLAGS_BSIM = -bdir ./bsim/obj -vdir ./bsim/verilog/top -simdir ./bsim/obj -info-dir ./bsim -fdir ./bsim
+
+BSIM_CPPFILES =$(LIBPATH)/cpp/PcieBdpi.cpp \
+	$(LIBPATH)/cpp/ShmFifo.cpp \
+	$(CUSTOMCPP_BSIM)
+
+DEBUGFLAGS = -D BSIM
+
+all:
+	mkdir -p $(BOARD)
+	mkdir -p $(BOARD)/obj
+	mkdir -p $(BOARD)/verilog/top
+	bsc  $(BSCFLAGS) $(BSCFLAGS_SYNTH) -remove-dollar -p +:$(BSVPATH) $(CUSTOMBSV) -verilog -u -g mkProjectTop Top.bsv 
+	cp $(BUILDTOOLS)/vivado-impl-$(BOARD).tcl ./$(BOARD)/impl.tcl
+	cp user-ip.tcl $(BOARD)/
+	cd $(BOARD); cd verilog/top; ../../../$(BUILDTOOLS)/verilogcopy.sh; cd ../../; vivado -mode batch -source impl.tcl
+	tar czf $(BOARD).tgz $(BOARD)/
+	mv $(BOARD).tgz $(BOARD)/
+
+bsim: HwMain.bsv Top.bsv
+	mkdir -p bsim
+	mkdir -p bsim/obj
+	mkdir -p bsim/verilog/top
+	bsc $(BSCFLAGS) $(BSCFLAGS_BSIM) $(DEBUGFLAGS) -p +:$(BSVPATH) $(CUSTOMBSV) -sim -u -g mkProjectTop_bsim Top.bsv  
+	bsc $(BSCFLAGS) $(BSCFLAGS_BSIM) $(DEBUGFLAGS) -sim -e mkProjectTop_bsim -o bsim/obj/bsim bsim/obj/*.ba $(BSIM_CPPFILES) 
+
+clean:
+	rm -rf $(BOARD)
+	rm -rf bsim
+
+.PHONY: all
+
+core:
+	cd $(COREPATH) ; vivado -mode batch -source core_gen_pcie.tcl -nolog -nojournal
+

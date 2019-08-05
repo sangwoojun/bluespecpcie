@@ -16,7 +16,7 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 
 ### Installing the software
 - Driver: In **distribution/driver**, run **make**, and **sudo make install**.
-- Rescan tool: **rescan** lets the BIOS recognize the PCIe device without system reboot between re-programming the FPGA. In **distribution/rescan**, run **make**, and **sudo make install**. This installs **rescan** to **/opt/bluespecpcie_manager/**.
+- Rescan tool: **bsrescan** lets the BIOS recognize the PCIe device without system reboot between re-programming the FPGA. In **distribution/bsrescan**, run **make**, and **sudo make install**. This installs **bsrescan** to **/opt/bluespecpcie_manager/**.
 - Userspace library: In **cpp/**, run **make** to build the userspace libray.
 
 ### Building and running a demo
@@ -25,7 +25,7 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 - Build the demo by running **make BOARD=vc707** or **make BOARD=kc705**.
 - Program the FPGA by running **vivado -mode batch -source ../../distribute/program.tcl**
 - **_If_** this is the first time programming this FPGA device after board power-on, the system must be rebooted.
-- **_If_** this device has been programmed and rebooted before, run **/opt/bluespecpcie_manager/rescan**. This will re-discover the device and reload the driver.
+- **_If_** this device has been programmed and rebooted before, run **/opt/bluespecpcie_manager/bsrescan**. This will re-discover the device and reload the driver.
 - The device is programmed and ready to communicate with. 
 - Go to **./cpp** and run **make**.
 - Run **./obj/main** to run the software demo.
@@ -34,6 +34,8 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 
 - **example/simple**: Memory-mapped I/O example
 - **example/dmatest**: DMA example
+- **example/dramtest**: Uses the 1 GB on-board DRAM on both VC707 and KC705
+- **example/float**: Floating point example, requires the **bluelib** library
 
 
 ## Developing custom designs
