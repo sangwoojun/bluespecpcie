@@ -53,7 +53,7 @@ module mkDDR3Simulator(DDR3_User_1GB);
    method Bool init_done() = True;
    
    method Action request(DDR3Address addr, ByteEn writeen, DDR3Data datain);
-      Bit#(26) burstaddr = addr[28:3];
+      Bit#(26) burstaddr = truncate(addr>>3);
       Bit#(3) offset = addr[2:0];
       
       Bit#(512) mask = 0;
