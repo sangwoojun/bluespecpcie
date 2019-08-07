@@ -49,7 +49,14 @@ If creating a project outside the example directory, some variables need to be m
 
 **Top.bsv** contains the top level module. The interface **interface PcieImportPins pcie_pins** and the top level input clocks and resets including **pcie_clk_p** neet to be maintaind.
 
-and software related files are located in the **cpp** directory.
+Software related files are located in the **cpp** directory.
+
+### Using more cores
+
+You are free to modify Makefile.base in the buildtools directory, as well as the vivado-impl\*.tcl files.
+
+However, it may be simpler to add cores and other functionality using the **user-ip.tcl** file, which is included by the implementation tcl script before synthesis starts.
+For example on how to use this, please look at the examples **dramtest** and **float**.
 
 
 ## Simulation using Bluesim.
