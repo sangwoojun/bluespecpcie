@@ -53,7 +53,7 @@ Software related files are located in the **cpp** directory.
 
 ### Using more cores
 
-You are free to modify Makefile.base in the buildtools directory, as well as the vivado-impl\*.tcl files.
+You are free to copy and modify Makefile.base in the buildtools directory, as well as the vivado-impl\*.tcl files.
 
 However, it may be simpler to add cores and other functionality using the **user-ip.tcl** file, which is included by the implementation tcl script before synthesis starts.
 For example on how to use this, please look at the examples **dramtest** and **float**.
