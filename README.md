@@ -16,8 +16,7 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 
 ### Installing the software
 - Driver: In **distribution/driver**, run **make**, and **sudo make install**.
-- Rescan tool: **bsrescan** lets the BIOS recognize the PCIe device without system reboot between re-programming the FPGA. In **distribution/bsrescan**, run **make**, and **sudo make install**. This installs **bsrescan** to **/opt/bluespecpcie_manager/**.
-- Userspace library: In **cpp/**, run **make** to build the userspace libray.
+- Rescan tool: **bsrescan** lets the BIOS recognize the PCIe device without system reboot between re-programming the FPGA. In **distribution/bsrescan**, run **make**, and **sudo make install**. This installs **bsrescan** to **/opt/bluespecpcie_manager/**. You may want to add **/opt/bluespecpcie_manager/** to your **PATH**.
 
 ### Building and running a demo
 - Example designs are in **examples/**. For the basic demo, go to **examples/simple**.
