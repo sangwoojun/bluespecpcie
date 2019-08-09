@@ -4,6 +4,14 @@ set boardname kc705
 
 set pciedir ../../../
 
+if { $::argc > 0 } {
+	set pciedir [lindex $argv 0]
+	puts $pciedir
+} else {
+	puts "using default pcie core path"
+	
+}
+
 set outputDir ./hw
 file mkdir $outputDir
 #source board.tcl

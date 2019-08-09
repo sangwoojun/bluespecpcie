@@ -20,7 +20,7 @@ all:
 	bsc  $(BSCFLAGS) $(BSCFLAGS_SYNTH) -remove-dollar -p +:$(BSVPATH) $(CUSTOMBSV) -verilog -u -g mkProjectTop Top.bsv 
 	cp $(BUILDTOOLS)/vivado-impl-$(BOARD).tcl ./$(BOARD)/impl.tcl
 	cp user-ip.tcl $(BOARD)/
-	cd $(BOARD); cd verilog/top; ../../../$(BUILDTOOLS)/verilogcopy.sh; cd ../../; vivado -mode batch -source impl.tcl
+	cd $(BOARD); cd verilog/top; ../../../$(BUILDTOOLS)/verilogcopy.sh; cd ../../; vivado -mode batch -source impl.tcl -tclargs $(TCLARGS)
 	tar czf $(BOARD).tgz $(BOARD)/
 	mv $(BOARD).tgz $(BOARD)/
 
