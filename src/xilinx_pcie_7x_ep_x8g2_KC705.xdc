@@ -44,6 +44,7 @@ set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 #############################################################
 
+create_clock -name sys_clk_200 -period 5 [get_pins sys_clk_200mhz_buf/O] 
 
 
 #set_case_analysis 1 [get_pins -hier {pcie_7x_0_support_i/pipe_clock_i/pclk_i1_bufgctrl.pclk_i1/S0}]

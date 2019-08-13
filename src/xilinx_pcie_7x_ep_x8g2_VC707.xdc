@@ -41,6 +41,8 @@ set_false_path -from [get_ports RST_N_pcie_rst_n]
 
 #############################################################
 
+create_clock -name sys_clk_200 -period 5 [get_pins sys_clk_200mhz_buf/O] 
+
 create_generated_clock -name pcie_clk_125mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT0}]
 create_generated_clock -name pcie_clk_250mhz [get_pins -hier -filter {NAME =~ *pcie_7x_0_support_i/pipe_clock_i/mmcm_i/CLKOUT1}]
 
