@@ -1,6 +1,6 @@
 set_param general.maxThreads 8
 
-set boardname kc705
+set boardname vc707
 
 set pciedir ../../../
 
@@ -14,7 +14,6 @@ if { $::argc > 0 } {
 
 set outputDir ./hw
 file mkdir $outputDir
-#source board.tcl
 
 set partname {xc7vx485tffg1761-2}
 

@@ -17,8 +17,6 @@ file mkdir $outputDir
 
 set partname {xc7k325tffg900-2}
 
-
-
 read_verilog [ glob {verilog/top/*.v} ]
 
 set_property part $partname [current_project]
