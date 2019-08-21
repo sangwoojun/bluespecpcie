@@ -245,7 +245,7 @@ module mkBurstMergeN(BurstMergeNIfc#(n,t,bSz))
 	Vector#(n,BurstMergeEnqIfc#(t,bSz)) enq_;
 
 	if ( valueOf(n) > 2 ) begin
-		Vector#(2, BurstMergeNIfc#(n,t,bSz)) ma <- replicateM(mkBurstMergeN);
+		Vector#(2, BurstMergeNIfc#(TDiv#(n,2),t,bSz)) ma <- replicateM(mkBurstMergeN);
 		BurstMergeNIfc#(2,t,bSz) m0 <- mkBurstMergeN;
 
 		rule relayBurst;
@@ -268,7 +268,7 @@ module mkBurstMergeN(BurstMergeNIfc#(n,t,bSz))
 			endrule
 		end
 		
-		for ( Integer i = 0; i < 2; i=i+1 ) begin
+		for ( Integer i = 0; i < valueOf(n); i=i+1 ) begin
 			enq_[i] = interface BurstMergeEnqIfc;
 				method Action enq(t d);
 					if ( i < valueOf(n)/2 ) begin
