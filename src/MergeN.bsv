@@ -224,6 +224,145 @@ module mkMerge2 (Merge2Ifc#(t))
 	method t first = outQ.first;
 endmodule
 
+interface BurstMergeEnqIfc#(type t, numeric type bSz);
+	method Action enq(t d);
+	method Action burst(Bit#(bSz) b);
+endinterface
+
+interface BurstMergeNIfc#(numeric type n, type t, numeric type bSz);
+	interface Vector#(n, BurstMergeEnqIfc#(t, bSz)) enq;
+
+	method ActionValue#(Bit#(bSz)) getBurst;
+	method Action deq;
+	method t first;
+endinterface
+
+
+module mkBurstMergeN(BurstMergeNIfc#(n,t,bSz))
+	provisos(Bits#(t, tSz));
+	FIFO#(t) outQ <- mkFIFO;
+	FIFO#(Bit#(bSz)) burstQ <- mkFIFO;
+	Vector#(n,BurstMergeEnqIfc#(t,bSz)) enq_;
+
+	if ( valueOf(n) > 2 ) begin
+		Vector#(2, BurstMergeNIfc#(n,t,bSz)) ma <- replicateM(mkBurstMergeN);
+		BurstMergeNIfc#(2,t,bSz) m0 <- mkBurstMergeN;
+
+		rule relayBurst;
+			let b <- m0.getBurst;
+			burstQ.enq(b);
+		endrule
+		rule relayData;
+			m0.deq;
+			outQ.enq(m0.first);
+		endrule
+
+		for ( Integer i = 0; i < 2; i=i+1 ) begin
+			rule relayData_s;
+				ma[i].deq;
+				m0.enq[i].enq(ma[i].first);
+			endrule
+			rule relayBurst_s;
+				let b <- ma[i].getBurst;
+				m0.enq[i].burst(b);
+			endrule
+		end
+		
+		for ( Integer i = 0; i < 2; i=i+1 ) begin
+			enq_[i] = interface BurstMergeEnqIfc;
+				method Action enq(t d);
+					if ( i < valueOf(n)/2 ) begin
+						ma[0].enq[i%(valueOf(n)/2)].enq(d);
+					end else begin
+						ma[1].enq[i-(valueOf(n)/2)].enq(d);
+					end
+				endmethod
+				method Action burst(Bit#(bSz) b);
+					if ( i < valueOf(n)/2 ) begin
+						ma[0].enq[i%(valueOf(n)/2)].burst(b);
+					end else begin
+						ma[1].enq[i-(valueOf(n)/2)].burst(b);
+					end
+				endmethod
+			endinterface;
+		end
+	end else if ( valueOf(2) == 2 ) begin
+		
+		Merge2Ifc#(Tuple2#(Bit#(1), Bit#(bSz))) reqM <- mkMerge2;
+		Vector#(2,FIFO#(t)) inQ <- replicateM(mkFIFO);
+
+		Reg#(Bit#(bSz)) burstLeft <- mkReg(0);
+		Reg#(Bit#(1)) burstSource <- mkReg(?);
+		rule relay;
+			if ( burstLeft == 0 ) begin
+				reqM.deq;
+				let r_ = reqM.first;
+				burstLeft <= tpl_2(r_)-1;
+				burstSource <= tpl_1(r_);
+				
+				let inidx = tpl_1(r_);
+				outQ.enq(inQ[inidx].first);
+				inQ[inidx].deq;
+
+				burstQ.enq(tpl_2(r_));
+			end else begin
+				outQ.enq(inQ[burstSource].first);
+				inQ[burstSource].deq;
+				burstLeft <= burstLeft - 1;
+			end
+		endrule
+		for ( Integer i = 0; i < 2; i=i+1 ) begin
+			enq_[i] = interface BurstMergeEnqIfc;
+				method Action enq(t d);
+					inQ[i].enq(d);
+				endmethod
+				method Action burst(Bit#(bSz) b);
+					reqM.enq[i].enq(tuple2(fromInteger(i),b));
+				endmethod
+			endinterface;
+		end
+
+	end else begin // n == 1
+		enq_[0] = interface BurstMergeEnqIfc;
+			method Action enq(t d);
+				outQ.enq(d);
+			endmethod
+			method Action burst(Bit#(bSz) b);
+				burstQ.enq(b);
+			endmethod
+		endinterface;
+	end 
+
+	/*
+	Vector#(n,BurstMergeEnqIfc#(t, bSz)) enq_;
+	for ( Integer i = 0; i < valueOf(n); i=i+1 ) begin
+		enq_[i] = interface BurstMergeEnqIfc;
+			method Action enq(t d);
+				dataM.enq[i].enq(d);
+			endmethod
+			method Action burst(Bit#(bSz) b);
+				reqM.enq[i].enq(tuple2(fromInteger(i), b));
+			endmethod
+		endinterface;
+	end
+	interface enq = enq_;
+	*/
+
+	interface enq = enq_;
+	method Action deq;
+		outQ.deq;
+	endmethod
+	method t first;
+		return outQ.first;
+	endmethod
+	method ActionValue#(Bit#(bSz)) getBurst;
+		burstQ.deq;
+		return burstQ.first;
+	endmethod
+endmodule
+
+
+
 
 
 //FIXME
