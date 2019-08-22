@@ -354,26 +354,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			Bit#(16) rid = tlp[31+32:16+32];
 			Bit#(32) addr = {tlp[31+64:2+64],2'b00};
 
-			Bit#(32) cdw0 = {
-				1'b0,
-				2'b10,
-				5'ha,
-				1'b0,
-				tc,4'h0,td,
-				//3'b0, 4'b0,1'b0,
-				ep,attr,2'b0,10'h1
-				//1'b0,2'b0,2'b0,10'h1
-			};
-			Bit#(32) cdw1 = {
-				user.cfg_completer_id,4'b0000,
-				12'h4// read32 only...
-			};
-			Bit#(32) cdw2 = {
-				rid,tag,1'b0,
-				addr[6:0]
-			};
-			let cdw3 = reverseEndian(read32data);
-
 			Bit#(20) internalAddr = truncate(addr);
 
 			if ( internalAddr < fromInteger(io_userspace_offset) ) begin
