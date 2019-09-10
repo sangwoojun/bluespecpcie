@@ -54,6 +54,7 @@ report_timing_summary -file $outputDir/mkprojecttop_post_route_timing_summary.rp
 report_timing -sort_by group -max_paths 100 -path_type summary -file $outputDir/mkprojecttop_post_route_timing.rpt
 report_clock_utilization -file $outputDir/mkprojecttop_clock_util.rpt
 report_utilization -file $outputDir/mkprojecttop_post_route_util.rpt
+report_utilization -hierarchical  -file $outputDir/mkprojecttop_post_route_util_hier.rpt
 report_datasheet -file $outputDir/mkprojecttop_post_route_datasheet.rpt
 #report_power -file $outputDir/mkprojecttop_post_route_power.rpt
 #report_drc -file $outputDir/mkprojecttop_post_imp_drc.rpt
