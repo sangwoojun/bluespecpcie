@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <time.h>
 
 #include "bdbmpcie.h"
 //#include "dmasplitter.h"
@@ -21,6 +23,28 @@ int main(int argc, char** argv) {
 		size = atoi(argv[1]);
 	}
 */
+
+	srand(time(NULL));
+	printf( "Sending block read req\n" );
+	for ( int i = 0; i < 1024; i++ ) {
+		int roff = rand()&0xffff;
+		uint32_t data = (roff<<16) | (2048/64);
+		pcie->userWriteWord(12, data);
+		printf( "%x data\n", data );
+	}
+	sleep(2);
+	uint32_t cycles = pcie->userReadWord(32);
+	while ( cycles == 0 ) {
+		cycles = pcie->userReadWord(32);
+		printf( "cycles: %d\n", cycles );
+		sleep(1);
+	}
+	printf( "cycles: %d\n", cycles );
+
+
+	exit(0);
+
+
 	unsigned int d = pcie->readWord(0);
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
