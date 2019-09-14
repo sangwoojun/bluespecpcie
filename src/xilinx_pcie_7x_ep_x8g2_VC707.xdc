@@ -96,6 +96,7 @@ set_false_path -to [get_pins -of_objects [get_cells -hierarchical -filter {NAME 
 
 #rst125/reset_hold_reg[7]_replica/C
 set_false_path -from [get_pins -of_objects [get_cells -hier -filter {NAME=~ *rst125/*}] -filter {NAME=~ *C}]
+set_false_path -from [get_pins -of_objects [get_cells -hier -filter {NAME=~ *rst200/*}] -filter {NAME=~ *C}]
 set_false_path -from [get_pins -hier -filter {NAME =~ *pcie_7x_0_i/inst/inst/user_reset_out_*/C}]
 
 ###############################################################################

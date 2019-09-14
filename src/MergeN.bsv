@@ -37,8 +37,8 @@ module mkScatterN (ScatterNIfc#(n,t))
 			inQ.deq;
 			let data =tpl_1(d);
 			let dst = tpl_2(d);
-			if ( dst[valueOf(nsz)-1] == 0 ) sa[0].enq(data, dst);
-			else sa[1].enq(data, truncate(dst));
+			if ( dst < fromInteger(valueOf(n)/2) ) sa[0].enq(data,dst);
+			else sa[1].enq(data, dst-fromInteger(valueOf(n)/2));
 		endrule
 
 		//Vector#(2,FIFO#(t)) vOutQ <- replicateM(mkFIFO);
