@@ -19,13 +19,13 @@ int main(int argc, char** argv) {
 	srand(time(NULL));
 
 	
-	pcie->userWriteWord(20, 1);
+	pcie->userWriteWord(20, 0);
 
 	for ( int b = 0; b < 16; b++ ) {
 		printf( "Writing buffer %d\n",b ); fflush(stdout);
 		uint32_t* buffer = (uint32_t*)malloc(8*1024*1024);
 		for ( int i = 0; i < 1024*1024*2; i++ ){
-			buffer[i] = rand() % 1024;
+			buffer[i] = rand();
 		}
 		std::sort(buffer, buffer+1024*1024*2);
 
@@ -36,11 +36,15 @@ int main(int argc, char** argv) {
 			//pcie->userWriteWord(16, i*16+b);
 		}
 	}
+	
+	for ( int b = 0; b < 16; b++ ) {
+		pcie->userWriteWord(0, b);
+		pcie->userWriteWord(4, ((1024*1024*256)/64/16)*b);
+		pcie->userWriteWord(8, ((1024*1024*256)/64/16)*(b+1));
+		pcie->userWriteWord(12, (1024*1024*256)/64/16);
+	}
 
 	
-	pcie->userWriteWord(0, 0);
-	pcie->userWriteWord(4, (1024*1024*1024)/64);
-	pcie->userWriteWord(8, (1024*1024*256)/64);
 
 	uint32_t elapsed = 0;
 	while (elapsed == 0 ) {

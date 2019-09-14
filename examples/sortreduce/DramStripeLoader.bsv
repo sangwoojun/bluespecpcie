@@ -7,7 +7,7 @@ import BRAMFIFO::*;
 
 interface DramStripeLoaderIfc;
 	method ActionValue#(Tuple2#(Bit#(512),Bool)) getData;
-	method Action command(Bit#(32) startoff, Bit#(32) stripewords, Bit#(32) stripegap, Bit#(32) limitoff);
+	method Action command(Bit#(32) startoff, Bit#(32) stripewords, Bit#(32) limitoff);
 
 	// Connection to DRAM
 	method ActionValue#(Tuple2#(Bit#(32), Bit#(16))) getBurstReadReq; // Offset, Words
@@ -23,24 +23,13 @@ module mkDramStripeLoader#(Integer buffersz, Integer fetchsz) (DramStripeLoaderI
 	Reg#(Bit#(32)) bufferInCnt <- mkReg(0);
 	Reg#(Bit#(32)) bufferOutCnt <- mkReg(0);
 	
-	Reg#(Bit#(32)) internalOff <- mkReg(0);
 	Reg#(Bit#(32)) baseOff <- mkReg(0);
-
 	Reg#(Bit#(32)) stripeWords <- mkReg(0);
 	Reg#(Bit#(32)) limitOff <- mkReg(0);
-	Reg#(Bit#(32)) stripeGap <- mkReg(0);
 
 	rule genReadReq ( bufferInCnt-bufferOutCnt < fromInteger(buffersz-fetchsz) && baseOff < limitOff );
-		Bit#(32) fetchoff = baseOff+internalOff;
-		dramReadReqQ.enq(tuple2(fetchoff, fromInteger(fetchsz)));
-		if ( internalOff + fromInteger(fetchsz) >= stripeWords ) begin
-			//$display( "Moving on to next stripe %d %d %d", baseOff, stripeGap, baseOff + stripeGap );
-			internalOff <= 0;
-			baseOff <= baseOff + stripeGap;
-		end else begin
-			internalOff <= internalOff + fromInteger(fetchsz);
-			//$display( "Continuingthis stripe %d %d", internalOff, fetchsz );
-		end
+		dramReadReqQ.enq(tuple2(baseOff, fromInteger(fetchsz)));
+		baseOff <= baseOff + fromInteger(fetchsz);
 		bufferInCnt <= bufferInCnt + fromInteger(fetchsz);
 	endrule
 
@@ -67,11 +56,9 @@ module mkDramStripeLoader#(Integer buffersz, Integer fetchsz) (DramStripeLoaderI
 		outDataQ.deq;
 		return outDataQ.first;
 	endmethod
-	method Action command(Bit#(32) startoff, Bit#(32) stripewords, Bit#(32) stripegap, Bit#(32) limitoff) if (baseOff >= limitOff);
-		internalOff <= 0;
+	method Action command(Bit#(32) startoff, Bit#(32) stripewords, Bit#(32) limitoff) if (baseOff >= limitOff);
 		baseOff <= startoff;
 		stripeWords <= stripewords;
-		stripeGap <= stripegap;
 		limitOff <= limitoff;
 	endmethod
 

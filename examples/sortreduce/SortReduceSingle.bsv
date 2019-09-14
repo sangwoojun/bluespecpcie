@@ -12,7 +12,7 @@ import MergeSortReducerSingle::*;
 import DramStripeLoader::*;
 
 interface SortReduceSingleIfc;
-	method Action command(Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripeGap);
+	method Action command(Bit#(8) target, Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripewords);
 	method ActionValue#(Tuple3#(Bool, Bit#(32), Bit#(16))) getBurstReq; // Write? Offset, Words
 	method ActionValue#(Bit#(512)) getData;
 	method Action putData(Bit#(512) data);
@@ -29,16 +29,20 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 	Vector#(EndpointCnt, DramStripeLoaderIfc) loaders <- replicateM(mkDramStripeLoader((1024*3)/64,1024/64));
 	MergeSortReducerSingleIfc#(EndpointCnt, Bit#(32), Bit#(32)) sortreducer <- mkMergeSortReducerSingle;
 
-	Vector#(EndpointCnt, FIFO#(Tuple3#(Bit#(32), Bit#(32), Bit#(32)))) loadCmdQ <- replicateM(mkFIFO);
+	//target, dramOff, stripewords, dramLimit
+	Vector#(EndpointCnt, FIFO#(Tuple4#(Bit#(8), Bit#(32), Bit#(32), Bit#(32)))) loadCmdQ <- replicateM(mkFIFO);
 
 	for (Integer i = 0; i < valueOf(EndpointCnt); i=i+1 ) begin
 		rule connectLoadCmd;
 			loadCmdQ[i].deq;
 			let c = loadCmdQ[i].first;
-			if ( i + 1 < valueOf(EndpointCnt) ) loadCmdQ[i+1].enq(c);
-			let words = tpl_3(c)/fromInteger(valueOf(EndpointCnt));
+			if ( fromInteger(i) != tpl_1(c) && i+1 < valueOf(EndpointCnt) ) loadCmdQ[i+1].enq(c);
 
-			loaders[i].command(tpl_1(c)+(words*fromInteger(i)), words, tpl_3(c), tpl_2(c));
+			if ( fromInteger(i) == tpl_1(c) ) begin
+				let off = tpl_2(c); let words = tpl_3(c); let limit = tpl_4(c);
+				loaders[i].command(off,words,limit);
+			end
+
 		endrule
 		rule connectDramLoader;
 			let r <- loaders[i].getBurstReadReq;
@@ -84,19 +88,20 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 		let o <- outDes.get;
 		outBufferQ.enq(o);
 		writeIn <= writeIn + 1;
-	endrule
-	rule feedArbiterOut;
+		
 		if ( writeIn - writeOut > 1024*2/64 ) begin
 			writeOut <= writeOut + (1024*2/64);
 			dramArbiter.eps[16].burstWrite(0,1024*2/64);
 		end
+	endrule
+	rule feedArbiterOut;
 		dramArbiter.eps[16].putData(outBufferQ.first);
 		outBufferQ.deq;
 		$display( "Data out!" );
 	endrule
 
-	method Action command(Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripeGap);
-		loadCmdQ[0].enq(tuple3(dramOff, dramLimit, stripeGap));
+	method Action command(Bit#(8) target, Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripewords);
+		loadCmdQ[0].enq(tuple4(target, dramOff, stripewords, dramLimit));
 	endmethod
 
 	method ActionValue#(Tuple3#(Bool, Bit#(32), Bit#(16))) getBurstReq; // Write? Offset, Words

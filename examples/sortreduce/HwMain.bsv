@@ -85,7 +85,7 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 
 	Reg#(Bit#(32)) dramWriteOff <- mkReg(0);
 	DeSerializerIfc#(32,16) dramWDes <- mkDeSerializer;
-	Vector#(2,Reg#(Bit#(32))) inputArgs <- replicateM(mkReg(0));
+	Vector#(3,Reg#(Bit#(32))) inputArgs <- replicateM(mkReg(0));
 	rule fillDRAM( curDRAMBurstLeft == 0 );
 		let d <- dramWDes.get;
 		dram.write(zeroExtend(dramWriteOff), d, 64);
@@ -99,9 +99,9 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		let a = w.addr;
 		let d = w.data;
 		let off = (a>>2);
-		if ( off < 2 ) inputArgs[off] <= d;
-		else if ( off == 2 ) begin
-			sr1.command(inputArgs[0], inputArgs[1], d);
+		if ( off < 3 ) inputArgs[off] <= d;
+		else if ( off == 3 ) begin
+			sr1.command(truncate(inputArgs[0]), inputArgs[1], inputArgs[2], d);
 			startCycle <= cycles;
 		end
 		else if ( off == 4 ) begin
