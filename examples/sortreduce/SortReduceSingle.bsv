@@ -13,9 +13,12 @@ import DramStripeLoader::*;
 
 interface SortReduceSingleIfc;
 	method Action command(Bit#(8) target, Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripewords);
+	method Action outCommand(Bit#(32) stripeoff, Bit#(32) dramLimit, Bit#(32) stripewords);
 	method ActionValue#(Tuple3#(Bool, Bit#(32), Bit#(16))) getBurstReq; // Write? Offset, Words
 	method ActionValue#(Bit#(512)) getData;
 	method Action putData(Bit#(512) data);
+
+	method ActionValue#(Bit#(512)) getOverflow;
 
 	method ActionValue#(Bit#(32)) debug;
 endinterface
@@ -52,7 +55,7 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 		rule connectDramLoaded;
 			let d <- dramArbiter.eps[i].getData;
 			loaders[i].putData(d);
-			$display( "DRAM read to %d", i );
+			//$display( "DRAM read to %d", i );
 		endrule
 		SerializerIfc#(512, 8) srSer <- mkSerializer;
 		FIFO#(Bool) srLastSer <- mkStreamSerializeLast(8);
@@ -61,11 +64,50 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 			srSer.put(tpl_1(d_));
 			srLastSer.enq(tpl_2(d_));
 		endrule
-		rule feedSR;
+		Reg#(Maybe#(Tuple2#(Bit#(32),Bit#(32)))) staggerInBuffer <- mkReg(tagged Invalid);
+		Reg#(Bool) skippingStream <- mkReg(False);
+		Reg#(Bool) flushLast <- mkReg(False);
+		rule skipInData (skippingStream && !flushLast);
 			let d <- srSer.get;
 			let l = srLastSer.first;
 			srLastSer.deq;
-			sortreducer.enq[i].enq(d[63:32], d[31:0], l);
+			if ( l ) begin
+				skippingStream <= False;
+			end
+		endrule
+		rule flushLastR (flushLast);
+			let ld = fromMaybe(?,staggerInBuffer);
+			sortreducer.enq[i].enq(tpl_1(ld), tpl_2(ld), True);
+			flushLast <= False;
+			staggerInBuffer <= tagged Invalid;
+		endrule
+		rule feedSR (!skippingStream && !flushLast);
+			let d <- srSer.get;
+			let l = srLastSer.first;
+			srLastSer.deq;
+
+			let key = d[63:32];
+			let val = d[31:0];
+			if ( key == 32'hffffffff && val == 32'hffffffff ) begin 
+				//TODO change null to \0, \0 after some data
+				//ERROR if first element is null
+				// skip until we get a "last"
+				skippingStream <= True;
+				let ld = fromMaybe(?,staggerInBuffer);
+				sortreducer.enq[i].enq(tpl_1(ld), tpl_2(ld), True);
+				staggerInBuffer <= tagged Invalid;
+				$display ( "SR input found stripe delimiter at %d", i );
+			end
+			else if ( isValid(staggerInBuffer) ) begin
+				//sortreducer.enq[i].enq(d[63:32], d[31:0], l);
+				let ld = fromMaybe(?,staggerInBuffer);
+				sortreducer.enq[i].enq(tpl_1(ld), tpl_2(ld), False);
+				staggerInBuffer <= tagged Valid tuple2(key,val);
+				if ( l ) begin
+					flushLast <= True;
+				end
+			end else staggerInBuffer <= tagged Valid tuple2(key,val);
+			
 		endrule
 	end
 
@@ -75,33 +117,98 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 	Reg#(Bit#(32)) mergedonecount <- mkReg(0);
 	Reg#(Bit#(32)) writeIn <- mkReg(0);
 	Reg#(Bit#(32)) writeOut <- mkReg(0);
-	rule bufferOutDes;
+	Reg#(Bool) appendNullOut <- mkReg(False);
+
+	Reg#(Bit#(3)) desIdx <- mkReg(0);
+	Reg#(Bit#(3)) desPadIdx <- mkReg(0);
+	rule padOutputDes (desPadIdx > 0);
+		outDes.put({32'hffffffff,32'hffffffff});
+		desPadIdx <= desIdx + 1;
+	endrule
+	rule appendNullOutR (appendNullOut && desPadIdx == 0);
+		outDes.put({32'hffffffff,32'hffffffff});
+		appendNullOut <= False;
+		desIdx <= 0;
+		desPadIdx <= desIdx + 1;
+	endrule
+	rule bufferOutDes (!appendNullOut && desPadIdx == 0);
 		let r <- sortreducer.get;
 		outDes.put({tpl_1(r),tpl_2(r)});
+		desIdx <= desIdx + 1;
+
 		if ( tpl_3(r) ) begin
 			doneQ.enq(True);
 			$display( "Merge done %d", mergedonecount );
 			mergedonecount <= mergedonecount + 1;
+			appendNullOut <= True;
 		end
 	endrule
-	rule bufferOut;
+	Reg#(Bit#(32)) outWriteOff <- mkReg(0); 
+	Reg#(Bit#(32)) curStripeBase <- mkReg(0); 
+	Reg#(Bit#(32)) outStripeSz <- mkReg(0); 
+	Reg#(Bit#(32)) outDramLimit <- mkReg(0);
+	FIFO#(Bit#(512)) overflowQ <- mkFIFO;
+	Reg#(Bool) genDramBurstReq <- mkReg(False);
+	Reg#(Bool) skipToNextOutStripe <- mkReg(False);
+
+	rule skipToNextOutStripeR (skipToNextOutStripe == True);
+		skipToNextOutStripe <= False;
+		writeOut <= writeIn;
+		dramArbiter.eps[16].burstWrite(curStripeBase+outWriteOff,truncate(writeIn-writeOut));
+		outWriteOff <= 0;
+		curStripeBase <= curStripeBase + outStripeSz;
+		$display( "Skipping block since we encountered a null -> %x", curStripeBase + outStripeSz);
+	endrule
+	rule genDramBurstRegR (genDramBurstReq == True);
+		genDramBurstReq <= False;
+		writeOut <= writeOut + (1024*2/64);
+		dramArbiter.eps[16].burstWrite(curStripeBase+outWriteOff,1024*2/64);
+		if ( outWriteOff + (1024*2/64) >= outStripeSz ) begin
+			outWriteOff <= 0;
+			curStripeBase <= curStripeBase + outStripeSz;
+			$display( "Done writing to stripe -> %x", curStripeBase + outStripeSz);
+		end else begin
+			outWriteOff <= outWriteOff + (1024*2/64);
+			$display( "Done writing to block -> %x", curStripeBase);
+		end
+	endrule
+	rule bufferOut(skipToNextOutStripe == False && genDramBurstReq == False);
 		let o <- outDes.get;
-		outBufferQ.enq(o);
-		writeIn <= writeIn + 1;
-		
-		if ( writeIn - writeOut > 1024*2/64 ) begin
-			writeOut <= writeOut + (1024*2/64);
-			dramArbiter.eps[16].burstWrite(0,1024*2/64);
+		if ( curStripeBase >= outDramLimit ) begin
+			overflowQ.enq(o);
+			//$display("Entering overflow!" );
+		end else if ( writeIn+1 - writeOut >= 1024*2/64 ) begin
+			outBufferQ.enq(o);
+			genDramBurstReq <= True;
+			writeIn <= writeIn + 1;
+		end else if ( o[511:512-64] == 64'hffffffffffffffff ) begin
+			//if MSB is h32'hffffffff, 32'hffffffff, send partial write and then skip to next block
+			if (outWriteOff > 0 ) begin // if there was no reduction, null is at beginning of stripe...
+				outBufferQ.enq(o);
+				writeIn <= writeIn + 1;
+				skipToNextOutStripe <= True;
+			end
+		end else begin
+			outBufferQ.enq(o);
+			writeIn <= writeIn + 1;
 		end
 	endrule
+
+
 	rule feedArbiterOut;
 		dramArbiter.eps[16].putData(outBufferQ.first);
 		outBufferQ.deq;
-		$display( "Data out!" );
+		//$display( "Data out!" );
 	endrule
 
 	method Action command(Bit#(8) target, Bit#(32) dramOff, Bit#(32) dramLimit, Bit#(32) stripewords);
 		loadCmdQ[0].enq(tuple4(target, dramOff, stripewords, dramLimit));
+	endmethod
+	method Action outCommand(Bit#(32) stripeoff, Bit#(32) dramLimit, Bit#(32) stripewords) if ( curStripeBase >= outDramLimit);
+		outWriteOff <= 0;
+		curStripeBase <= stripeoff;
+		outStripeSz <= stripewords;
+		outDramLimit <= dramLimit;
 	endmethod
 
 	method ActionValue#(Tuple3#(Bool, Bit#(32), Bit#(16))) getBurstReq; // Write? Offset, Words
@@ -114,6 +221,10 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 	endmethod
 	method Action putData(Bit#(512) data);
 		dramArbiter.putData(data);
+	endmethod
+	method ActionValue#(Bit#(512)) getOverflow;
+		overflowQ.deq;
+		return overflowQ.first;
 	endmethod
 	
 	method ActionValue#(Bit#(32)) debug;

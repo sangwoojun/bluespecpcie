@@ -34,6 +34,12 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		cycles <= cycles + 1;
 	endrule
 
+	Reg#(Bit#(32)) overflowCnt <- mkReg(0);
+	rule getSr1overflow;
+		let o <-sr1.getOverflow;
+		overflowCnt <= overflowCnt + 1;
+	endrule
+
 	/////////////////////// dram connection
 	Reg#(Bit#(32)) curDRAMBurstOffset <- mkReg(0);
 	Reg#(Bit#(16)) curDRAMBurstLeft <- mkReg(0);
@@ -67,9 +73,11 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 	/////////////////
 	Reg#(Bit#(32)) startCycle <- mkReg(0);
 	Reg#(Bit#(32)) endCycle <- mkReg(0);
+	Reg#(Bit#(32)) doneCnt <- mkReg(0);
 	rule getDone;
 		let r <- sr1.debug;
 		endCycle <= cycles-startCycle;
+		doneCnt <= doneCnt + 1;
 	endrule
 
 	rule readStat;
@@ -79,7 +87,9 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero
 		let offset = (a>>2);
-		pcie.dataSend(r, endCycle);
+		if ( offset == 0 ) pcie.dataSend(r, endCycle);
+		else if ( offset == 1 ) pcie.dataSend(r, doneCnt);
+		else if ( offset == 2 ) pcie.dataSend(r, overflowCnt);
 	endrule
 
 
@@ -90,6 +100,19 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		let d <- dramWDes.get;
 		dram.write(zeroExtend(dramWriteOff), d, 64);
 		dramWriteOff <= dramWriteOff + 64;
+	endrule
+	FIFO#(Tuple2#(Bit#(32),Bit#(32))) dramWriteCmdQ <- mkFIFO;
+	rule dramWriteCmd;
+		let w = dramWriteCmdQ.first;
+		dramWriteCmdQ.deq;
+		let d = tpl_2(w);
+		let off = tpl_1(w);
+		if ( off == 5 ) begin
+			dramWDes.put(d);
+		end
+		else if ( off == 6 ) begin
+			dramWriteOff <= d;
+		end
 	endrule
 	rule getCmd;
 		// dma load from host
@@ -103,12 +126,14 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		else if ( off == 3 ) begin
 			sr1.command(truncate(inputArgs[0]), inputArgs[1], inputArgs[2], d);
 			startCycle <= cycles;
+			endCycle <= 0;
+			doneCnt <= 0;
 		end
 		else if ( off == 4 ) begin
-			dramWDes.put(d);
+			sr1.outCommand(inputArgs[0], inputArgs[1], d);
 		end
-		else if ( off == 5 ) begin
-			dramWriteOff <= d;
+		else begin
+			dramWriteCmdQ.enq(tuple2(zeroExtend(off),d));
 		end
 	endrule
 

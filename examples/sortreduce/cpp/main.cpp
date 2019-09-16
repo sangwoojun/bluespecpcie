@@ -19,37 +19,65 @@ int main(int argc, char** argv) {
 	srand(time(NULL));
 
 	
-	pcie->userWriteWord(20, 0);
+	pcie->userWriteWord(24, 0); // dram write start off
+
+	//uint32_t istripe = (1024*1024*256/16)/64;
+	//uint32_t bufferwords = (1024*1024*256)/64; // 256MB scratchpad
+	uint32_t buffermb = 2;
+	uint32_t outstripemb = 1;
+	uint32_t bufferwords = (1024*1024*buffermb)/64; // 256MB scratchpad
+	uint32_t istripe = (1024*1024*outstripemb)/16/64; // each output stripe adding up to ...
+	uint32_t stripecnt = buffermb/outstripemb;
+
+	pcie->userWriteWord(0, bufferwords); // output stripe offset
+	pcie->userWriteWord(4, bufferwords*2); // output stripe limit
+	pcie->userWriteWord(16, istripe*16); // output stripe words
 
 	for ( int b = 0; b < 16; b++ ) {
 		printf( "Writing buffer %d\n",b ); fflush(stdout);
-		uint32_t* buffer = (uint32_t*)malloc(8*1024*1024);
-		for ( int i = 0; i < 1024*1024*2; i++ ){
-			buffer[i] = rand();
-		}
-		std::sort(buffer, buffer+1024*1024*2);
+		uint32_t kvcnt = istripe*8; // 8 kvpairs per DRAM word
+		for ( int s = 0; s < bufferwords/16/istripe; s++ ) {
+			uint32_t* buffer = (uint32_t*)malloc(kvcnt*sizeof(uint32_t)); 
+			for ( int i = 0; i < kvcnt; i++ ){
+				//buffer[i] = rand() % (1<<24);
+				buffer[i] = rand() % (1<<24);
+			}
+			//std::sort(buffer, buffer+kvcnt);
+			//buffer[kvcnt/2] = 0xffffffff;
 
-
-		for ( int i = 0; i < 1024*1024*2; i++ ){
-			pcie->userWriteWord(16, 1);
-			pcie->userWriteWord(16, buffer[i]);
-			//pcie->userWriteWord(16, i*16+b);
+			for ( int i = 0; i < kvcnt; i++ ){
+				if ( buffer[i] == 0xffffffff ) {
+					pcie->userWriteWord(20, 0xffffffff);
+					pcie->userWriteWord(20, buffer[i]);
+				} else {
+					pcie->userWriteWord(20, 1);
+					pcie->userWriteWord(20, buffer[i]);
+				}
+			}
+			free(buffer);
 		}
 	}
 	
 	for ( int b = 0; b < 16; b++ ) {
 		pcie->userWriteWord(0, b);
-		pcie->userWriteWord(4, ((1024*1024*256)/64/16)*b);
-		pcie->userWriteWord(8, ((1024*1024*256)/64/16)*(b+1));
-		pcie->userWriteWord(12, (1024*1024*256)/64/16);
+		pcie->userWriteWord(4, (bufferwords/16)*b);
+		pcie->userWriteWord(8, (bufferwords/16)*(b+1));
+		pcie->userWriteWord(12, istripe);
 	}
 
 	
 
+	//sleep(5);
+	uint32_t donestripes = 0;
 	uint32_t elapsed = 0;
-	while (elapsed == 0 ) {
-		elapsed = pcie->userReadWord(0);
+	while (donestripes < stripecnt ) {
+		uint32_t gdonestripes = pcie->userReadWord(4);
+		while (elapsed == 0 || gdonestripes <= donestripes) {
+			elapsed = pcie->userReadWord(0);
+			gdonestripes = pcie->userReadWord(4);
+		}
+		donestripes = gdonestripes;
+		printf( "elapsed: %d cycles (%lf s) for %d\n", elapsed, ((double)elapsed)/250000000.0, donestripes );
 	}
-	printf( "elapsed: %d cycles\n", elapsed );
 
 }
