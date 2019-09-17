@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 
 	//uint32_t istripe = (1024*1024*256/16)/64;
 	//uint32_t bufferwords = (1024*1024*256)/64; // 256MB scratchpad
-	uint32_t buffermb = 2;
+	uint32_t buffermb = 256;
 	uint32_t outstripemb = 1;
 	uint32_t bufferwords = (1024*1024*buffermb)/64; // 256MB scratchpad
 	uint32_t istripe = (1024*1024*outstripemb)/16/64; // each output stripe adding up to ...
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 				buffer[i] = rand() % (1<<24);
 			}
 			//std::sort(buffer, buffer+kvcnt);
-			//buffer[kvcnt/2] = 0xffffffff;
+			buffer[kvcnt/2] = 0xffffffff;
 
 			for ( int i = 0; i < kvcnt; i++ ){
 				if ( buffer[i] == 0xffffffff ) {

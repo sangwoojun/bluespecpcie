@@ -71,8 +71,10 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 			let d <- srSer.get;
 			let l = srLastSer.first;
 			srLastSer.deq;
+			//$display( "input skipping %d", i );
 			if ( l ) begin
 				skippingStream <= False;
+				//$display( "input skip done %d", i );
 			end
 		endrule
 		rule flushLastR (flushLast);
@@ -103,10 +105,14 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 				let ld = fromMaybe(?,staggerInBuffer);
 				sortreducer.enq[i].enq(tpl_1(ld), tpl_2(ld), False);
 				staggerInBuffer <= tagged Valid tuple2(key,val);
+				//$display( "input replace stagger %d", i );
 				if ( l ) begin
 					flushLast <= True;
 				end
-			end else staggerInBuffer <= tagged Valid tuple2(key,val);
+			end else begin
+				staggerInBuffer <= tagged Valid tuple2(key,val);
+				//$display( "input stagger %d", i );
+			end
 			
 		endrule
 	end
@@ -123,7 +129,7 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 	Reg#(Bit#(3)) desPadIdx <- mkReg(0);
 	rule padOutputDes (desPadIdx > 0);
 		outDes.put({32'hffffffff,32'hffffffff});
-		desPadIdx <= desIdx + 1;
+		desPadIdx <= desPadIdx + 1;
 	endrule
 	rule appendNullOutR (appendNullOut && desPadIdx == 0);
 		outDes.put({32'hffffffff,32'hffffffff});
@@ -157,7 +163,7 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 		dramArbiter.eps[16].burstWrite(curStripeBase+outWriteOff,truncate(writeIn-writeOut));
 		outWriteOff <= 0;
 		curStripeBase <= curStripeBase + outStripeSz;
-		$display( "Skipping block since we encountered a null -> %x", curStripeBase + outStripeSz);
+		$display( "Skipping block since we encountered a null -> %x %d", curStripeBase + outStripeSz, outWriteOff);
 	endrule
 	rule genDramBurstRegR (genDramBurstReq == True);
 		genDramBurstReq <= False;
@@ -176,11 +182,12 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 		let o <- outDes.get;
 		if ( curStripeBase >= outDramLimit ) begin
 			overflowQ.enq(o);
-			//$display("Entering overflow!" );
+			$display("Entering overflow!" );
 		end else if ( writeIn+1 - writeOut >= 1024*2/64 ) begin
 			outBufferQ.enq(o);
 			genDramBurstReq <= True;
 			writeIn <= writeIn + 1;
+			$display( "Generating burst write req" );
 		end else if ( o[511:512-64] == 64'hffffffffffffffff ) begin
 			//if MSB is h32'hffffffff, 32'hffffffff, send partial write and then skip to next block
 			if (outWriteOff > 0 ) begin // if there was no reduction, null is at beginning of stripe...
@@ -188,9 +195,11 @@ module mkSortReduceSingle (SortReduceSingleIfc);
 				writeIn <= writeIn + 1;
 				skipToNextOutStripe <= True;
 			end
+			$display( "delimeter output at %d", outWriteOff );
 		end else begin
 			outBufferQ.enq(o);
 			writeIn <= writeIn + 1;
+			$display("outBufferQ %d", writeIn-writeOut);
 		end
 	endrule
 
