@@ -27,7 +27,9 @@ read_verilog [ glob $pciedir/src/*.v ]
 read_xdc $pciedir/src/xilinx_pcie_7x_ep_x8g2_VC707.xdc
 ############## end Pcie Stuff
 
-source user-ip.tcl
+if { [file exists "user-ip.tcl"] == 1} {
+	source user-ip.tcl
+}
 
 
 synth_design -name mkProjectTop -top mkProjectTop -part $partname -flatten rebuilt
@@ -36,6 +38,7 @@ write_checkpoint -force $outputDir/mkprojecttop_post_synth
 report_timing_summary -verbose  -file $outputDir/mkprojecttop_post_synth_timing_summary.rpt
 report_timing -sort_by group -max_paths 100 -path_type summary -file $outputDir/mkprojecttop_post_synth_timing.rpt
 report_utilization -verbose -file $outputDir/mkprojecttop_post_synth_utilization.txt
+report_utilization -hierarchical  -file $outputDir/mkprojecttop_post_synth_util_hier.rpt
 report_datasheet -file $outputDir/mkprojecttop_post_synth_datasheet.txt
 write_verilog -force $outputDir/mkprojecttop_netlist.v
 write_debug_probes -force probes.ltx
