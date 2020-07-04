@@ -29,7 +29,6 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 	Reg#(Bit#(32)) dmaWriteWordOff <- mkReg(0);
 
 	Reg#(Bit#(10)) dmaReadWordCount <- mkReg(0);
-	Reg#(Bit#(8)) dmaReadTag <- mkReg(0);
 	FIFO#(DMAWord) dmaReadWordQ <- mkSizedFIFO(16);
 
 	Reg#(DMAWord) dmaReadBuffer <- mkReg(0);
@@ -75,7 +74,7 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 				if ( addr >= fromInteger(io_userspace_offset) ) begin
 					ioReadReqQ.enq(rr);
 				end else begin
-					let d <- bdpiIOReadResp({0,addr, 32'hc001d00d});
+					let dd <- bdpiIOReadResp({0,addr, 32'hc001d00d});
 				end
 				//$display( "IOread addr: %x", addr);
 			end
@@ -117,28 +116,25 @@ module mkPcieCtrl_bsim (PcieCtrlIfc);
 			//$display( "IOread resp addr: %x data: %x\n", ioreq.addr, data );
 		endmethod
 
-		method Action dmaWriteReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag) if ( dmaWriteWordCount == 0);
+		method Action dmaWriteReq(Bit#(32) addr, Bit#(10) words ) if ( dmaWriteWordCount == 0);
 			dmaWriteWordCount <= words;
 			dmaWriteWordAddr <= addr;
 			dmaWriteWordOff <= 0;
 		endmethod
-		method Action dmaWriteData(DMAWord data, Bit#(8) tag) if ( dmaWriteWordCount > 0 );
+		method Action dmaWriteData(DMAWord data) if ( dmaWriteWordCount > 0 );
 			Bool r <- bdpiDmaWriteData(dmaWriteWordAddr+dmaWriteWordOff, truncate(data), truncate(data>>64));
 			dmaWriteWordOff <= dmaWriteWordOff + 16;
 			dmaWriteWordCount <= dmaWriteWordCount - 1;
 			//$display("dma data %x",data);
 		endmethod
-		method Action dmaReadReq(Bit#(32) addr, Bit#(10) words, Bit#(8) tag) if ( dmaReadWordCount == 0 );
+		method Action dmaReadReq(Bit#(32) addr, Bit#(10) words) if ( dmaReadWordCount == 0 );
 			dmaReadWordCount <= words;
-			dmaReadTag <= tag;
 
-			//dmaReadWordAddr <= addr;
-			//dmaReadWordOff <= 0;
 			let d <- bdpiDmaReadReq(addr,words);
 		endmethod
-		method ActionValue#(DMAWordTagged) dmaReadWord;
+		method ActionValue#(DMAWord) dmaReadWord;
 			dmaReadWordQ.deq;
-			return DMAWordTagged{word:dmaReadWordQ.first, tag:dmaReadTag};
+			return dmaReadWordQ.first;
 		endmethod
 
 		method Action assertInterrupt if ( bdpiInterruptReady() );
