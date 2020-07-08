@@ -59,9 +59,13 @@ int main(int argc, char** argv) {
 		pcie->userWriteWord(0,i);
 	}
 	*/
-	for ( int i = 0; i < 16; i++ ) {
-		pcie->userWriteWord(1*4,4+i);
-		pcie->userWriteWord(0,i);
+	int pagecnt = 1024;
+	timespec start;
+	timespec now;
+	clock_gettime(CLOCK_REALTIME, & start);
+	for ( int i = 0; i < pagecnt; i++ ) {
+		pcie->userWriteWord(1*4,4+(i%4));
+		pcie->userWriteWord(0,(i%4));
 	}
 	//sleep(1);
 	/*
@@ -77,7 +81,16 @@ int main(int argc, char** argv) {
 		printf( "w %x\n", pcie->userReadWord(4) );
 	}
 	*/
-	sleep(2);
+	//sleep(2);
+	uint32_t pages = 0;
+	while (pages < pagecnt) {
+		usleep(100);
+		pages = pcie->userReadWord(0);
+	}
+	clock_gettime(CLOCK_REALTIME, & now);
+	double diff = timespec_diff_sec(start, now);
+	printf( "Elapsed: %f\n", diff );
+
 	printf( "r %x\n", pcie->userReadWord(0) );
 	printf( "w %x\n", pcie->userReadWord(4) );
 	/*
@@ -97,15 +110,13 @@ int main(int argc, char** argv) {
 
 	exit(0);
 
-	timespec start;
-	timespec now;
 	clock_gettime(CLOCK_REALTIME, & start);
 	for ( int i = 0; i < 1024*1024*32; i++ ) {
 		pcie->userWriteWord(0, 8);
 	}
 
 	clock_gettime(CLOCK_REALTIME, & now);
-	double diff = timespec_diff_sec(start, now);
+	diff = timespec_diff_sec(start, now);
 	printf( "DMA HW->SW elapsed: %f\n", diff );
 	sleep(1);
 

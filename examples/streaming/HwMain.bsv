@@ -52,8 +52,8 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	BRAM2Port#(Bit#(6),DMAWord) page <- mkBRAM2Server(defaultValue); // tag, total words,words recv
 
-	FIFO#(Bit#(8)) streamReadQ <- mkSizedFIFO(8); // streamid, page offset
-	FIFO#(Bit#(8)) streamWriteQ <- mkSizedFIFO(8); // streamid, page offset
+	FIFO#(Bit#(8)) streamReadQ <- mkSizedBRAMFIFO(1024); // streamid, page offset
+	FIFO#(Bit#(8)) streamWriteQ <- mkSizedBRAMFIFO(1024); // streamid, page offset
 
 	Reg#(Bit#(32)) streamReadCnt <- mkReg(0);
 	Reg#(Bit#(32)) streamWriteCnt <- mkReg(0);
@@ -103,12 +103,11 @@ module mkHwMain#(PcieUserIfc pcie)
 		streamReadQ.deq;
 		let poff = streamReadQ.first;
 		pcie.dmaReadReq( (zeroExtend(poff)<<10), 64); // offset, words
-		streamReadCnt <= streamReadCnt + (1<<24);
+		streamReadCnt <= streamReadCnt + 1;
 	endrule
 	rule dmaReadDatal;
 		DMAWord rd <- pcie.dmaReadWord;
 		page.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:truncate(streamReadCnt),datain:rd});
-		streamReadCnt <= streamReadCnt + 1;
 		
 		inputQ.enq(rd);
 	endrule
@@ -123,7 +122,7 @@ module mkHwMain#(PcieUserIfc pcie)
 		curOutLeftUp <= curOutLeftUp + 64;
 		outputCntDn <= outputCntDn + 64;
 		$write("Starting DMA Write\n" );
-		streamWriteCnt <= streamWriteCnt + (1<<24);
+		streamWriteCnt <= streamWriteCnt + 1;
 	endrule
 	rule dmaWriteData(curOutLeftUp != curOutLeftDn);
 		curOutLeftDn <= curOutLeftDn + 1;
@@ -133,7 +132,5 @@ module mkHwMain#(PcieUserIfc pcie)
 		outputQ.deq;
 		pcie.dmaWriteData(outputQ.first);
 		$write("DMA Write\n" );
-
-		streamWriteCnt <= streamWriteCnt + 1;
 	endrule
 endmodule
