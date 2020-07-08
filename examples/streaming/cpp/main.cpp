@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
 
 	//uint8_t* dmabuf = (uint8_t*)dma->dmaBuffer();
 	uint8_t* dmabuf = (uint8_t*)pcie->dmaBuffer();
-	for ( uint32_t i = 0; i < 8*1024/4; i++ ) {
-		((uint32_t*)dmabuf)[i] = 0;
+	for ( uint32_t i = 0; i < 32*1024/4; i++ ) {
+		((uint32_t*)dmabuf)[i] = 0xcc;
 		//dmabuf[i] = (char)i;
 	}
 	for ( uint32_t i = 0; i < 4*1024/4; i++ ) {
@@ -51,21 +51,19 @@ int main(int argc, char** argv) {
 	for ( int i = 0; i < 32; i++ ) {
 		printf( "++ %d %x\n", i, ((uint32_t*)dmabuf)[i] );
 	}
-	pcie->userWriteWord(0,0);
-	pcie->userWriteWord(0,1);
 	/*
 	for ( int i = 0; i < 8; i++ ) {
-		printf( "r %x\n", pcie->userReadWord(0) );
-		printf( "w %x\n", pcie->userReadWord(4) );
+		pcie->userWriteWord(1*4,4+i);
+	}
+	for ( int i = 0; i < 8; i++ ) {
+		pcie->userWriteWord(0,i);
 	}
 	*/
-	pcie->userWriteWord(0,2);
-	pcie->userWriteWord(0,3);
-	//pcie->userWriteWord(0,8);
-	//pcie->userWriteWord(0,9);
-	//pcie->userWriteWord(0,10);
-	//pcie->userWriteWord(0,11);
-	sleep(1);
+	for ( int i = 0; i < 16; i++ ) {
+		pcie->userWriteWord(1*4,4+i);
+		pcie->userWriteWord(0,i);
+	}
+	//sleep(1);
 	/*
 	for ( int i = 0; i < 8; i++ ) {
 		printf( "r %x\n", pcie->userReadWord(0) );
@@ -73,10 +71,6 @@ int main(int argc, char** argv) {
 	}
 	*/
 	printf( "----\n" );
-	pcie->userWriteWord(1*4,4);
-	pcie->userWriteWord(1*4,5);
-	pcie->userWriteWord(1*4,6);
-	pcie->userWriteWord(1*4,7);
 	/*
 	for ( int i = 0; i < 8; i++ ) {
 		printf( "r %x\n", pcie->userReadWord(0) );

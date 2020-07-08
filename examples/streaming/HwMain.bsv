@@ -24,8 +24,8 @@ module mkHwMain#(PcieUserIfc pcie)
 
 	FIFO#(DMAWord) inputQ <- mkSizedBRAMFIFO(512); // 8KBs
 	FIFO#(DMAWord) outputQ <- mkSizedBRAMFIFO(512); // 8KBs
-	Reg#(Bit#(10)) outputCntUp <- mkReg(0);
-	Reg#(Bit#(10)) outputCntDn <- mkReg(0);
+	Reg#(Bit#(16)) outputCntUp <- mkReg(0);
+	Reg#(Bit#(16)) outputCntDn <- mkReg(0);
 
 	StreamKernelIfc kernel <- mkStreamKernelTest;
 	DeSerializerIfc#(128, 2) des <- mkDeSerializer;
@@ -99,42 +99,35 @@ module mkHwMain#(PcieUserIfc pcie)
 		pcie.dataSend(req,truncate(r));
 	endrule
 
-	Reg#(Bit#(16)) readWordsLeft <- mkReg(0);
-	rule dmaReadReq ( readWordsLeft == 0 );
+	rule dmaReadReq;
 		streamReadQ.deq;
 		let poff = streamReadQ.first;
 		pcie.dmaReadReq( (zeroExtend(poff)<<10), 64); // offset, words
-		readWordsLeft <= 64;
 		streamReadCnt <= streamReadCnt + (1<<24);
-		//$write("DMA Read req\n" );
 	endrule
-	//Reg#(Bit#(6)) offset <- mkReg(0);
-	rule dmaReadData (readWordsLeft != 0 );
+	rule dmaReadDatal;
 		DMAWord rd <- pcie.dmaReadWord;
-		//$write("+++ %x\n", rd.word);
-		//offset <= offset + 1;
 		page.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:truncate(streamReadCnt),datain:rd});
-		readWordsLeft <= readWordsLeft - 1;
-		inputQ.enq(rd);
-		//$write("DMA Read\n" );
 		streamReadCnt <= streamReadCnt + 1;
+		
+		inputQ.enq(rd);
 	endrule
 
-	Reg#(Bit#(10)) curOutLeft <- mkReg(0);
-	rule dmaWriteReq (outputCntUp - outputCntDn >= 64 && curOutLeft == 0);
+	Reg#(Bit#(16)) curOutLeftUp <- mkReg(0);
+	Reg#(Bit#(16)) curOutLeftDn <- mkReg(0);
+	rule dmaWriteReq (outputCntUp - outputCntDn >= 64 && curOutLeftUp-curOutLeftDn < 128);
 		streamWriteQ.deq;
 		let woff = streamWriteQ.first;
 		pcie.dmaWriteReq((zeroExtend(woff)<<10), 64);
 
-		////outputQ.deq;
-		////pcie.dmaWriteData(outputQ.first);
-		curOutLeft <= 64;
+		curOutLeftUp <= curOutLeftUp + 64;
 		outputCntDn <= outputCntDn + 64;
 		$write("Starting DMA Write\n" );
 		streamWriteCnt <= streamWriteCnt + (1<<24);
 	endrule
-	rule dmaWriteData(curOutLeft != 0);
-		curOutLeft <= curOutLeft - 1;
+	rule dmaWriteData(curOutLeftUp != curOutLeftDn);
+		curOutLeftDn <= curOutLeftDn + 1;
+
 		//outputCntDn <= outputCntDn + 1;
 
 		outputQ.deq;

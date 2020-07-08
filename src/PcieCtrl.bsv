@@ -157,8 +157,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	
 	//FIFO#(Tuple2#(Bit#(8),Bit#(10))) readBurstQ <- mkSizedFIFO(4);
 	FIFO#(Tuple2#(Bit#(8),Bit#(10))) readBurstQ <- mkFIFO;
+	FIFO#(Tuple2#(Bit#(8),Bit#(10))) readBurst2Q <- mkFIFO;
 	BRAM2Port#(Bit#(8),Tuple2#(Bit#(10),Bit#(10))) tagMap <- mkBRAM2Server(defaultValue); // tag, total words,words recv
-	BRAM2Port#(Bit#(13), Bit#(128)) readReorder <- mkBRAM2Server(defaultValue);
+	BRAM2Port#(Bit#(10), Bit#(128)) readReorder <- mkBRAM2Server(defaultValue); // 7 bit tag, 3 bit burst offset (max 8 words per burst)
 	ScoreboardIfc#(4,Bit#(8)) readCompletionsb <- mkScoreboard;
 	Reg#(Bit#(8)) freeTagCnt <- mkReg(0);
 	FIFO#(Bit#(8)) freeReadTagQ <- mkSizedBRAMFIFO(128);
@@ -169,19 +170,25 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		freeWriteTagQ.enq(freeTagCnt+128);
 	endrule
 
+	rule relayReadBurst;
+		readBurstQ.deq;
+		readBurst2Q.enq(readBurstQ.first);
+	endrule
 
-	FIFO#(DMAWordTagged) dmaReadWordQ <- mkSizedFIFO(16);
+
+	FIFO#(DMAWordTagged) dmaReadWordQ <- mkSizedBRAMFIFO(128);
+	FIFO#(DMAWordTagged) dmaReadWordRQ <- mkFIFO;
 	FIFO#(Tuple2#(Bit#(8),Bit#(10))) burstUpdReqQ <-mkFIFO;
 	FIFO#(Tuple2#(Bit#(8),Bit#(10))) readDoneTagQ <- mkSizedFIFO(4); //TODO
-	Reg#(Tuple4#(Bit#(8),Bit#(10),Bit#(10),Bit#(10))) tagWordsLeft <- mkReg(tuple4(0,0,0,0));
+	Reg#(Tuple5#(Bit#(8),Bit#(10),Bit#(10),Bit#(10),Bit#(10))) tagWordsLeft <- mkReg(tuple5(0,0,0,0,0));
 	rule updateReadBurst1 ( freeTagCnt == 128 );
-		let burst = readBurstQ.first;
+		let burst = readBurst2Q.first;
 		let tag = tpl_1(burst);
 		let words = tpl_2(burst);
 			
 		if ( !readCompletionsb.search1(tag) ) begin
 			tagMap.portA.request.put(BRAMRequest{write:False, responseOnWrite:False, address:tag, datain:?});
-			readBurstQ.deq;
+			readBurst2Q.deq;
 			readCompletionsb.enq(tpl_1(burst));
 			burstUpdReqQ.enq(burst);
 		end
@@ -208,41 +215,51 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let burst = burstUpdReqQ.first;
 		let tag = tpl_1(burst);
 		let words = tpl_2(burst);
-		//debugCode <= debugCode + (zeroExtend(words/4)<<16) + (zeroExtend(done/4)<<8);
+			
 
 		let newdone = done;
-		if ( done + words > req ) begin // read v should never be 0!
+		let newwords = words;
+		if ( done + words >= req ) begin // read v should never be 0!
 			newdone = req;
-			words = req - done; 
-			//debugCode <= debugCode + (1<<16);
-			//freeReadTagFQ.enq(tag);
+			newwords = req - done; 
 		end
-		else newdone = done + words;
-
-		if ( done != 0 ) debugCode <= debugCode + ((zeroExtend(done)/4)<<16);
-
+		else begin
+			newdone = done + words;
+		end
+		
+		
 		readCompletionsb.deq;
-		tagWordsLeft <= tuple4(tag,done,words,0);
-		//debugCode <= debugCode + (zeroExtend(words)<<16);
+
+		tagWordsLeft <= tuple5(tag,done,newwords,0,req);
+		debugCode <= debugCode + (zeroExtend(newwords)<<16);
 
 		tagMap.portB.request.put(BRAMRequest{write:True,responseOnWrite:False,address:tag,datain:tuple2(req,newdone)});
+	endrule
+	rule relayDmaReadrQ;
+		dmaReadWordQ.deq;
+		dmaReadWordRQ.enq(dmaReadWordQ.first);
 	endrule
 	rule writeReadBuffer (tpl_3(tagWordsLeft) > 0);
 		let tag = tpl_1(tagWordsLeft);
 		let off = tpl_2(tagWordsLeft);
 		let words = tpl_3(tagWordsLeft);
 		let ioff = tpl_4(tagWordsLeft);
-		if ( words <= 4 ) begin
+		let req = tpl_5(tagWordsLeft);
+
+
+		if ( words <= 4 && off+ioff+4 >= req ) begin
 			words = 0;
 			readDoneTagQ.enq(tuple2(tag, off+ioff+4));
 		end
 		else words = words - 4;
+		
+		tagWordsLeft <= tuple5(tag,off,words,ioff+4, req);
+		dmaReadWordRQ.deq;
+		let word = dmaReadWordRQ.first;
 
-		tagWordsLeft <= tuple4(tag,off,words,ioff+4);
-		dmaReadWordQ.deq;
-		let word = dmaReadWordQ.first;
 
-		Bit#(13) writeoff = (zeroExtend(tag)<<5)|((zeroExtend(off)+zeroExtend(ioff))>>2);
+		
+		Bit#(10) writeoff = (zeroExtend(tag)<<3)|((zeroExtend(off)+zeroExtend(ioff))>>2);
 		readReorder.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:writeoff,datain:word.word});
 	endrule
 	Reg#(Tuple3#(Bit#(8),Bit#(10),Bit#(10))) readFlushTag <- mkReg(tuple3(0,0,0)); //tag, req, curword
@@ -257,11 +274,16 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				let r_ = readDoneTagQ.first;
 				let tag = tpl_1(r_);
 				let words = tpl_2(r_);
-				Bit#(13) readoff = (zeroExtend(tag)<<5);
+
+				debugCode <= debugCode + zeroExtend(words);
+
+
+				Bit#(10) readoff = (zeroExtend(tag)<<3);
 				readReorder.portB.request.put(BRAMRequest{write:False,responseOnWrite:False,address:readoff,datain:?});
 				let wordsleft = 0;
 				if ( words > 4 ) wordsleft = words - 4;
 				readFlushTag <= tuple3(tag,words, wordsleft);
+
 				dmaReadOutCntUp <= dmaReadOutCntUp + 1;
 
 				freeReadTagFQ.enq(tag);
@@ -273,8 +295,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 			if ( wleft > 4 ) wordsleft = wleft - 4;
 
+			//debugCode <= debugCode + 1;
+
 			readFlushTag <= tuple3(tag,words, wordsleft);
-			Bit#(13) readoff = (zeroExtend(tag)<<5)|((zeroExtend(words-wleft))>>2);
+			Bit#(10) readoff = (zeroExtend(tag)<<3)|((zeroExtend(words-wleft))>>2);
 			readReorder.portB.request.put(BRAMRequest{write:False,responseOnWrite:False,address:readoff,datain:?});
 			dmaReadOutCntUp <= dmaReadOutCntUp + 1;
 		end
@@ -379,8 +403,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 		dmaReadWordQ.enq(DMAWordTagged{word:{data2,data1,data0,dmaReadBuffer}, tag:completionRecvTag});
 		
-		debugCode <= debugCode + 1;
-
 
 		if ( completionRecvLength >= 4 ) begin
 			completionRecvLength <= completionRecvLength - 4;
@@ -471,7 +493,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			completionRecvTag <= tag;
 			dmaReadBuffer <= reverseEndian(data);
 			readBurstQ.enq(tuple2(tag, length));
-			//debugCode <= debugCode + ((zeroExtend(length)>>2)<<16);
 		end
 		else begin
 			tlp2Q.enq(tlp);
@@ -694,8 +715,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		//FIXME maybe this needs to be in bytes?
 		Bit#(10) dmaWords = req.words;
 		
-		//debugCode <= debugCode + (zeroExtend(dmaWords)<<24);
-
 		Bit#(32) cdw0 = {
 			1'b0,
 			2'b00, //read
