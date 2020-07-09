@@ -45,9 +45,11 @@ int main(int argc, char** argv) {
 		((uint32_t*)dmabuf)[i] = i;
 		//dmabuf[i] = (char)i;
 	}
+	/*
 	for ( int i = 0; i < 16; i++ ) {
 		dmabuf[i] = 0xaa;
 	}
+	*/
 	for ( int i = 0; i < 32; i++ ) {
 		printf( "++ %d %x\n", i, ((uint32_t*)dmabuf)[i] );
 	}
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
 		pcie->userWriteWord(0,i);
 	}
 	*/
-	int pagecnt = 1024;
+	int pagecnt = 4;
 	timespec start;
 	timespec now;
 	clock_gettime(CLOCK_REALTIME, & start);
@@ -83,8 +85,14 @@ int main(int argc, char** argv) {
 	*/
 	//sleep(2);
 	uint32_t pages = 0;
+	int sleepcnt = 0;
 	while (pages < pagecnt) {
 		usleep(100);
+		sleepcnt ++;
+		if ( sleepcnt % 10000 == 0 ) {
+			printf( "!! %x\n", pcie->readWord(4) );
+			printf( ">> %x\n", ((uint32_t*)dmabuf)[1024/4*4] );
+		}
 		pages = pcie->userReadWord(0);
 	}
 	clock_gettime(CLOCK_REALTIME, & now);
@@ -100,6 +108,15 @@ int main(int argc, char** argv) {
 	*/
 	for ( int i = 0; i < 32; i++ ) {
 		printf( "-- %d %x\n", i, ((uint32_t*)dmabuf)[i+1024/4*4] );
+	}
+
+	for ( uint32_t i = 0; i < 1024*4/4; i++ ) {
+		uint32_t d = ((uint32_t*)dmabuf)[i+1024/4*4];
+		if ( i%8 == 0 ) {
+			if (d != 0xdeadbeef) printf ( "XX %x %x\n", i, d );
+		} else {
+			if (d != i) printf ( "XX %x %x\n", i, d );
+		}
 	}
 	
 	for ( int i = 2; i < 16; i++ ) {

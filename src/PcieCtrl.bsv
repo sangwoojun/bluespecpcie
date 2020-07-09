@@ -22,6 +22,7 @@ import PcieImport::*;
 
 import Scoreboard::*;
 import MergeN::*;
+import Shifter::*;
 
 typedef struct {
 	Bit#(16) requesterID;
@@ -179,7 +180,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(DMAWordTagged) dmaReadWordQ <- mkSizedBRAMFIFO(128);
 	FIFO#(DMAWordTagged) dmaReadWordRQ <- mkFIFO;
 	FIFO#(Tuple2#(Bit#(8),Bit#(10))) burstUpdReqQ <-mkFIFO;
-	FIFO#(Tuple2#(Bit#(8),Bit#(10))) readDoneTagQ <- mkSizedFIFO(4); //TODO
+	FIFO#(Tuple2#(Bit#(8),Bit#(10))) readDoneTagQ <- mkFIFO;
 	Reg#(Tuple5#(Bit#(8),Bit#(10),Bit#(10),Bit#(10),Bit#(10))) tagWordsLeft <- mkReg(tuple5(0,0,0,0,0));
 	rule updateReadBurst1 ( freeTagCnt == 128 );
 		let burst = readBurst2Q.first;
@@ -231,7 +232,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		readCompletionsb.deq;
 
 		tagWordsLeft <= tuple5(tag,done,newwords,0,req);
-		debugCode <= debugCode + (zeroExtend(newwords)<<16);
 
 		tagMap.portB.request.put(BRAMRequest{write:True,responseOnWrite:False,address:tag,datain:tuple2(req,newdone)});
 	endrule
@@ -239,6 +239,77 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaReadWordQ.deq;
 		dmaReadWordRQ.enq(dmaReadWordQ.first);
 	endrule
+	
+	FIFO#(Tuple2#(Bit#(8),Bit#(10))) orderedReadDoneTagQ <- mkSizedFIFO(4); //TODO
+	FIFO#(Bit#(8)) dmaReadTagOrderQ <- mkSizedBRAMFIFO(128);
+	ByteShiftIfc#(Bit#(128), 7) doneShifter <- mkPipelineLeftShifterBits;
+	ByteShiftIfc#(Bit#(128), 7) orderShifter <- mkPipelineLeftShifterBits;
+	FIFO#(Bit#(8)) orderTagBypassQ <- mkSizedFIFO(8);
+	Reg#(Bit#(128)) doneTagMap <- mkReg(0);
+	Reg#(Bit#(128)) orderTagMap <- mkReg(0);
+	BRAM2Port#(Bit#(8),Tuple2#(Bit#(8),Bit#(10))) doneMap <- mkBRAM2Server(defaultValue); // tag, total words,words recv
+	rule applyDoneMap;
+		readDoneTagQ.deq;
+		let d = readDoneTagQ.first;
+		doneMap.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:tpl_1(d),datain:d});
+		doneShifter.rotateByteBy(1,truncate(tpl_1(d))); //tag
+	endrule
+	rule procDoneShift;
+		let v <- doneShifter.getVal;
+		doneTagMap <= doneTagMap ^ v;
+		debugCode <= debugCode + 1;
+	endrule
+	rule shiftOrder;
+		let tag = dmaReadTagOrderQ.first;
+		dmaReadTagOrderQ.deq;
+		orderShifter.rotateByteBy(1,truncate(tag));
+		orderTagBypassQ.enq(tag);
+	endrule
+	Reg#(Maybe#(Bit#(128))) curOrderTag <- mkReg(tagged Invalid);
+	FIFO#(Bit#(8)) doneReorderedTagQ <- mkFIFO;
+	FIFO#(Bit#(128)) orderShiftedQ <- mkFIFO;
+	rule forwardShifted;
+		let v <- orderShifter.getVal;
+		orderShiftedQ.enq(v);
+	endrule
+	rule compareOrder;
+		let ot = fromMaybe(?, curOrderTag);
+		if ( isValid(curOrderTag) ) begin
+			if ( (ot&(orderTagMap ^ doneTagMap)) != 0 ) begin
+				orderTagMap <= orderTagMap ^ ot;
+				curOrderTag <= tagged Invalid;
+
+				let tag = orderTagBypassQ.first;
+				orderTagBypassQ.deq;
+				doneReorderedTagQ.enq(tag);
+			end
+		end else begin
+			orderShiftedQ.deq;
+			let v = orderShiftedQ.first;
+
+			if ( (v&(orderTagMap ^ doneTagMap)) != 0 ) begin
+				orderTagMap <= orderTagMap ^ v;
+				//curOrderTag <= tagged Invalid;
+
+				let tag = orderTagBypassQ.first;
+				orderTagBypassQ.deq;
+				doneReorderedTagQ.enq(tag);
+			end else begin
+				curOrderTag <= tagged Valid v;
+			end
+		end
+
+	endrule
+	rule reqDoneTag;
+		doneReorderedTagQ.deq;
+		let tag = doneReorderedTagQ.first;
+		doneMap.portB.request.put(BRAMRequest{write:False,responseOnWrite:False,address:tag,datain:?});
+	endrule
+	rule forwardDoneTag;
+		let d <- doneMap.portB.response.get;
+		orderedReadDoneTagQ.enq(d);
+	endrule
+
 	rule writeReadBuffer (tpl_3(tagWordsLeft) > 0);
 		let tag = tpl_1(tagWordsLeft);
 		let off = tpl_2(tagWordsLeft);
@@ -270,12 +341,12 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let wleft = tpl_3(readFlushTag);
 		if ( wleft == 0 ) begin
 			if (dmaReadOutCntUp-dmaReadOutCntDn < fromInteger(dma_max_words*7)  ) begin
-				readDoneTagQ.deq;
-				let r_ = readDoneTagQ.first;
+				orderedReadDoneTagQ.deq;
+				let r_ = orderedReadDoneTagQ.first;
 				let tag = tpl_1(r_);
 				let words = tpl_2(r_);
 
-				debugCode <= debugCode + zeroExtend(words);
+				//debugCode <= debugCode + zeroExtend(words);
 
 
 				Bit#(10) readoff = (zeroExtend(tag)<<3);
@@ -295,7 +366,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 			if ( wleft > 4 ) wordsleft = wleft - 4;
 
-			//debugCode <= debugCode + 1;
 
 			readFlushTag <= tuple3(tag,words, wordsleft);
 			Bit#(10) readoff = (zeroExtend(tag)<<3)|((zeroExtend(words-wleft))>>2);
@@ -709,6 +779,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		//let busAddr <- configBuffer.portB.response.get;
 		let busAddr = dmaReadBufAddrQ.first;
 		dmaReadBufAddrQ.deq;
+
+		dmaReadTagOrderQ.enq(req.tag);
 
 
 		let dmaAddr = busAddr + req.addr;

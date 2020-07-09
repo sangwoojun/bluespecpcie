@@ -209,4 +209,43 @@ module mkPipelineLeftShifter(ByteShiftIfc#(element_type, size))
    endmethod
 endmodule
 
+module mkPipelineLeftShifterBits(ByteShiftIfc#(element_type, size))
+   provisos(Bits#(element_type, a__)
+            ,Bitwise#(element_type));
+   
+   Integer numStages =  valueOf(size);
+   
+   Vector#(size, FIFO#(Tuple2#(element_type, Bit#(size)))) stageFifos <- replicateM(mkFIFO);
+   
+   FIFO#(element_type) outputFifo <- mkBypassFIFO;
+   
+   for (Integer i = numStages - 1; i >= 0; i = i - 1) begin
+      rule doStage;
+         let args <- toGet(stageFifos[i]).get();
+         let val = tpl_1(args);
+         let shift = tpl_2(args);
+         
+         if ( shift[i] == 1 ) begin
+            val = val << (1<<i);
+         end
+         
+         if ( i > 0 ) begin
+            stageFifos[i-1].enq(tuple2(val,shift));
+         end
+         else begin
+            outputFifo.enq(val);
+         end
+      endrule
+   end
+      
+   method Action rotateByteBy(element_type v, Bit#(size) shift);
+      //$display("inputVal = %h, shift = %d", v, shift);
+      stageFifos[numStages-1].enq(tuple2(v,shift));
+   endmethod
+   method ActionValue#(element_type) getVal;
+      let v <- toGet(outputFifo).get();
+      return v;
+   endmethod
+endmodule
+
 endpackage
