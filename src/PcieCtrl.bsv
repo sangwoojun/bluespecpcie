@@ -778,7 +778,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaReadBufAddrQ.deq;
 
 		dmaReadTagOrderQ.enq(req.tag);
-		debugCode <= debugCode + zeroExtend(req.words);
+		//debugCode <= debugCode + zeroExtend(req.words);
 
 
 		let dmaAddr = busAddr + req.addr;
@@ -889,7 +889,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let dmaAddr = busAddr + req.addr;
 		Bit#(10) dmaWords = req.words;
 		//let dmaWords = 8;
-		debugCode <= debugCode + (zeroExtend(req.words)<<16);
+		//debugCode <= debugCode + (zeroExtend(req.words)<<16);
 		
 		dmaWriteWordQ.deq;
 		let data = dmaWriteWordQ.first;

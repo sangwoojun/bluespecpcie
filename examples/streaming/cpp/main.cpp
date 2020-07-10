@@ -89,14 +89,16 @@ int main(int argc, char** argv) {
 	uint32_t pages = 0;
 	int sleepcnt = 0;
 	while (pages < pagecnt) {
-		usleep(100);
+		pages = pcie->userReadWord(4);
+		if ( pages >= pagecnt ) break;
+
 		sleepcnt ++;
 		if ( sleepcnt % 10000 == 0 ) {
 			printf( "Pages-- %d\n", pages );
 			printf( "!! %x\n", pcie->readWord(4) );
 			printf( ">> %x\n", ((uint32_t*)dmabuf)[1024/4*4] );
 		}
-		pages = pcie->userReadWord(4);
+		usleep(10);
 	}
 	clock_gettime(CLOCK_REALTIME, & now);
 	double diff = timespec_diff_sec(start, now);
@@ -106,28 +108,35 @@ int main(int argc, char** argv) {
 	printf( "w %x\n", pcie->userReadWord(4) );
 	/*
 	for ( int i = 0; i < 32; i++ ) {
-		printf( "x %x\n", pcie->userReadWord(0) );
-	}
-	*/
-	/*
-	for ( int i = 0; i < 32; i++ ) {
 		printf( "-- %d %x\n", i, ((uint32_t*)dmabuf)[i+1024/4*4] );
 	}
 	*/
 
+
+	int incorrects = 0;
 	for ( uint32_t i = 0; i < 1024*4/4; i++ ) {
 		uint32_t d = ((uint32_t*)dmabuf)[i+1024/4*4];
 		if ( i%8 == 0 ) {
-			if (d != 0xdeadbeef) printf ( "XX %x %x\n", i, d );
+			if (d != 0xdeadbeef) {
+				printf ( "Data incorrect! %x != %x\n", 0xdeadbeef, d );
+				incorrects ++;
+			}
 		} else {
-			if (d != i) printf ( "XX %x %x\n", i, d );
+			if (d != i) {
+				printf ( "Data incorrect! %x != %x\n", i, d );
+				incorrects++;
+			}
 		}
 	}
-	
-	for ( int i = 2; i < 16; i++ ) {
-		printf( "+++ %x\n", pcie->userReadWord(i*4) );
-	}
 
-	printf( "!! %x\n", pcie->readWord(4) );
+	printf( "Incorrect datas: %d\n", incorrects );
+	
+	/*
+	for ( int i = 2; i < 16; i++ ) {
+		printf( "Data in BRAM: %x\n", pcie->userReadWord(i*4) );
+	}
+	*/
+
+	printf( "DebugCode: %x\n", pcie->readWord(4) );
 
 }
