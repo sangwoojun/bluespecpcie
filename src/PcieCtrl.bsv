@@ -257,7 +257,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	rule procDoneShift;
 		let v <- doneShifter.getVal;
 		doneTagMap <= doneTagMap ^ v;
-		debugCode <= debugCode + 1;
 	endrule
 	rule shiftOrder;
 		let tag = dmaReadTagOrderQ.first;
@@ -345,8 +344,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				let r_ = orderedReadDoneTagQ.first;
 				let tag = tpl_1(r_);
 				let words = tpl_2(r_);
-
-				//debugCode <= debugCode + zeroExtend(words);
 
 
 				Bit#(10) readoff = (zeroExtend(tag)<<3);
@@ -749,7 +746,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			freeReadTagQ.deq;
 			dmaPageReadReqQ.enq(DMAReq{addr:zeroExtend(dmaReadStartAddr[11:0]), words:toread, tag:tag});
 			tagMap.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:tag,datain:tuple2(toread<<2,0)}); // DWORD words
-			dmaReadStartAddr <= dmaReadStartAddr + (zeroExtend(toread)<<2);
+			dmaReadStartAddr <= dmaReadStartAddr + (zeroExtend(toread)<<4);
 		end else begin
 			let tag = freeReadTagQ.first;
 			freeReadTagQ.deq;
@@ -781,6 +778,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaReadBufAddrQ.deq;
 
 		dmaReadTagOrderQ.enq(req.tag);
+		debugCode <= debugCode + zeroExtend(req.words);
 
 
 		let dmaAddr = busAddr + req.addr;
@@ -824,7 +822,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	Reg#(DMAWord) dmaWriteBuf <- mkReg(0);
 
 	Reg#(Bit#(32)) dmaStartAddr <- mkReg(0);
-	Reg#(Bit#(8)) dmaWriteTag <- mkReg(0);
 	rule splitDmaWriteReq (dmaSendWords == 0);
 		dmaWriteReqQ.deq;
 		let req = dmaWriteReqQ.first;
@@ -832,7 +829,6 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaStartAddr <= {truncate(req.addr>>4), 4'b0000};
 		//dmaStartAddr <= req.addr;
 		dmaSendWords <= req.words;
-		dmaWriteTag <= req.tag;
 	endrule
 
 	FIFO#(Bit#(8)) busyWriteTagQ <- mkSizedBRAMFIFO(128);
@@ -860,7 +856,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		if ( internalWords > towrite ) begin
 			dmaSendWords <= dmaSendWords - towrite;
 			dmaPageWriteReqQ.enq(DMAReq{addr:zeroExtend(dmaStartAddr[11:0]), words:towrite, tag:tag});
-			dmaStartAddr <= dmaStartAddr + (zeroExtend(towrite)<<2);
+			dmaStartAddr <= dmaStartAddr + (zeroExtend(towrite)<<4);
 		end else begin
 			dmaSendWords <= dmaSendWords - internalWords;
 			dmaStartAddr <= nextPage<<12;
@@ -893,6 +889,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let dmaAddr = busAddr + req.addr;
 		Bit#(10) dmaWords = req.words;
 		//let dmaWords = 8;
+		debugCode <= debugCode + (zeroExtend(req.words)<<16);
 		
 		dmaWriteWordQ.deq;
 		let data = dmaWriteWordQ.first;

@@ -105,9 +105,11 @@ module mkHwMain#(PcieUserIfc pcie)
 		pcie.dmaReadReq( (zeroExtend(poff)<<10), 64); // offset, words
 		streamReadCnt <= streamReadCnt + 1;
 	endrule
+	Reg#(Bit#(32)) dmaReadWords <- mkReg(0);
 	rule dmaReadDatal;
 		DMAWord rd <- pcie.dmaReadWord;
-		page.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:truncate(streamReadCnt),datain:rd});
+		page.portA.request.put(BRAMRequest{write:True,responseOnWrite:False,address:truncate(dmaReadWords),datain:rd});
+		dmaReadWords <= dmaReadWords + 1;
 		
 		inputQ.enq(rd);
 	endrule
