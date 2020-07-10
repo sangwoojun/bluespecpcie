@@ -334,6 +334,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	endrule
 	Reg#(Tuple3#(Bit#(8),Bit#(10),Bit#(10))) readFlushTag <- mkReg(tuple3(0,0,0)); //tag, req, curword
 	FIFO#(DMAWord) dmaReadOutQ <- mkSizedBRAMFIFO(dma_max_words*8);
+	FIFO#(DMAWord) dmaReadOutRQ <- mkFIFO;
 	Reg#(Bit#(8)) dmaReadOutCntUp <- mkReg(0);
 	Reg#(Bit#(8)) dmaReadOutCntDn <- mkReg(0);
 	rule flushReadTag ;
@@ -373,6 +374,10 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	rule flushReadOrdered;
 		let v <- readReorder.portB.response.get();
 		dmaReadOutQ.enq(v);
+	endrule
+	rule relayFlushReadOrdered;
+		dmaReadOutQ.deq;
+		dmaReadOutRQ.enq(dmaReadOutQ.first);
 	endrule
 
 
@@ -1047,9 +1052,9 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 			dmaReadReqQ.enq(DMAReq{addr:addr, words:words, tag:?});
 		endmethod
 		method ActionValue#(DMAWord) dmaReadWord;
-			dmaReadOutQ.deq;
+			dmaReadOutRQ.deq;
 			dmaReadOutCntDn <= dmaReadOutCntDn + 1;
-			return dmaReadOutQ.first;
+			return dmaReadOutRQ.first;
 		endmethod
 		method Action assertInterrupt if ( dataWordsRemain == 0);
 			user.assertInterrupt(1);
