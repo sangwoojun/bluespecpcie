@@ -1,5 +1,7 @@
 package ScatterN;
 
+// FIXME I think this one is incorrect
+
 import FIFO::*;
 import FIFOF::*;
 import Vector::*;

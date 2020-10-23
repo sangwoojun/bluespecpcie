@@ -9,6 +9,7 @@ import PcieCtrl::*;
 import Serializer::*;
 
 import StreamKernel::*;
+import LZAHCompression::*;
 
 interface HwMainIfc;
 endinterface
@@ -27,8 +28,11 @@ module mkHwMain#(PcieUserIfc pcie)
 	Reg#(Bit#(16)) outputCntUp <- mkReg(0);
 	Reg#(Bit#(16)) outputCntDn <- mkReg(0);
 
+
+/*
 	StreamKernelIfc kernel <- mkStreamKernelTest;
 	DeSerializerIfc#(128, 2) des <- mkDeSerializer;
+	SerializerIfc#(256, 2) ser <- mkSerializer;
 	rule desIn;
 		inputQ.deq;
 		des.put(inputQ.first);
@@ -37,14 +41,35 @@ module mkHwMain#(PcieUserIfc pcie)
 		let w <- des.get;
 		kernel.enq(w);
 	endrule
-
-	SerializerIfc#(256, 2) ser <- mkSerializer;
 	rule serOut;
 		kernel.deq;
 		ser.put(kernel.first);
 	endrule
 	rule relayOut;
 		let w <- ser.get;
+		outputQ.enq(w);
+		outputCntUp <= outputCntUp + 1;
+		//$display( "outputCntUp %d %d\n", outputCntUp+1, outputCntDn);
+	endrule
+	*/
+
+	SerializerIfc#(128,2) comp_ser <- mkSerializer;
+	DeSerializerIfc#(64,2) comp_des <- mkDeSerializer;
+	FIFO#(Bit#(64)) compr <- mkLZAHCompressor;
+	rule serIn;
+		inputQ.deq;
+		comp_ser.put(inputQ.first);
+	endrule
+	rule relayIn;
+		let w <- comp_ser.get;
+		compr.enq(w);
+	endrule
+	rule serOut;
+		compr.deq;
+		comp_des.put(compr.first);
+	endrule
+	rule relayOut;
+		let w <- comp_des.get;
 		outputQ.enq(w);
 		outputCntUp <= outputCntUp + 1;
 		//$display( "outputCntUp %d %d\n", outputCntUp+1, outputCntDn);

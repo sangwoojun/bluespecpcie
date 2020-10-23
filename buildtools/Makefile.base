@@ -1,8 +1,8 @@
-BSVPATH =$(LIBPATH)/src/:
+BSVPATH =$(LIBPATH)/src/:$(BLUESPEC_HOME)/BSVSource/Xilinx/
 COREPATH =$(LIBPATH)/core/$(BOARD)/
 #DRAMPATH =$(LIBPATH)/dram/src/
 
-BSCFLAGS = -show-schedule -aggressive-conditions --wait-for-license 
+BSCFLAGS = -show-schedule -aggressive-conditions 
 
 BSCFLAGS_SYNTH = -bdir ./$(BOARD)/obj -vdir ./$(BOARD)/verilog/top -simdir ./$(BOARD)/obj -info-dir ./$(BOARD) -fdir ./$(BOARD) -D $(BOARD)
 BSCFLAGS_BSIM = -bdir ./bsim/obj -vdir ./bsim/verilog/top -simdir ./bsim/obj -info-dir ./bsim -fdir ./bsim
