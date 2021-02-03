@@ -2,8 +2,10 @@ LIBPATH =../../
 BOARD=kc705
 BUILDTOOLS=$(LIBPATH)/buildtools/
 
-CUSTOMBSV= -p +:$(LIBPATH)/dram/src/
-CUSTOMCPP_BSIM=
+BLIBPATH=$(LIBPATH)/../bluelib/src/
+
+CUSTOMBSV= -p +:$(LIBPATH)/dram/src/:$(BLIBPATH)/
+CUSTOMCPP_BSIM=$(BLIBPATH)/bdpi.cpp
 
 include $(BUILDTOOLS)/Makefile.base
 

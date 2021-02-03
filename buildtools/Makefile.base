@@ -1,4 +1,5 @@
-BSVPATH =$(LIBPATH)/src/:$(BLUESPEC_HOME)/BSVSource/Xilinx/
+#BSVPATH =$(LIBPATH)/src/:$(BLUESPEC_HOME)/BSVSource/Xilinx/
+BSVPATH =$(LIBPATH)/src/
 COREPATH =$(LIBPATH)/core/$(BOARD)/
 #DRAMPATH =$(LIBPATH)/dram/src/
 

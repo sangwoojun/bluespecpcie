@@ -8,8 +8,6 @@ import BRAMFIFO::*;
 
 import PcieCtrl::*;
 
-import temp::*;
-
 interface HwMainIfc;
 endinterface
 
@@ -28,15 +26,10 @@ module mkHwMain#(PcieUserIfc pcie)
 	Reg#(Bit#(32)) writeCounter <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 
 
-	TempIfc t <- mkTemp(clocked_by pcieclk, reset_by pcierst);
-
-
 	rule echoRead;
 		// read request handle must be returned with pcie.dataSend
 		let r <- pcie.dataReq;
 		let a = r.addr;
-
-		let v <- t.av(zeroExtend(r.addr));
 
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero
@@ -46,8 +39,7 @@ module mkHwMain#(PcieUserIfc pcie)
 		end else if ( offset == 1 ) begin 
 			pcie.dataSend(r, dataBuffer1);
 		end else begin
-			//pcie.dataSend(r, pcie.debug_data);
-			pcie.dataSend(r, v);
+			pcie.dataSend(r, pcie.debug_data);
 		end
 		$display( "Received read req at %x", r.addr );
 	endrule

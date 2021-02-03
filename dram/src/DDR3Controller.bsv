@@ -29,7 +29,7 @@ import BUtils            ::*;
 import StmtFSM           ::*;
 import DDR3Common        ::*;
 
-import XilinxCells       ::*;
+//import XilinxCells       ::*;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Exports
