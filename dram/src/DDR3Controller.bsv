@@ -25,7 +25,7 @@ import Memory            ::*;
 import ClientServer      ::*;
 import GetPut            ::*;
 import BUtils            ::*;
-import I2C               ::*;
+//import I2C               ::*;
 import StmtFSM           ::*;
 import DDR3Common        ::*;
 

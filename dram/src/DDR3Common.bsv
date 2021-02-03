@@ -23,7 +23,7 @@ import Memory            ::*;
 import GetPut            ::*;
 import ClientServer      ::*;
 import BUtils            ::*;
-import I2C               ::*;
+//import I2C               ::*;
 import Connectable       ::*;
 
 //import Cntrs::*;

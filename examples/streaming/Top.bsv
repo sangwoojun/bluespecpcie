@@ -4,7 +4,7 @@
 import Clocks :: *;
 import DefaultValue :: *;
 //import Xilinx :: *;
-import XilinxCells :: *;
+//import XilinxCells :: *;
 
 import PcieImport :: *;
 import PcieCtrl :: *;
