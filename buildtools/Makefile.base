@@ -17,6 +17,7 @@ DEBUGFLAGS = -D BSIM
 all:
 	mkdir -p $(BOARD)
 	mkdir -p $(BOARD)/obj
+	mkdir -p $(BOARD)/verilog
 	mkdir -p $(BOARD)/verilog/top
 	bsc  $(BSCFLAGS) $(BSCFLAGS_SYNTH) -remove-dollar -p +:$(BSVPATH) $(CUSTOMBSV) -verilog -u -g mkProjectTop Top.bsv 
 	cp $(BUILDTOOLS)/vivado-impl-$(BOARD).tcl ./$(BOARD)/impl.tcl
@@ -28,6 +29,7 @@ all:
 bsim: HwMain.bsv Top.bsv
 	mkdir -p bsim
 	mkdir -p bsim/obj
+	mkdir -p $(BOARD)/verilog
 	mkdir -p bsim/verilog/top
 	bsc $(BSCFLAGS) $(BSCFLAGS_BSIM) $(DEBUGFLAGS) -p +:$(BSVPATH) $(CUSTOMBSV) -sim -u -g mkProjectTop_bsim Top.bsv  
 	bsc $(BSCFLAGS) $(BSCFLAGS_BSIM) $(DEBUGFLAGS) -sim -e mkProjectTop_bsim -o bsim/obj/bsim bsim/obj/*.ba $(BSIM_CPPFILES) 

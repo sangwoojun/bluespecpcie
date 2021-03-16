@@ -188,7 +188,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let words = tpl_2(burst);
 			
 		if ( !readCompletionsb.search1(tag) ) begin
-			tagMap.portA.request.put(BRAMRequest{write:False, responseOnWrite:False, address:tag, datain:?});
+			tagMap.portB.request.put(BRAMRequest{write:False, responseOnWrite:False, address:tag, datain:?});
 			readBurst2Q.deq;
 			readCompletionsb.enq(tpl_1(burst));
 			burstUpdReqQ.enq(burst);
@@ -198,7 +198,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(Tuple2#(Bit#(10),Bit#(10))) tagMapReadAQ <- mkFIFO;
 	FIFO#(Bit#(8)) freeReadTagFQ <- mkFIFO;
 	rule getTagMapReadA;
-		let v <- tagMap.portA.response.get();
+		let v <- tagMap.portB.response.get();
 		tagMapReadAQ.enq(v);
 	endrule
 	rule relayFreeReadTag;
