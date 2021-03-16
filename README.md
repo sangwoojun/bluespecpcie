@@ -14,6 +14,12 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 
 ## Getting Started
 
+### Clone bluelib
+BluespecPCIe depends on the bluelib library, which can be found here [https://github.com/sangwoojun/bluelib](https://github.com/sangwoojun/bluelib).
+
+By default, bluelib must be cloned at the same level as BluespecPCIe (e.g., ~/bluespecpcie and ~/bluelib). 
+However, you can always change the individual Makefiles to point to different locations.
+
 ### Installing the software
 - Driver: In **distribution/driver**, run **make**, and **sudo make install**.
 - Rescan tool: **bsrescan** lets the BIOS recognize the PCIe device without system reboot between re-programming the FPGA. In **distribution/bsrescan**, run **make**, and **sudo make install**. This installs **bsrescan** to **/opt/bluespecpcie_manager/**. You may want to add **/opt/bluespecpcie_manager/** to your **PATH**.
@@ -34,7 +40,7 @@ BluespecPCIe is still under active development. If you discover bugs, or has fea
 - **example/simple**: Memory-mapped I/O example
 - **example/dmatest**: DMA example
 - **example/dramtest**: Uses the 1 GB on-board DRAM on both VC707 and KC705
-- **example/float**: Floating point example, requires the **bluelib** library
+- **example/float**: Floating point example
 
 
 ## Developing custom designs
