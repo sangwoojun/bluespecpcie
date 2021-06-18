@@ -43,10 +43,31 @@ module mkHwMain#(PcieUserIfc pcie)
 		end
 		$display( "Received read req at %x", r.addr );
 	endrule
+	
+
+
+	Vector#(16, Reg#(Bit#(32))) writeBuffer <- replicateM(mkReg(0));
+	Reg#(Bit#(4)) writeBufferCnt <- mkReg(0);
+
+
+
 	rule recvWrite;
 		let w <- pcie.dataReceive;
 		let a = w.addr;
 		let d = w.data;
+
+		if ( a == 0 ) begin // command 
+		end else if ( a == 4 ) begin // data load
+			for ( Integer i = 1; i < 16; i++ ) begin
+				writeBuffer[i+1] <= writeBuffer[i];
+			end
+			writeBuffer[0] <= d;
+			if ( writeBufferCnt == 15 ) begin
+				writeBufferCnt <= 0;
+			end else begin
+				writeBufferCnt <= writeBufferCnt + 1;
+			end
+		end
 		
 		// PCIe IO is done at 4 byte granularities
 		// lower 2 bits are always zero

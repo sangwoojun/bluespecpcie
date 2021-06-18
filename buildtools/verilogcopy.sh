@@ -9,6 +9,7 @@ VFILES="
 	SizedFIFO.v
 	Counter.v
 	TriState.v
+	FIFO1.v
 	FIFO2.v
 	ResetInverter.v
 	SyncFIFO.v

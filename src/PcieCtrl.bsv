@@ -824,6 +824,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	
 	FIFO#(DMAReq) dmaWriteReqQ <- mkFIFO;
 	FIFO#(DMAWord) dmaWriteWordQ <- mkSizedFIFO(32);
+	Reg#(Bit#(10)) dmaWriteWordIn <- mkReg(0);
+	Reg#(Bit#(10)) dmaWriteWordOut <- mkReg(0);
 	Reg#(DMAWord) dmaWriteBuf <- mkReg(0);
 
 	Reg#(Bit#(32)) dmaStartAddr <- mkReg(0);
@@ -882,7 +884,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 
 	//Reg#(Bit#(128)) dataShiftBuffer <- mkReg(0);
 	Reg#(Bit#(10)) dataWordsRemain <- mkReg(0);
-	rule generateHeaderTLP ( dataWordsRemain == 0 );
+	rule generateHeaderTLP ( dataWordsRemain == 0 && dmaWriteWordIn-dmaWriteWordOut >= dmaPageWriteReqQ.first().words );
 
 		//let busAddr <- configBuffer.portB.response.get;
 		let busAddr = dmaWriteBufAddrQ.first;
@@ -899,6 +901,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		dmaWriteWordQ.deq;
 		let data = dmaWriteWordQ.first;
 		dmaWriteBuf <= (data>>32);
+		dmaWriteWordOut <= dmaWriteWordOut + dmaWords;
 
 		Bit#(32) cdw0 = {
 			1'b0,
@@ -1047,6 +1050,7 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		endmethod
 		method Action dmaWriteData(DMAWord data);
 			dmaWriteWordQ.enq(data);
+			dmaWriteWordIn <= dmaWriteWordIn + 1;
 		endmethod
 		method Action dmaReadReq(Bit#(32) addr, Bit#(10) words);
 			dmaReadReqQ.enq(DMAReq{addr:addr, words:words, tag:?});
