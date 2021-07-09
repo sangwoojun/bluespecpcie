@@ -51,6 +51,9 @@ module mkHwMain#(PcieUserIfc pcie)
 		qalu.putTop(invector1);
 		qalu.putNext(invector2);
 		qalu.command(ALUMult, ALUInput, ALUInput, 0);
+		qalu.putNext(invector2);
+		qalu.command(ALUMult, ALUQueue, ALUInput, 0);
+		qalu.command(ALUMult, ALUImm1, ALUImm2, 0);
 
 		qalu.command(ALUMult, ALUQueue, ALUQueue, 0);
 		qalu.command(ALUMult, ALUQueue, ALUQueue, 0);
@@ -217,9 +220,9 @@ module mkHwMain#(PcieUserIfc pcie)
 		let d = outputQ.first;
 		outputQ.deq;
 		if ( a[2] == 0 ) begin 
-			pcie.dataSend(r, truncate(d[0]>>(a>>3)) );
+			pcie.dataSend(r, truncate(d[0]>>((a>>3)*32)) );
 		end else begin
-			pcie.dataSend(r, truncate(d[1]>>(a>>3)) );
+			pcie.dataSend(r, truncate(d[1]>>((a>>3)*32)) );
 		end
 	endrule
 	rule recvWrite;
@@ -230,6 +233,7 @@ module mkHwMain#(PcieUserIfc pcie)
 			0: qalu.command(ALUSqrt, ALUQueue, ALUImm1, 1);
 			1: qalu.command(ALUAdd, ALUQueue, ALUQueue, 2);
 			2: qalu.command(ALUMult, ALUQueue, ALUQueue, 2);
+			3: qalu.command(ALUOutput, ALUImm1, ALUImm2, 1);
 		endcase
 	endrule
 /*
