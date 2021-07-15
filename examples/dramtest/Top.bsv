@@ -66,7 +66,7 @@ module mkProjectTop #(
 	DDR3_Controller_1GB ddr3_ctrl <- mkDDR3Controller_1GB(ddr3_cfg, ddr_buf, clocked_by ddr_buf, reset_by ddr3ref_rst_n);
 	DRAMControllerIfc dramController <- mkDRAMController(ddr3_ctrl.user, clocked_by pcieCtrl.user.user_clk, reset_by pcieCtrl.user.user_rst);
 
-	HwMainIfc hwmain <- mkHwMain(pcieCtrl.user, dramController.user, clocked_by sys_clk_200mhz_buf, reset_by rst200);
+	HwMainIfc hwmain <- mkHwMain(pcieCtrl.user, dramController.user, clocked_by pcieCtrl.user.user_clk, reset_by pcieCtrl.user.user_rst);
 
 
 

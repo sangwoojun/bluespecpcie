@@ -23,18 +23,18 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 
 	//DMASplitterIfc#(4) dma <- mkDMASplitter(pcie);
 
-	Reg#(Bit#(32)) cycles <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) cycles <- mkReg(0);
 	rule incCycle;
 		cycles <= cycles + 1;
 	endrule
 
-	FIFO#(Tuple2#(Bit#(16),Bit#(16))) dramReadReqQ <- mkSizedBRAMFIFO(1024, clocked_by pcieclk, reset_by pcierst); // offset, words
-	Reg#(Bit#(16)) dramReadReqCnt <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(16)) dramReadReqDone <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(16)) dramReqWordLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(16)) dramReqWordOff <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) startCycle <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) elapsedCycle <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Tuple2#(Bit#(16),Bit#(16))) dramReadReqQ <- mkSizedBRAMFIFO(1024); // offset, words
+	Reg#(Bit#(16)) dramReadReqCnt <- mkReg(0);
+	Reg#(Bit#(16)) dramReadReqDone <- mkReg(0);
+	Reg#(Bit#(16)) dramReqWordLeft <- mkReg(0);
+	Reg#(Bit#(16)) dramReqWordOff <- mkReg(0);
+	Reg#(Bit#(32)) startCycle <- mkReg(0);
+	Reg#(Bit#(32)) elapsedCycle <- mkReg(0);
 	rule startDRAMRead(dramReadReqCnt >= 1024 && dramReqWordLeft == 0);
 		let r = dramReadReqQ.first;
 		dramReadReqQ.deq;
@@ -43,7 +43,7 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		dramReadReqDone <= dramReadReqDone + 1;
 		if ( dramReadReqDone == 0 ) startCycle <= cycles;
 	endrule
-	FIFO#(Bool) isLastQ <- mkSizedFIFO(64, clocked_by pcieclk, reset_by pcierst);
+	FIFO#(Bool) isLastQ <- mkSizedFIFO(64);
 	rule issueDRAMRead (dramReqWordLeft > 0 );
 		dramReqWordLeft <= dramReqWordLeft -1;
 		dramReqWordOff <= dramReqWordOff + 1;
@@ -58,13 +58,13 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 	endrule
 
 
-	Reg#(Bit#(32)) wordReadLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) wordWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) wordWriteReq <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) dramWriteLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) dramReadLeft <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) dramWriteStartCycle <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
-	Reg#(Bit#(32)) dramWriteEndCycle <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) wordReadLeft <- mkReg(0);
+	Reg#(Bit#(32)) wordWriteLeft <- mkReg(0);
+	Reg#(Bit#(32)) wordWriteReq <- mkReg(0);
+	Reg#(Bit#(32)) dramWriteLeft <- mkReg(0);
+	Reg#(Bit#(32)) dramReadLeft <- mkReg(0);
+	Reg#(Bit#(32)) dramWriteStartCycle <- mkReg(0);
+	Reg#(Bit#(32)) dramWriteEndCycle <- mkReg(0);
 
 
 
@@ -107,13 +107,13 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 
 		dram.readReq(zeroExtend(dramReadLeft)*64, 64);
 	endrule
-	Reg#(Bit#(512)) dramReadVal <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(512)) dramReadVal <- mkReg(0);
 	rule dramReadResp;
 		let d <- dram.read;
 		dramReadVal <= d;
 	endrule
 
-	Reg#(DMAWord) lastRecvWord <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(DMAWord) lastRecvWord <- mkReg(0);
 
 	rule recvDMAData;
 		wordReadLeft <= wordReadLeft - 1;
@@ -121,7 +121,7 @@ module mkHwMain#(PcieUserIfc pcie, DRAMUserIfc dram)
 		lastRecvWord  <= d;
 	endrule
 
-	Reg#(Bit#(32)) writeData <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+	Reg#(Bit#(32)) writeData <- mkReg(0);
 	rule sendDMAData ( wordWriteLeft > 0 );
 		pcie.dmaWriteData({writeData+3,writeData+2,writeData+1,writeData});
 		writeData <= writeData + 4;
