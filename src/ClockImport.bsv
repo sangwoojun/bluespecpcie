@@ -1,5 +1,6 @@
 package ClockImport;
 import Clocks            ::*;
+
 import "BVI" IBUFDS =
 module mkClockIBUFDSImport#(Clock clk_p, Clock clk_n)(ClockGenIfc);
    default_clock no_clock;
@@ -15,6 +16,24 @@ module mkClockIBUFDSImport#(Clock clk_p, Clock clk_n)(ClockGenIfc);
 
    input_clock clk_p(I)  = clk_p;
    input_clock clk_n(IB) = clk_n;
+
+   output_clock gen_clk(O);
+
+   path(I,  O);
+   path(IB, O);
+
+   same_family(clk_p, gen_clk);
+endmodule
+
+import "BVI" IBUFDS_GTE2 =
+module mkClockIBUFDS_GTE2Import#(Clock clk_p, Clock clk_n)(ClockGenIfc);
+   default_clock no_clock;
+   default_reset no_reset;
+   
+   input_clock clk_p(I)  = clk_p;
+   input_clock clk_n(IB) = clk_n;
+
+   port CEB = 1'b0;
 
    output_clock gen_clk(O);
 
