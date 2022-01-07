@@ -1,5 +1,5 @@
 LIBPATH =../../
-BOARD=kc705
+BOARD=vc707
 BUILDTOOLS=$(LIBPATH)/buildtools/
 
 BLIBPATH=$(LIBPATH)/../bluelib/src/

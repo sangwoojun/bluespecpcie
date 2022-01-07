@@ -244,7 +244,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 	FIFO#(Bit#(8)) dmaReadTagOrderQ <- mkSizedBRAMFIFO(128);
 	ByteShiftIfc#(Bit#(128), 7) doneShifter <- mkPipelineLeftShifterBits;
 	ByteShiftIfc#(Bit#(128), 7) orderShifter <- mkPipelineLeftShifterBits;
-	FIFO#(Bit#(8)) orderTagBypassQ <- mkSizedFIFO(8);
+	FIFO#(Bit#(8)) orderTagBypassQ1 <- mkSizedFIFO(8);
+	FIFO#(Bit#(8)) orderTagBypassQ2 <- mkFIFO;
 	Reg#(Bit#(128)) doneTagMap <- mkReg(0);
 	Reg#(Bit#(128)) orderTagMap <- mkReg(0);
 	BRAM2Port#(Bit#(8),Tuple2#(Bit#(8),Bit#(10))) doneMap <- mkBRAM2Server(defaultValue); // tag, total words,words recv
@@ -262,7 +263,11 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 		let tag = dmaReadTagOrderQ.first;
 		dmaReadTagOrderQ.deq;
 		orderShifter.rotateByteBy(1,truncate(tag));
-		orderTagBypassQ.enq(tag);
+		orderTagBypassQ1.enq(tag);
+	endrule
+	rule forwardShiftOrderTagBypass;
+		orderTagBypassQ1.deq;
+		orderTagBypassQ2.enq(orderTagBypassQ1.first);
 	endrule
 	Reg#(Maybe#(Bit#(128))) curOrderTag <- mkReg(tagged Invalid);
 	FIFO#(Bit#(8)) doneReorderedTagQ <- mkFIFO;
@@ -278,8 +283,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				orderTagMap <= orderTagMap ^ ot;
 				curOrderTag <= tagged Invalid;
 
-				let tag = orderTagBypassQ.first;
-				orderTagBypassQ.deq;
+				let tag = orderTagBypassQ2.first;
+				orderTagBypassQ2.deq;
 				doneReorderedTagQ.enq(tag);
 			end
 		end else begin
@@ -290,8 +295,8 @@ module mkPcieCtrl#(PcieImportUser user) (PcieCtrlIfc);
 				orderTagMap <= orderTagMap ^ v;
 				//curOrderTag <= tagged Invalid;
 
-				let tag = orderTagBypassQ.first;
-				orderTagBypassQ.deq;
+				let tag = orderTagBypassQ2.first;
+				orderTagBypassQ2.deq;
 				doneReorderedTagQ.enq(tag);
 			end else begin
 				curOrderTag <= tagged Valid v;

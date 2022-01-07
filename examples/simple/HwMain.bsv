@@ -58,7 +58,7 @@ module mkHwMain#(PcieUserIfc pcie)
 
 		if ( a == 0 ) begin // command 
 		end else if ( a == 4 ) begin // data load
-			for ( Integer i = 1; i < 16; i++ ) begin
+			for ( Integer i = 1; i < 15; i=i+1 ) begin
 				writeBuffer[i+1] <= writeBuffer[i];
 			end
 			writeBuffer[0] <= d;
