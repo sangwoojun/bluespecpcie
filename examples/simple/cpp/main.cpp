@@ -20,6 +20,10 @@ int main(int argc, char** argv) {
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
 
+	pcie->userWriteWord(0, portid);
+	pcie->userWriteWord(4, 0xdeadbeef);
+	pcie->userWriteWord(8, 0xcafef00d);
+
 	pcie->userWriteWord(4, 0xdeadbeef);
 	pcie->userWriteWord(0, 0xcafef00d);
 

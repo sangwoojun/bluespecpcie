@@ -282,5 +282,16 @@ main (int argc, char** argv)
 		}
 	}
 
+	if ( cmd_reboot ) {
+		printf( "rebooting machine...\n" );
+		do_setuid();
+		set_rebooted();
+		undo_setuid();
+		do_setuid();
+		reboot(LINUX_REBOOT_CMD_RESTART);
+		undo_setuid();
+		retval = 1;
+	}
+
 	return retval;
 }
