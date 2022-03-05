@@ -56,15 +56,6 @@ module mkHwMain#(PcieUserIfc pcie)
 		let a = w.addr;
 		let d = w.data;
 
-		if ( a == 0 ) 
-			payload <= 0;
-		else if ( a == 4 ) 
-			payload |= zeroExtend(d)<<32;
-		else 
-			zeroExtend(d) 
-			auroraExt.ports[portid].send(payload|zeroExtend(d));
-			
-
 		if ( a == 0 ) begin // command 
 		end else if ( a == 4 ) begin // data load
 			for ( Integer i = 1; i < 15; i=i+1 ) begin

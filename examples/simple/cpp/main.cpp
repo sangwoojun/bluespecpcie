@@ -20,6 +20,12 @@ int main(int argc, char** argv) {
 	printf( "Magic: %x\n", d );
 	fflush(stdout);
 
+	pcie->userWriteWord(4, 0xdeadbeef);
+	pcie->userWriteWord(0, 0xcafef00d);
+
+	pcie->userWriteWord(12, 0);
+	pcie->Ioctl(1,0); // refresh link
+	sleep(1);
 	for ( int i = 0; i < 8; i++ ) {
 		printf( "read: %x\n", pcie->userReadWord(i*4) );
 		//sleep(1);
