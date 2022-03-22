@@ -8,14 +8,20 @@ import BRAMFIFO::*;
 
 import PcieCtrl::*;
 
-import DMASplitter::*;
-
 import Float32::*;
 import Float64::*;
 import Cordic::*;
+import BLMacMSFP::*;
 
 interface HwMainIfc;
 endinterface
+
+
+(* synthesize *)
+module mkBLMacMSFP12_3_Fixed(BLMacMSFP12_3ChannelIfc);
+	BLMacMSFP12_3ChannelIfc pe <- mkBLMacMSFP12_3(53'h01abcb223c54a7d, 53'h01eccb634c5ae7d, 53'h01dc674c46d8c7a);
+	return pe;
+endmodule
 
 module mkHwMain#(PcieUserIfc pcie) 
 	(HwMainIfc);
@@ -29,6 +35,8 @@ module mkHwMain#(PcieUserIfc pcie)
 	Reg#(Bit#(32)) dataBuffer0 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) dataBuffer1 <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
 	Reg#(Bit#(32)) writeCounter <- mkReg(0, clocked_by pcieclk, reset_by pcierst);
+
+	BLMacMSFP12_3ChannelIfc msfpe <- mkBLMacMSFP12_3_Fixed(clocked_by pcieclk, reset_by pcierst);
 
 	FpPairIfc#(64) mult <- mkFpMult64(clocked_by pcieclk, reset_by pcierst);
 	FpFilterIfc#(64) sqrt <- mkFpSqrt64(clocked_by pcieclk, reset_by pcierst);
@@ -60,6 +68,11 @@ module mkHwMain#(PcieUserIfc pcie)
 			pcie.dataSend(r, truncate(doubleResultBuffer2>>32));
 		end else if ( offset == 4 ) begin
 			pcie.dataSend(r, cordicResultBuffer);
+		end else if ( offset == 5 ) begin
+			msfpe.deq;
+			let rt = msfpe.first;
+			Bit#(48) t = pack(rt);
+			pcie.dataSend(r, truncate(t)^truncateLSB(t));
 		end else begin
 			//pcie.dataSend(r, pcie.debug_data);
 			pcie.dataSend(r, writeCounter);
@@ -84,6 +97,9 @@ module mkHwMain#(PcieUserIfc pcie)
 			Bit#(64) b2 = doubleBuffer2 | (zeroExtend(d)<<32);
 			mult.enq(doubleBuffer1, b2);
 			sqrt.enq(b2);
+
+			// FIXME
+			msfpe.enq(unpack(truncate({doubleBuffer2,doubleBuffer1})));
 		end else if ( off == 4 ) begin
 			sincos.enq(truncate(d));
 		end else begin
